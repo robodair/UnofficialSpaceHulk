@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 17-9-14.0
+ * Version 19-9-14.0
  * */
 
 using UnityEngine;
@@ -271,6 +271,40 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void resetMap(){
+
+		//Added removing old gameobjects to this method - Alisdair 19-9-2014
+
+		Debug.Log ("Resetting Map - Removing GameObjects");
+
+		for (int i = 0; i < mapClass.map.Length; i++) {
+
+			Square square = (Square) mapClass.map.GetValue(i);
+
+			try{
+				Destroy(square.occupant.gameObject);
+			}
+			catch (UnityException ex)
+			{
+				Debug.Log("Exception - no occupant at Position: " + square.position);
+			}
+
+			try{
+				Destroy (square.door.gameObject);
+			}
+			catch (UnityException ex)
+			{
+				Debug.Log("Exception - no door at Position: " + square.position);
+			}
+
+			try{
+				Destroy(square.model);
+			}
+			catch (UnityException ex)
+			{
+				Debug.Log("Exception - no model at Position: " + square.position);
+			}
+		}
+
 		Debug.Log("Resetting Map - Calling generateMap()");
 		//Alisdair 11/Sept/2014
 		generateMap (); //Rerun generate map so that it matches the map class again
@@ -349,6 +383,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Move Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		resetMap ();
 	}
 
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
