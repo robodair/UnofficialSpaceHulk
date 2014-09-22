@@ -95,7 +95,7 @@ public class Map : MonoBehaviour {
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	//Returns true if the both squares exist, and the 
