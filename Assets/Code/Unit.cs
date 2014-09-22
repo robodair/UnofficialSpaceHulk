@@ -38,6 +38,7 @@ public class Unit {
 	public bool isJammed;
 	public Unit sustainedFireTarget;
 	public List<Vector2> currentLoS;
+	public int noOfGS;
 	public GameObject gameObject;
 
 	public Unit(string name, Game.EntityType unitType,
@@ -53,5 +54,6 @@ public class Unit {
 		this.isJammed = false;
 		this.sustainedFireTarget = null;
 		this.currentLoS = new List<Vector2>();
+		this.noOfGS = 1;
 	}
 }
