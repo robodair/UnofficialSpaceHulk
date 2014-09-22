@@ -2,7 +2,7 @@
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
  * Version 21-9-14.0
- * */
+ */
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -204,8 +204,7 @@ public class InputOutput : MonoBehaviour {
 				}
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
-				
-				GameObject deploymentPiece = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
+				Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
 			}
 
 
@@ -262,8 +261,33 @@ public class InputOutput : MonoBehaviour {
 		Debug.LogError("ShowDeployment method INCOMPLETE. Refer Alisdair.");
 	}
 
-	public void placeUnit(Unit unit){
-		Debug.LogError("placeUnit method INCOMPLETE. Refer Alisdair.");
+	public void placeUnit(Unit unit){ //Added Gameobject Return 22/9/14 Alisdair
+		Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
+
+
+	//Needs to check if the unit is in a deployment area and place it appropriately if this is the case
+
+	//Otherwise the unit is on the map already, therefore place it as normal
+
+		//Instantiate the unit at the position and pass a reference back to the unit class
+		switch (unit.unitType){
+
+			case Game.EntityType.Blip:
+				unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor object & pass it back to the Unit Class
+				break;
+		
+			case Game.EntityType.Door:
+				unit.gameObject = (GameObject) Instantiate(ClosedDoorPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the closed door object above the floor object unit.gameObject
+				break;
+		
+			case Game.EntityType.GS:
+				unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
+				break;
+		
+			case Game.EntityType.SM:
+				unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
+				break;
+		}
 	}
 
 	public void removeUnit(Vector2 position){
@@ -285,7 +309,7 @@ public class InputOutput : MonoBehaviour {
 			}
 			catch (UnityException ex)
 			{
-				Debug.Log("Exception - no occupant at Position: " + square.position);
+				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
 			}
 
 			try{
@@ -293,7 +317,7 @@ public class InputOutput : MonoBehaviour {
 			}
 			catch (UnityException ex)
 			{
-				Debug.Log("Exception - no door at Position: " + square.position);
+				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
 			}
 
 			try{
@@ -301,7 +325,7 @@ public class InputOutput : MonoBehaviour {
 			}
 			catch (UnityException ex)
 			{
-				Debug.Log("Exception - no model at Position: " + square.position);
+				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
 			}
 		}
 
@@ -464,7 +488,31 @@ public class InputOutput : MonoBehaviour {
 		int zPos = (int) position.y;
 		Vector3 v3 = new Vector3 (xPos, elevation, zPos); 
 		return v3;
+	}
+
+	//Method to get facing from Game enum Added by Alisdair 22/9/14
+	Quaternion makeFacing(Game.Facing facingEnum){
+
+		switch (facingEnum){
+			case Game.Facing.North:
+				return Quaternion.identity;
+			
+			case Game.Facing.East:
+				return Quaternion.Euler(0,90,0);
+			
+			case Game.Facing.South:
+				return Quaternion.Euler(0,180,0);
+			
+			case Game.Facing.West:
+				return Quaternion.Euler(0,270,0);
+			
+			default:
+				Debug.LogError("Unable to determine facing set to Quaternion.identity. Refer Alisdair");
+				return Quaternion.identity;
+				
+			
+		}
 
 	}
-	
+
 }
