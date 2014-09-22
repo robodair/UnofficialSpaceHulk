@@ -355,7 +355,7 @@ public class Game : MonoBehaviour {
 	}
 
 	//Randomly chooses a name from a set of names
-	private void makeName(EntityType unitType)
+	private string makeName(EntityType unitType)
 	{
 		if (unitType.Equals (EntityType.SM))
 		{
