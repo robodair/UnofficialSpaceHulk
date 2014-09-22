@@ -29,6 +29,9 @@ public class Algorithm : MonoBehaviour {
 	//Changed the findLoS method's return type to List<Vector2>
 	//Fixed a bug in the findLoS method caused by float precision.
 
+	//Ian Mallett 21.9.14
+	//Uncommented a line that had not been supported previously.
+
 	public Game game;
 	public Map map;
 
@@ -285,8 +288,7 @@ public class Algorithm : MonoBehaviour {
 
 		List<Path> currentPaths = new List<Path>();
 
-//		Dictionary<Game.MoveType, int> moveSet = UnitData.getMoveSet(unit.unitType);
-		Dictionary<Game.MoveType, int> moveSet = new Dictionary<Game.MoveType, int>();
+		Dictionary<Game.MoveType, int> moveSet = UnitData.getMoveSet(unit.unitType);
 		
 		currentPaths.Add (new Path (unit.position, unit.facing));
 

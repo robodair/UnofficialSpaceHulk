@@ -13,6 +13,9 @@ public class Action : MonoBehaviour {
 
 	//Ian Mallett 17.9.14
 	//Added sustainedFireChanged, lostOverwatch, unitJams, target, movePosition, and moveFacing
+
+	//Ian Mallett 22.9.14
+	//Added completeLoS variable.
 	
 	public Game.ActionType actionType;
 	public Unit executor;
@@ -23,6 +26,7 @@ public class Action : MonoBehaviour {
 	public bool unitJams;
 	public Unit[] destroyedUnits;
 	public Unit[] sustainedFireLost;
+	public Dictionary<Unit, List<Vector2>> completeLoS;
 	public Dictionary<Unit, Unit> sustainedFireChanged;
 	public Unit[] lostOverwatch;
 	public Dictionary<Game.PlayerType, int[]> diceRoll;

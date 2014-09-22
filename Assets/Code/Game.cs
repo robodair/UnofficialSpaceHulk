@@ -44,6 +44,10 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 18.9.14
 	//Added basic triggers to the game.
 
+	//Ian Mallett 22.9.14
+	//Added resetLoS method, and the call to it in Start()
+	//Added makeName method, and added functionality to the deploy method.
+
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
 	 * game data. This means that it stores all the data relating to the
@@ -131,7 +135,9 @@ public class Game : MonoBehaviour {
 		ioModule.generateMap ();
 		//Added 14/9/2014 by Alisdair
 		ioModule.instantiateUI ();
-		
+
+		//Set the initial data
+		resetLoS();
 		
 		//Triggers
 		SMEscaped = 0;
@@ -188,7 +194,9 @@ public class Game : MonoBehaviour {
 
 	public void deploy(EntityType unitType, Vector2 position, Facing facing)
 	{
-
+		Unit placeUnit = new Unit (makeName(unitType), unitType, position, facing);
+		gameMap.placeUnit (placeUnit);
+		ioModule.placeUnit (placeUnit);
 	}
 
 	public void selectUnit(GameObject model)
@@ -336,6 +344,67 @@ public class Game : MonoBehaviour {
 	public void setPauseState(bool pauseState)
 	{
 
+	}
+
+	public void resetLoS()
+	{
+		foreach (Unit unit in gameMap.getMarines ())
+		{
+			unit.currentLoS = algorithm.findLoS(unit);
+		}
+	}
+
+	//Randomly chooses a name from a set of names
+	private void makeName(EntityType unitType)
+	{
+		if (unitType.Equals (EntityType.SM))
+		{
+			switch (Random.Range(0, 6))
+			{
+				case 0:
+					return "Derpy";
+				case 1:
+					return "Nrick";
+				case 2:
+					return "Block Head";
+				case 3:
+					return "Brainiac";
+				case 4:
+					return "Omnio";
+				case 5:
+					return "Phteven";
+				default:
+					return "Ian";
+			}
+		}
+		else if (unitType.Equals (EntityType.GS))
+		{
+			switch (Random.Range (0, 6))
+			{
+				case 0:
+					return "Biter";
+				case 1:
+					return "Mangler";
+				case 2:
+					return "Claw";
+				case 3:
+					return "Jaws";
+				case 4:
+					return "Hungry";
+				case 5:
+					return "Fluffy";
+				default:
+					return "Cute";
+			}
+		}
+		else if (unitType.Equals (EntityType.Blip))
+		{
+			return "Blip";
+		}
+		else
+		{
+			return "Name";
+		}
 	}
 
 	//Assign quaternion directions to each of the Facings in the facingDirection dictionary

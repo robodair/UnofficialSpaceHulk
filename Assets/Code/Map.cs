@@ -32,6 +32,10 @@ public class Map : MonoBehaviour {
 	//Ian Mallett 18.9.14
 	//Added getMarines method with full functionality.
 
+	//Ian Mallett 22.9.14
+	//Added findArea method with full functionality
+	//Added the placeUnit method, and made shiftUnit call it.
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -76,6 +80,22 @@ public class Map : MonoBehaviour {
 			}
 		}
 		return null;
+	}
+
+	//Returns the DeploymentArea object that the given
+	//GameObject represents. Null if there is no such
+	//DeploymentArea
+	public DeploymentArea findArea(GameObject model)
+	{
+		for (int i = 0; i < otherAreas.Length; i++)
+		{
+			if (otherAreas[i].model.Equals (model))
+			{
+				return otherAreas[i];
+			}
+		}
+
+		return false;
 	}
 
 	//Returns true if the both squares exist, and the 
@@ -363,54 +383,60 @@ public class Map : MonoBehaviour {
 
 		if (movingUnit != null)
 		{
-			//Place the unit at the final position
-			//If it is a square
-			if (finalPosition.x >= 0)
+			movingUnit.position = finalPosition;
+			movingUnit.facing = finalFacing;
+			placeUnit (movingUnit);
+		}
+	}
+
+	//Places the given unit at the position on the map. Logs an error if
+	//the square does not exist or is already occupied.
+	public void placeUnit(Unit unit)
+	{
+		//Place the unit at the final position
+		//If it is a square
+		if (unit.position.x >= 0)
+		{
+			Square square = getSquare(unit.position);
+			if (square != null)
 			{
-				Square square = getSquare(finalPosition);
-				if (square != null)
+				//Not occupied
+				if (!square.isOccupied)
 				{
-					//Not occupied
-					if (!square.isOccupied)
-					{
-						square.occupant = movingUnit;
-						square.isOccupied = true;
-						movingUnit.position = square.position;
-						movingUnit.facing = finalFacing;
-					}
-					//Already occupied
-					else
-					{
-						Debug.LogError("Specified square already occupied for \"shiftUnit\" " +
-						               "method.\r\nMethod called for (" + finalPosition.x + ", " +
-						               finalPosition.y + ")");
-					}
+					square.occupant = unit;
+					square.isOccupied = true;
 				}
-				//No such position
+				//Already occupied
 				else
 				{
-					Debug.LogError("No such destination square for \"shiftUnit\" " +
-					               "method.\r\nMethod called for (" + finalPosition.x +
-					               ", " + finalPosition.y + ")");
+					Debug.LogError("Specified square already occupied for \"placeUnit\" " +
+					               "method.\r\nMethod called for (" + unit.position.x + ", " +
+					               unit.position.y + ")");
 				}
 			}
-
-			//If the position is a deployment area add it to the deployment area
-			else if (otherAreas.Length > (-1 - (int)finalPosition.x))
-			{
-				int areaIndex = -1 - (int)finalPosition.x;
-				DeploymentArea area = otherAreas[areaIndex];
-				area.units.Add(movingUnit);
-				movingUnit.position = new Vector2(finalPosition.x, area.units.Count - 1);
-			}
-
-			//If there is no such position
+			//No such position
 			else
 			{
-				Debug.LogError("No such destination square for \"shiftUnit\" " +
-				               "method.\r\nMethod called for (" + finalPosition.x +
-				               ", " + finalPosition.y + ")");
+				Debug.LogError("No such destination square for \"placeUnit\" " +
+				               "method.\r\nMethod called for (" + unit.position.x +
+				               ", " + unit.position.y + ")");
 			}
+		}
+		
+		//If the position is a deployment area add it to the deployment area
+		else if (otherAreas.Length > (-1 - (int)unit.position.x))
+		{
+			int areaIndex = -1 - (int)unit.position.x;
+			DeploymentArea area = otherAreas[areaIndex];
+			area.units.Add(unit);
+		}
+		
+		//If there is no such position
+		else
+		{
+			Debug.LogError("No such destination square for \"placeUnit\" " +
+			               "method.\r\nMethod called for (" + unit.position.x +
+			               ", " + unit.position.y + ")");
 		}
 	}
 
@@ -531,7 +557,4 @@ public class Map : MonoBehaviour {
 
 		return returnList;
 	}
-
-
-
 }
