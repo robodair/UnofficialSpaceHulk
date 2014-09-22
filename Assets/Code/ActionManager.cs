@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ActionManager {
 
 	//Created by Ian Mallett 1.9.14
-	//modified By Nick Lee 16.9.14
+	//modified By Nick Lee 18.9.14
 
 	private Game.MoveType Movement;//Created by Nick Lee 18-9-14
 	private Unit unit; //Created by Nick Lee 16-9-14
@@ -19,6 +19,7 @@ public class ActionManager {
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
 	private Path customPath;//Created by Nick Lee 18-9-14
+	private List<Action> actions; //created by Nick Lee 22-9-14
 	public Unit target;
 	public Path path;
 
@@ -26,37 +27,34 @@ public class ActionManager {
 	{
 		GameObject gameController = GameObject.FindWithTag ("GameController");
 		game = gameController.GetComponent<Game> ();
-		actionUsed = action;
-		this.unit = unit;
+		//gets local game controller
+		actionUsed = action; //gets the action
+		this.unit = unit; //the unit using the action
 	}
 
 	public void performAction() 	//Contents modified by Nick Lee 18-9-14
 	{
-		unit.isOnOverwatch = false;
+		unit.isOnOverwatch = false; //sets overwatch to false
 		if (actionUsed == Game.ActionType.Move) {
-			moveMethod();
+			moveMethod(); //if action is a movement
 		}
 		else if (actionUsed == Game.ActionType.Attack) {
-			attackMethod(unit, target);
+			attackMethod(unit, target); //if action is a melee attack, requires target
 		}
 		else if (actionUsed == Game.ActionType.Shoot) {
-			shootMethod(unit, target);
+			shootMethod(unit, target); //if action is shooting, requires target
 		}
 		else if (actionUsed == Game.ActionType.Reveal) {
-			revealMethod();
+			revealMethod(); //if action is a voluntary reveal
 		}
 		else if (actionUsed == Game.ActionType.ToggleDoor) {
-			toggleDoorMethod();
+			toggleDoorMethod(); //if action is toggling a door
 		}
 		else if (actionUsed == Game.ActionType.Overwatch) {
-			overwatchMethod();
+			overwatchMethod(); //if action is setting a unit to overwatch
 		} else
 			Debug.Log ("Error with action type , ActionManager");
-	}
-
-	public void involuntaryReveal()
-	{
-
+		//error message and catching
 	}
 
 	private void update()//Created by Nick Lee 16-9-14, modified 18-9-14
@@ -80,12 +78,7 @@ public class ActionManager {
 		for (int i = 0; i < marines.Count; i++) {
 			marines[i].currentLoS = game.algorithm.findLoS(marines[i]);
 		}//updates line of sight for all marines
-		//Add involuntary reveal later
-	}
-
-	public void resolveAction()//Created by Nick Lee 16-9-14
-	{
-
+		//add involuntary reveal later
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 18-9-14
@@ -101,19 +94,19 @@ public class ActionManager {
 			moving = unit.position + moving;
 
 			Quaternion direction = game.facingDirection[unit.facing]*((Quaternion)game.moveTransform[Movement][1]);
-			if(Mathf.Abs (direction.z-0) < 0.1f)
+			if(Mathf.Abs (direction.eulerAngles.z-0) < 0.1f)
 			{
 				compassFacing = Game.Facing.North;
 			}
-			else if(Mathf.Abs (direction.z-270) < 0.1f)
+			else if(Mathf.Abs (direction.eulerAngles.z-270) < 0.1f)
 			{
 				compassFacing = Game.Facing.East;
 			}
-			else if(Mathf.Abs (direction.z-180) < 0.1f)
+			else if(Mathf.Abs (direction.eulerAngles.z-180) < 0.1f)
 			{
 				compassFacing = Game.Facing.South;
 			}
-			else if(Mathf.Abs (direction.z-90) < 0.1f)
+			else if(Mathf.Abs (direction.eulerAngles.z-90) < 0.1f)
 			{
 				compassFacing = Game.Facing.West;
 			}
@@ -142,7 +135,7 @@ public class ActionManager {
 		defender.isOnOverwatch = false;
 		Quaternion defDirection = game.facingDirection[defender.facing];
 		Quaternion attDirection = game.facingDirection[attacker.facing];
-		if (Mathf.Abs (Mathf.Abs (attDirection.z - defDirection.z) - 180) < 0.1f) {
+		if (Mathf.Abs (Mathf.Abs (attDirection.eulerAngles.z - defDirection.eulerAngles.z) - 180) < 0.1f) {
 			if(attDie > defDie)
 				game.gameMap.removeUnit (defender.position);
 			if(defDie > attDie)
