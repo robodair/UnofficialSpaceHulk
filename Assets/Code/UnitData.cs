@@ -169,7 +169,7 @@ public static class UnitData{
 		else if (action == Game.ActionType.Overwatch) {
 						return 2; //If action is Overwatch returns AP cost of action type Overwatch
 				} else {
-						Debug.Log ("Invalid action, doe not exist (getAPCost, UnitData)");
+						Debug.Log ("Invalid action, does not exist (getAPCost, UnitData)");
 						return 0;
 				}//Error checking and message
 	}//untested
