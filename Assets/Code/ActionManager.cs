@@ -24,6 +24,7 @@ public class ActionManager {
 	private int[] dieRolls = new int[3];
 	public Unit target;
 	public Path path;
+	//gameController.ioModule.showActionSequence(actions);
 
 	private Game.ActionType actionType;
 	private Unit executor;
@@ -38,7 +39,7 @@ public class ActionManager {
 	private Dictionary<Unit, Unit> sustainedFireChanged;
 	private List<Unit> lostOverwatch;
 	private Dictionary<Game.PlayerType, int[]> dieRolled;
-	private int j = 0;
+	private int dieRollsIterator = 0;
 
 
 	public ActionManager(Unit unit, Game.ActionType action)	//Contents modified by Nick Lee 16-9-14
@@ -231,7 +232,6 @@ public class ActionManager {
 		int die2 = diceRoll(shooter, Game.ActionType.Shoot);
 		if (!shooter.isJammed) {
 				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
-				sustainedFireChanged.Add (shooter, shootie);
 						if (die1 >= 5 || die1 >= 5) {
 								game.gameMap.removeUnit (shootie.position);
 								destroyedUnits.Add (shootie);
@@ -239,12 +239,15 @@ public class ActionManager {
 						}
 						//sustained fire shots (kill on 5's)
 				} else {
-						if (die1 >= 6 || die1 >= 6) {
-								game.gameMap.removeUnit (shootie.position);
-								destroyedUnits.Add (shootie);
-								sustainedFireChanged.Remove (shooter);
-						}
-						//non-sustained fire shots (kill on 6's)
+					sustainedFireChanged.Add (shooter, shootie);
+					if (die1 >= 6 || die1 >= 6) {
+							game.gameMap.removeUnit (shootie.position);
+							destroyedUnits.Add (shootie);
+							sustainedFireChanged.Remove (shooter);
+					}
+					//non-sustained fire shots (kill on 6's)
+					shooter.sustainedFireTarget = target;
+					shooter.hasSustainedFire = true;
 				}
 				if (overwatchShot && die1 == die2) {
 						shooter.isJammed = true;
@@ -262,12 +265,14 @@ public class ActionManager {
 
 	private void revealMethod()//Created by Nick Lee 18-9-14
 	{
+
 		postAction ();
 		update (Game.ActionType.Reveal);
 	}
 
 	private void toggleDoorMethod()//Created by Nick Lee 18-9-14
 	{
+
 		postAction ();
 		update (Game.ActionType.ToggleDoor);
 	}
@@ -286,16 +291,16 @@ public class ActionManager {
 		return die;
 		if(roller.unitType.Equals(game.playerTurn) && shootOrAttack == Game.ActionType.Attack)
 		{
-			dieRolls[j] = die;
-			j++;
-			if(game.playerTurn == Game.PlayerType.GS && j == 3)
+			dieRolls[dieRollsIterator] = die;
+			dieRollsIterator++;
+			if(game.playerTurn == Game.PlayerType.GS && dieRollsIterator == 3)
 				dieRolled.Add (game.playerTurn, dieRolls);
-			else if(game.playerTurn == Game.PlayerType.SM && j == 1)
+			else if(game.playerTurn == Game.PlayerType.SM && dieRollsIterator == 1)
 				dieRolled.Add (game.playerTurn, dieRolls);
 		} else if (shootOrAttack == Game.ActionType.Shoot){
-			dieRolls[j] = die;
-			j++;
-			if(j == 2)
+			dieRolls[dieRollsIterator] = die;
+			dieRollsIterator++;
+			if(dieRollsIterator == 2)
 				dieRolled.Add (game.playerTurn, dieRolls);
 		}
 	}
@@ -311,55 +316,53 @@ public class ActionManager {
 
 	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14
 	{
-		actionType = actionMade;
-		executor = unit;
-		APCost = UnitData.getAPCost(actionMade);
+		actionType = actionMade; //gets action made
+		executor = unit; //the unit executing the action
 		marines = game.gameMap.getMarines();
 		for(int u = 0; u < marines.Count; u++)
 			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
-		APCost = UnitData.getAPCost(actionType);
+		//gets and updates the LoS for all marines
+		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
 
 		if (actionUsed == Game.ActionType.Move) {
-			executie = null;
-			movePosition = moving; 
-			moveFacing = compassFacing;
-			APCost = UnitData.getMoveSet(unit.unitType)[Movement];
-			unitJams = false;
-			destroyedUnits = null;
+			executie = null; //no target unit for moving
+			movePosition = moving; //position to move to set by moving
+			moveFacing = compassFacing; //facing set by compass facing
+			APCost = UnitData.getMoveSet(unit.unitType)[Movement]; //APCost depends on type of movement
+			unitJams = false; //cant jam
+			destroyedUnits = null; //nothing can be killed by movement
 			if(unit.sustainedFireTarget != null)
-				sustainedFireLost.Add (unit.sustainedFireTarget);
+				sustainedFireLost.Add (unit.sustainedFireTarget); //if unit has sustained fire loses it
 			else
-				sustainedFireLost = null;
-			sustainedFireChanged.Add (unit, unit.sustainedFireTarget);
-			dieRolled = null;
+				sustainedFireLost = null; //else set lost to null
+			sustainedFireChanged = null; //cant gain sustained fire
+			dieRolled = null; //no dice rolling required
 		}
 		else if (actionUsed == Game.ActionType.Attack) {
-			executie = target;
-			movePosition = unit.position; 
-			moveFacing = unit.facing;
+			executie = target; //target of the attack
+			movePosition = unit.position; //no position change
+			moveFacing = unit.facing; //no facing change
 			if(unit.hasSustainedFire == true)
 			{
 				unit.hasSustainedFire = false;
 				unit.sustainedFireTarget = null;
 				sustainedFireLost.Add (unit);
+				//if unit had sustained fire it loses it
 			}
 			if(target.hasSustainedFire == true)
 			{
 				unit.hasSustainedFire = false;
 				unit.sustainedFireTarget = null;
 				sustainedFireLost.Add (target);
+				//if target had sustainedFireLost sustainedFireLost then LocationServiceStatus it
 			}
-			sustainedFireChanged = null;
-
+			sustainedFireChanged = null; //no gain in sustained fire possible
 		}
 		else if (actionUsed == Game.ActionType.Shoot) {
-			executie = target;
-			movePosition = unit.position; 
-			moveFacing = unit.facing;
-			if(unit.sustainedFireTarget != target)
-				sustainedFireLost.Add (unit.sustainedFireTarget);
-			else
-				sustainedFireLost = null;
+			executie = target; //target set
+			movePosition = unit.position; //position unchanged
+			moveFacing = unit.facing; //facing unchanged
+			sustainedFireLost = null; //sustained fire cannot be lost
 		}
 		else if (actionUsed == Game.ActionType.Reveal) {
 
@@ -368,10 +371,18 @@ public class ActionManager {
 
 		}
 		else if (actionUsed == Game.ActionType.Overwatch) {
-
+			executie = null; //no target unit
+			movePosition = moving; //no change movement
+			moveFacing = compassFacing; //no change in facing
+			unitJams = false; //no jamming
+			destroyedUnits = null; //nothing destroyed
+			sustainedFireChanged = null;
+			sustainedFireLost = null;
+			dieRolled = null;
 		} else
 			Debug.Log ("Error with action type , ActionManager");
 		//error message and catching
+
 		returnAction.actionType = actionType;
 		returnAction.executor = executor;
 		returnAction.target = executie;
@@ -386,6 +397,7 @@ public class ActionManager {
 		returnAction.lostOverwatch = lostOverwatch;
 		returnAction.diceRoll = dieRolled;
 		actions.Add (returnAction);
+		//creates a return Action and adds it to the list of actions
 
 		actionType = Game.ActionType.Move;
 		executor = null;
@@ -400,6 +412,7 @@ public class ActionManager {
 		sustainedFireChanged = null;
 		lostOverwatch = null;
 		dieRolled = null;
-		j = 0;
+		dieRollsIterator = 0;
+		//resets values
 	}
 }
