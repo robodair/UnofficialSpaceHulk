@@ -21,6 +21,7 @@ public class ActionManager {
 	private Path customPath;//Created by Nick Lee 18-9-14
 	private List<Action> actions; //created by Nick Lee 22-9-14
 	private Action returnAction; //created by Nick Lee 23-9-14
+	private int[] dieRolls = new int[3];
 	public Unit target;
 	public Path path;
 
@@ -37,7 +38,7 @@ public class ActionManager {
 	private Dictionary<Unit, Unit> sustainedFireChanged;
 	private List<Unit> lostOverwatch;
 	private Dictionary<Game.PlayerType, int[]> dieRolled;
-	private int j;
+	private int j = 0;
 
 
 	public ActionManager(Unit unit, Game.ActionType action)	//Contents modified by Nick Lee 16-9-14
@@ -51,7 +52,10 @@ public class ActionManager {
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
 	{
-		unit.isOnOverwatch = false; //sets overwatch to false
+		if (unit.isOnOverwatch) {
+			unit.isOnOverwatch = false; //sets overwatch to false
+			lostOverwatch.Add (unit);
+		}
 		if (actionUsed == Game.ActionType.Move) {
 			moveMethod(); //if action is a movement
 		}
@@ -146,28 +150,42 @@ public class ActionManager {
 	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14
 	{ 
 		Game.Facing defFacing;
-		int attDie = diceRoll ();
-		int attDie1 = diceRoll ();
-		int attDie2 = diceRoll ();
-		int defDie = diceRoll ();
-		if (attDie1 > attDie)
-			attDie = attDie1;
-		if (attDie2 > attDie)
-			attDie = attDie2;
+		int Die1;
+		int Die2;
+		int Die3;
+		int Die4;
+		if (attacker.unitType == Game.EntityType.GS) {
+			Die1 = diceRoll (attacker, Game.ActionType.Attack);
+			Die2 = diceRoll (attacker, Game.ActionType.Attack);
+			Die3 = diceRoll (attacker, Game.ActionType.Attack);
+			Die4 = diceRoll (defender, Game.ActionType.Attack);
+		} else {
+			Die1 = diceRoll (defender, Game.ActionType.Attack);
+			Die2 = diceRoll (defender, Game.ActionType.Attack);
+			Die3 = diceRoll (defender, Game.ActionType.Attack);
+			Die4 = diceRoll (attacker, Game.ActionType.Attack);
+		}
+		if (Die2 > Die1)
+			Die1 = Die2;
+		if (Die3 > Die1)
+			Die1 = Die3;
 		//creates the dice rolls and then gets highest roll for the genestealer
 
 		defender.isOnOverwatch = false;
 		Quaternion defDirection = game.facingDirection[defender.facing];
 		Quaternion attDirection = game.facingDirection[attacker.facing];
 		if (Mathf.Abs (Mathf.Abs (attDirection.eulerAngles.z - defDirection.eulerAngles.z) - 180) < 0.1f) {
-			if(attDie > defDie)
+			if(Die1 > Die4)
 				game.gameMap.removeUnit (defender.position);
-			if(defDie > attDie)
+				destroyedUnits.Add (defender);
+			if(Die4 > Die1)
 				game.gameMap.removeUnit (attacker.position);
+					destroyedUnits.Add (attacker);
 		} else {
-			if(attDie > defDie)
+			if(Die1 > Die4)
 				game.gameMap.removeUnit (defender.position);
-			if(defDie >= attDie)
+				destroyedUnits.Add (defender);
+			if(Die4 >= Die1)
 			{
 				switch(attacker.facing)
 				{
@@ -209,23 +227,32 @@ public class ActionManager {
 
 	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14
 	{
-		int die1 = diceRoll();
-		int die2 = diceRoll();
+		int die1 = diceRoll(shooter, Game.ActionType.Shoot);
+		int die2 = diceRoll(shooter, Game.ActionType.Shoot);
 		if (!shooter.isJammed) {
 				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
+				sustainedFireChanged.Add (shooter, shootie);
 						if (die1 >= 5 || die1 >= 5) {
 								game.gameMap.removeUnit (shootie.position);
+								destroyedUnits.Add (shootie);
+								sustainedFireChanged.Remove (shooter);
 						}
 						//sustained fire shots (kill on 5's)
 				} else {
 						if (die1 >= 6 || die1 >= 6) {
 								game.gameMap.removeUnit (shootie.position);
+								destroyedUnits.Add (shootie);
+								sustainedFireChanged.Remove (shooter);
 						}
 						//non-sustained fire shots (kill on 6's)
 				}
 				if (overwatchShot && die1 == die2) {
 						shooter.isJammed = true;
 						shooter.isOnOverwatch = false;
+						shooter.hasSustainedFire = false;
+						shooter.sustainedFireTarget = null;
+						sustainedFireChanged.Remove (shooter);
+						unitJams = true;
 				}
 		}
 		postAction ();
@@ -248,14 +275,29 @@ public class ActionManager {
 	private void overwatchMethod()//Created by Nick Lee 18-9-14
 	{
 		unit.isOnOverwatch = true;
+		lostOverwatch.Remove (unit);
 		postAction ();
 		update (Game.ActionType.Overwatch);
 	}
 
-	private int diceRoll()//Created by Nick Lee 16-9-14
+	private int diceRoll(Unit roller, Game.ActionType shootOrAttack)//Created by Nick Lee 16-9-14
 	{
 		int die = Random.Range (1, 6);
 		return die;
+		if(roller.unitType.Equals(game.playerTurn) && shootOrAttack == Game.ActionType.Attack)
+		{
+			dieRolls[j] = die;
+			j++;
+			if(game.playerTurn == Game.PlayerType.GS && j == 3)
+				dieRolled.Add (game.playerTurn, dieRolls);
+			else if(game.playerTurn == Game.PlayerType.SM && j == 1)
+				dieRolled.Add (game.playerTurn, dieRolls);
+		} else if (shootOrAttack == Game.ActionType.Shoot){
+			dieRolls[j] = die;
+			j++;
+			if(j == 2)
+				dieRolled.Add (game.playerTurn, dieRolls);
+		}
 	}
 
 	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14
@@ -267,11 +309,16 @@ public class ActionManager {
 		}
 	}
 
-	private void makeActions(Game.ActionType actionMade)
+	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14
 	{
 		actionType = actionMade;
 		executor = unit;
 		APCost = UnitData.getAPCost(actionMade);
+		marines = game.gameMap.getMarines();
+		for(int u = 0; u < marines.Count; u++)
+			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+		APCost = UnitData.getAPCost(actionType);
+
 		if (actionUsed == Game.ActionType.Move) {
 			executie = null;
 			movePosition = moving; 
@@ -283,18 +330,36 @@ public class ActionManager {
 				sustainedFireLost.Add (unit.sustainedFireTarget);
 			else
 				sustainedFireLost = null;
-			marines = game.gameMap.getMarines();
-			for(int u = 0; u < marines.Count; u++)
-				completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
-			sustainedFireChanged = null;
-			lostOverwatch.Add (unit);
+			sustainedFireChanged.Add (unit, unit.sustainedFireTarget);
 			dieRolled = null;
 		}
 		else if (actionUsed == Game.ActionType.Attack) {
+			executie = target;
+			movePosition = unit.position; 
+			moveFacing = unit.facing;
+			if(unit.hasSustainedFire == true)
+			{
+				unit.hasSustainedFire = false;
+				unit.sustainedFireTarget = null;
+				sustainedFireLost.Add (unit);
+			}
+			if(target.hasSustainedFire == true)
+			{
+				unit.hasSustainedFire = false;
+				unit.sustainedFireTarget = null;
+				sustainedFireLost.Add (target);
+			}
+			sustainedFireChanged = null;
 
 		}
 		else if (actionUsed == Game.ActionType.Shoot) {
-
+			executie = target;
+			movePosition = unit.position; 
+			moveFacing = unit.facing;
+			if(unit.sustainedFireTarget != target)
+				sustainedFireLost.Add (unit.sustainedFireTarget);
+			else
+				sustainedFireLost = null;
 		}
 		else if (actionUsed == Game.ActionType.Reveal) {
 
@@ -309,7 +374,7 @@ public class ActionManager {
 		//error message and catching
 		returnAction.actionType = actionType;
 		returnAction.executor = executor;
-		returnAction.target= executie;
+		returnAction.target = executie;
 		returnAction.movePosition = movePosition;
 		returnAction.moveFacing = moveFacing;
 		returnAction.APCost = APCost;
@@ -321,5 +386,20 @@ public class ActionManager {
 		returnAction.lostOverwatch = lostOverwatch;
 		returnAction.diceRoll = dieRolled;
 		actions.Add (returnAction);
+
+		actionType = Game.ActionType.Move;
+		executor = null;
+		executie = null;
+		movePosition = unit.position;
+		moveFacing = unit.facing;
+		APCost = 0;
+		unitJams = false;
+		destroyedUnits = null;
+		sustainedFireLost = null;
+		completeLoS = null;
+		sustainedFireChanged = null;
+		lostOverwatch = null;
+		dieRolled = null;
+		j = 0;
 	}
 }
