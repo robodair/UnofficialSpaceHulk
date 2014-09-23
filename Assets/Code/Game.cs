@@ -48,6 +48,9 @@ public class Game : MonoBehaviour {
 	//Added resetLoS method, and the call to it in Start()
 	//Added makeName method, and added functionality to the deploy method.
 
+	//Ian Mallett 23.9.14
+	//Added partial functionality to setTurn method.
+
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
 	 * game data. This means that it stores all the data relating to the
@@ -116,7 +119,14 @@ public class Game : MonoBehaviour {
 	public Algorithm algorithm;
 
 //	public NetModule network;
-	
+
+	public int remainingCP;
+
+	//
+	//Map Specific
+	//
+	public int BlipsPerTurn;
+
 	//Triggers
 	private int SMEscaped;
 	private Vector2 escapePosition;
@@ -169,7 +179,75 @@ public class Game : MonoBehaviour {
 
 	public void setTurn(PlayerType newPlayer)
 	{
+		//For a GS turn
+		if (newPlayer == PlayerType.GS)
+		{
+			playerTurn = PlayerType.GS;
+			if (thisPlayer == PlayerType.GS)
+			{
+				if (BlipsPerTurn > 0)
+				{
+					gameState = GameState.Deployment;
+					deployment ();
+				}
+				else
+				{
+					gameState = GameState.RevealPhase;
+					revealPhase ();
+				}
+				//Reselect the unit
+				if (unitSelected)
+				{
+					selectUnit (selectedUnit.gameObject);
+				}
+			}
+			else
+			{
+				gameState = GameState.NetworkWait;
+				if (gameIsMultiplayer)
+				{
+					//Send to the network
+				}
+				else
+				{
+					algorithm.AITurn();
+				}
+			}
+		}
+		//For an SM turn
+		else
+		{
+			//Set the player turn
+			playerTurn = PlayerType.SM;
+			if (thisPlayer == PlayerType.SM)
+			{
+				
+				//Reselect the currently selected unit
+				//and change the Game State.
+				if (unitSelected)
+				{
+					gameState = GameState.InactiveSelected;
+					selectUnit (selectedUnit.gameObject);
+				}
+				else
+				{
+					gameState = GameState.Inactive;
+				}
+				//Set the player CP
+				remainingCP = Random.Range(1, 7);
+				if (gameIsMultiplayer)
+				{
+					//Send to Network
+				}
+			}
+			//If this is the genestealer player
+			else
+			{
+				gameState = GameState.NetworkWait;
 
+				//Update the display
+			}
+		}
 	}
 
 	public void deployment()

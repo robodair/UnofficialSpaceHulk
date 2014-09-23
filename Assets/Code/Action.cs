@@ -16,6 +16,9 @@ public class Action : MonoBehaviour {
 
 	//Ian Mallett 22.9.14
 	//Added completeLoS variable.
+
+	//Ian Mallett 23.9.14
+	//Changed Arrays to Lists
 	
 	public Game.ActionType actionType;
 	public Unit executor;
@@ -24,10 +27,10 @@ public class Action : MonoBehaviour {
 	public Game.Facing moveFacing;
 	public int APCost;
 	public bool unitJams;
-	public Unit[] destroyedUnits;
-	public Unit[] sustainedFireLost;
+	public List<Unit> destroyedUnits;
+	public List<Unit> sustainedFireLost;
 	public Dictionary<Unit, List<Vector2>> completeLoS;
 	public Dictionary<Unit, Unit> sustainedFireChanged;
-	public Unit[] lostOverwatch;
+	public List<Unit> lostOverwatch;
 	public Dictionary<Game.PlayerType, int[]> diceRoll;
 }
