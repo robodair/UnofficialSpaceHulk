@@ -50,6 +50,15 @@ public class ActionManager {
 		//gets local game controller
 		actionUsed = action; //gets the action
 		this.unit = unit; //the unit using the action
+		completeLoS = new Dictionary<Unit, List<Vector2>> ();
+		sustainedFireChanged = new Dictionary<Unit, Unit> ();
+		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+		lostOverwatch = new List<Unit> ();
+		sustainedFireLost = new List<Unit> ();
+		destroyedUnits = new List<Unit> ();
+		actions = new List<Action> ();
+		marinesLoS = new List<Vector2> ();
+		marines = new List<Unit> ();
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
@@ -453,12 +462,12 @@ public class ActionManager {
 		moveFacing = unit.facing;
 		APCost = 0;
 		unitJams = false;
-		destroyedUnits = null;
-		sustainedFireLost = null;
-		completeLoS = null;
-		sustainedFireChanged = null;
-		lostOverwatch = null;
-		dieRolled = null;
+		destroyedUnits.Clear ();
+		sustainedFireLost.Clear ();
+		completeLoS.Clear ();
+		sustainedFireChanged.Clear ();
+		lostOverwatch.Clear ();
+		dieRolled.Clear ();
 		dieRollsIterator = 0;
 		//resets values
 	}
