@@ -430,11 +430,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Move Button Clicked, this method is INCOMPLETE. Refer Alisdair");
-<<<<<<< HEAD
-		resetMap(); ///THIS IS FOR TESTING ONLY
-=======
 		inputHandlerController.movement ();//RB 18/9/14
->>>>>>> origin/master
 	}
 
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14

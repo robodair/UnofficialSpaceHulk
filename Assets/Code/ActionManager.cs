@@ -14,7 +14,6 @@ public class ActionManager {
 	private Vector2 moving;//Created by Nick Lee 16-9-14
 	private Game.Facing compassFacing;//Created by Nick Lee 16-9-14
 	private List<Unit> marines;//Created by Nick Lee 18-9-14
-	private List<Vector2> marinesLoS;//Created by Nick Lee 18-9-14
 	private bool shot = false;//Created by Nick Lee 18-9-14
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
@@ -57,8 +56,8 @@ public class ActionManager {
 		sustainedFireLost = new List<Unit> ();
 		destroyedUnits = new List<Unit> ();
 		actions = new List<Action> ();
-		marinesLoS = new List<Vector2> ();
 		marines = new List<Unit> ();
+		returnAction = new Action ();
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
