@@ -31,14 +31,39 @@ public class Interactible : MonoBehaviour {
 		eventSystem = GameObject.FindWithTag ("EventSystem").GetComponent<EventSystem>();
 	}
 
-	void OnMouseOver(){
-		if (attemptedSelection == SelectionType.Square)
-			gameObject.renderer.material.color = Color.green;
+	void OnMouseOver(){ //Reworked RB 25.9.14
+		if (gameController.gameState != Game.GameState.AttackSelection)
+		{
+			if (attemptedSelection == SelectionType.Square)
+				gameObject.renderer.material.color = Color.green;
+		}
+		else if(gameController.thisPlayer == Game.PlayerType.SM)
+		{ 
+			if(attemptedSelection == SelectionType.GS ||
+			   attemptedSelection == SelectionType.ClosedDoor)
+				gameObject.renderer.material.color = Color.red;
+		}
+		else if(gameController.thisPlayer == Game.PlayerType.GS)
+		{
+			if(attemptedSelection == SelectionType.SM ||
+			   attemptedSelection == SelectionType.ClosedDoor)
+				gameObject.renderer.material.color = Color.red;
+		}
 	}
 
 	void OnMouseExit(){
-		if (attemptedSelection == SelectionType.Square)
-			gameObject.renderer.material.color = Color.white;
+		if (gameController.thisPlayer == Game.PlayerType.SM)
+		{
+			if (attemptedSelection == SelectionType.Square ||
+			    attemptedSelection == SelectionType.GS)
+				gameObject.renderer.material.color = Color.white;
+		}
+		else 
+			if(attemptedSelection == SelectionType.Square ||
+			   attemptedSelection == SelectionType.SM)
+				gameObject.renderer.material.color = Color.white;
+		if (attemptedSelection == SelectionType.ClosedDoor)
+			gameObject.renderer.material.color = Color.yellow;
 	}
 	void OnMouseDown()
 	{
@@ -50,7 +75,13 @@ public class Interactible : MonoBehaviour {
 			{
 				if (gameController.gameState == Game.GameState.AttackSelection)
 	            {
+					//Added RB 25.9.14
+					inputHandlerController.attackTarget = gameObject;//Sets the target for the attack
 
+					if (gameController.thisPlayer == Game.PlayerType.GS)//Genestealer player can attack, not shoot
+						inputHandlerController.attacking();
+					else
+						inputHandlerController.shooting();//Space Marine player can shoot, not attack
 				}
 	            else if (gameController.gameState == Game.GameState.MoveSelection)
 	            {

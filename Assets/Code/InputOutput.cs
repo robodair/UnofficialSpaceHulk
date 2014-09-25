@@ -407,6 +407,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Attack Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		inputHandlerController.attack ();
 	}
 
 	public void btnMoveClicked(){ //Added By Alisdair 14/9/14
@@ -436,6 +437,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Shoot Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		inputHandlerController.attack ();
 	}
 
 	public void btnToggleDoorClicked(){ //Added By Alisdair 14/9/14

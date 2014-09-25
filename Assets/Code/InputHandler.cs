@@ -7,11 +7,13 @@ public class InputHandler : MonoBehaviour {
 	
 	public Game gameController;
     public GameObject moveTarget;
+	public GameObject attackTarget;
     public Map mapController;
 
 	public InputOutput ioController;
 	Vector2 moveTargetSquare;
 	Dictionary<Square, int> availableSquares;
+	bool foundTarget = false;
 
 	//Sets the GameState to MoveSelection, enabling user to start inputting the move command
 	public void movement()
@@ -26,15 +28,19 @@ public class InputHandler : MonoBehaviour {
 	//selection buttons where the user clicked
 	public void moving()
 	{
-		Vector3 moveTargetVector = moveTarget.transform.position;
-		moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
-
-		foreach(Square square in availableSquares.Keys)
+		if (!foundTarget)
 		{
-			if (moveTargetSquare == square.position)
+			Vector3 moveTargetVector = moveTarget.transform.position;
+			moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
+
+			foreach(Square square in availableSquares.Keys)
 			{
-				ioController.instantiateFacingSelection (moveTargetSquare);
-				break;
+				if (moveTargetSquare == square.position)
+				{
+					foundTarget = true;
+					ioController.instantiateFacingSelection (moveTargetSquare);
+					break;
+				}
 			}
 		}
 	}
@@ -61,5 +67,33 @@ public class InputHandler : MonoBehaviour {
 	{
 		gameController.gameState = Game.GameState.AttackSelection;
 		Debug.LogWarning (gameController.gameState);
+	}
+
+	public void attacking()
+	{
+		//do stuffs
+	}
+
+	public void shooting()
+	{
+		//do stuffs
+		bool inLoS = false;
+		foreach (Vector2 location in gameController.algorithm.findLoS(gameController.selectedUnit))
+		{
+			if (mapController.findUnit(attackTarget) == location)
+			{
+				inLoS = true;
+			}
+		}
+		if(inLoS)
+		{
+			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Shoot);
+			actionManager.target = mapController.getUnit(attackTarget);
+			actionManager.performAction();
+		}
+		else
+		{
+			Debug.LogWarning ("Target not in Line of Sight!");
+		}
 	}
 }
