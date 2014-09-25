@@ -13,13 +13,13 @@ public class ActionManager {
 	private Game game;//Created by Nick Lee 16-9-14
 	private Vector2 moving;//Created by Nick Lee 16-9-14
 	private Game.Facing compassFacing;//Created by Nick Lee 16-9-14
-	private List<Unit> marines;//Created by Nick Lee 18-9-14
+	private List<Unit> marines = new List<Unit> ();//Created by Nick Lee 18-9-14
 	private bool shot = false;//Created by Nick Lee 18-9-14
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
 	private Path customPath;//Created by Nick Lee 18-9-14
-	private List<Action> actions; //created by Nick Lee 22-9-14
-	private Action returnAction; //created by Nick Lee 23-9-14
+	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
+	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
 	private int[] dieRolls = new int[3];
 	public Unit target;
 	public Path path;
@@ -33,12 +33,12 @@ public class ActionManager {
 	private Game.Facing moveFacing;
 	private int APCost;
 	private bool unitJams;
-	private List<Unit> destroyedUnits;
-	private List<Unit> sustainedFireLost;
-	private Dictionary<Unit, List<Vector2>> completeLoS;
-	private Dictionary<Unit, Unit> sustainedFireChanged;
-	private List<Unit> lostOverwatch;
-	private Dictionary<Game.PlayerType, int[]> dieRolled;
+	private List<Unit> destroyedUnits = new List<Unit> ();
+	private List<Unit> sustainedFireLost = new List<Unit> ();
+	private Dictionary<Unit, List<Vector2>> completeLoS = new Dictionary<Unit, List<Vector2>> ();
+	private Dictionary<Unit, Unit> sustainedFireChanged = new Dictionary<Unit, Unit> ();
+	private List<Unit> lostOverwatch = new List<Unit> ();
+	private Dictionary<Game.PlayerType, int[]> dieRolled = new Dictionary<Game.PlayerType, int[]> ();
 	private int dieRollsIterator = 0;
 
 
@@ -49,15 +49,6 @@ public class ActionManager {
 		//gets local game controller
 		actionUsed = action; //gets the action
 		this.unit = unit; //the unit using the action
-		completeLoS = new Dictionary<Unit, List<Vector2>> ();
-		sustainedFireChanged = new Dictionary<Unit, Unit> ();
-		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
-		lostOverwatch = new List<Unit> ();
-		sustainedFireLost = new List<Unit> ();
-		destroyedUnits = new List<Unit> ();
-		actions = new List<Action> ();
-		marines = new List<Unit> ();
-		returnAction = new Action ();
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
@@ -108,7 +99,8 @@ public class ActionManager {
 				}
 			}
 		}
-		makeActions (actionUpdate);//make an action array
+		//causing issue IPointerClickHandler, need to fix
+		//makeActions (actionUpdate);//make an action array
 	}
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
@@ -461,12 +453,14 @@ public class ActionManager {
 		moveFacing = unit.facing;
 		APCost = 0;
 		unitJams = false;
-		destroyedUnits.Clear ();
+
+		destroyedUnits.Clear(); //Causing error
 		sustainedFireLost.Clear ();
 		completeLoS.Clear ();
 		sustainedFireChanged.Clear ();
 		lostOverwatch.Clear ();
 		dieRolled.Clear ();
+
 		dieRollsIterator = 0;
 		//resets values
 	}
