@@ -99,8 +99,7 @@ public class ActionManager {
 				}
 			}
 		}
-		//causing issue IPointerClickHandler, need to fix
-		//makeActions (actionUpdate);//make an action array
+		makeActions (actionUpdate);//make an action array
 	}
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
@@ -303,14 +302,14 @@ public class ActionManager {
 
 	private void revealMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-		postAction ();
 		update (Game.ActionType.Reveal);
+		postAction ();
 	}
 
 	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-		postAction ();
 		update (Game.ActionType.ToggleDoor);
+		postAction ();
 	}
 
 	private void overwatchMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
@@ -377,13 +376,13 @@ public class ActionManager {
 			moveFacing = compassFacing; //facing set by compass facing
 			APCost = UnitData.getMoveSet(unit.unitType)[Movement]; //APCost depends on type of movement
 			unitJams = false; //cant jam
-			destroyedUnits = null; //nothing can be killed by movement
+			destroyedUnits.Clear(); //nothing can be killed by movement
 			if(unit.sustainedFireTarget != null)
 				sustainedFireLost.Add (unit.sustainedFireTarget); //if unit has sustained fire loses it
 			else
-				sustainedFireLost = null; //else set lost to null
-			sustainedFireChanged = null; //cant gain sustained fire
-			dieRolled = null; //no dice rolling required
+				sustainedFireLost.Clear(); //else set lost to null
+			sustainedFireChanged.Clear(); //cant gain sustained fire
+			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
 			executie = target; //target of the attack
@@ -409,7 +408,7 @@ public class ActionManager {
 			executie = target; //target set
 			movePosition = unit.position; //position unchanged
 			moveFacing = unit.facing; //facing unchanged
-			sustainedFireLost = null; //sustained fire cannot be lost
+			sustainedFireLost.Clear(); //sustained fire cannot be lost
 		}
 		else if (actionType == Game.ActionType.Reveal) {
 
@@ -422,10 +421,10 @@ public class ActionManager {
 			movePosition = moving; //no change movement
 			moveFacing = compassFacing; //no change in facing
 			unitJams = false; //no jamming
-			destroyedUnits = null; //nothing destroyed
-			sustainedFireChanged = null;
-			sustainedFireLost = null;
-			dieRolled = null;
+			destroyedUnits.Clear(); //nothing destroyed
+			sustainedFireChanged.Clear();
+			sustainedFireLost.Clear();
+			dieRolled.Clear();
 		} else
 			Debug.Log ("Error with action type , ActionManager");
 		//error message and catching
@@ -453,14 +452,12 @@ public class ActionManager {
 		moveFacing = unit.facing;
 		APCost = 0;
 		unitJams = false;
-
-		destroyedUnits.Clear(); //Causing error
+		destroyedUnits.Clear();
 		sustainedFireLost.Clear ();
 		completeLoS.Clear ();
 		sustainedFireChanged.Clear ();
 		lostOverwatch.Clear ();
 		dieRolled.Clear ();
-
 		dieRollsIterator = 0;
 		//resets values
 	}
