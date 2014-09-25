@@ -260,24 +260,24 @@ public class ActionManager {
 		if (!shooter.isJammed) {
 			//makes sure they are not jammed
 				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
+					sustainedFireChanged.Add (shooter, null);
 				//checks for sustained fire
-						if (die1 >= 5 || die1 >= 5) {
+						if (die1 >= 5 || die2 >= 5) {
 							//if kill criteria are met
 							game.gameMap.removeUnit (shootie.position);
 							destroyedUnits.Add (shootie);
-							sustainedFireChanged.Add (shooter, null);
 							//removes unit being shot and changes required variable
 						}
 						//sustained fire shots (kill on 5's)
 				} else {
 				//if not sustained fire
 					sustainedFireChanged.Add (shooter, shootie);
-					if (die1 >= 6 || die1 >= 6) {
+					if (die1 >= 6 || die2 >= 6) {
 						game.gameMap.removeUnit (shootie.position);
 						destroyedUnits.Add (shootie);
+						sustainedFireChanged[shooter] = null;
 						//if criteria met kills unit
 					} else {
-						sustainedFireChanged.Add (shooter, shootie);
 						shooter.sustainedFireTarget = target;
 						shooter.hasSustainedFire = true;
 						//if not killed changes sustained fire
