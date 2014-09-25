@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 22-9-14.0
+ * Version 25-9-14.0
  */
 
 using UnityEngine;
@@ -16,6 +16,7 @@ public class InputOutput : MonoBehaviour {
 	public Game gameClass; //Added 11/9/2014 Alisdair 
 
 	GameObject selectedUnit; //Added by Alisdair 11/9/14
+	Game.ActionType[] selectedUnitActions; //Added by Alisdair 25/9/2014
 
 	//UI and Button References added 14/9/14 by Alisdair
 	public GameObject UICanvas;
@@ -227,6 +228,7 @@ public class InputOutput : MonoBehaviour {
 
 		//assign the variable to the new unit
 		selectedUnit = unit;
+		selectedUnitActions = actions;
 
 		//colour the selectedUnit unit
 		selectedUnit.renderer.material.color = Color.cyan;
@@ -298,6 +300,8 @@ public class InputOutput : MonoBehaviour {
 
 		//Added removing old gameobjects to this method - Alisdair 19-9-2014
 
+		/* Commented out as uneeded Alisdair 25/9/14
+
 		Debug.Log ("Resetting Map - Removing GameObjects");
 
 		for (int i = 0; i < mapClass.map.Length; i++) {
@@ -328,10 +332,26 @@ public class InputOutput : MonoBehaviour {
 				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
 			}
 		}
+		*/
+
+		//Switched to iterating through a list of all the gameobjects, 
+		//This way it doesn't matter if references in the map class are incorrect - Alisdair 25/9/14
+		//http://answers.unity3d.com/questions/297171/find-all-objects-in-a-scene.html
+
+		GameObject[] gameObjects = GameObject.FindObjectsOfType(typeof(GameObject)) as GameObject[]; //Get an array of all the gameobjects
+
+		foreach(GameObject gameObject in gameObjects)
+		{;
+			if (gameObject.layer == 9){
+				Destroy(gameObject); //If the gameobject is part of the map representation layer, destroy it. (otherwise leave it)
+			}
+		}
+
 
 		Debug.Log("Resetting Map - Calling generateMap()");
 		//Alisdair 11/Sept/2014
 		generateMap (); //Rerun generate map so that it matches the map class again
+		selectUnit(selectedUnit, selectedUnitActions); //Reselect a unit if one has been selected
 	}
 
 	void updateGUIActions(){
@@ -407,6 +427,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Move Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		resetMap(); ///THIS IS FOR TESTING ONLY
 	}
 
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
