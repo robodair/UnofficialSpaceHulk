@@ -30,6 +30,9 @@ public class InputOutput : MonoBehaviour {
 	public GameObject facingSelectionCanvas;
 	GameObject currentFacingSelectionCanvas;
 
+	//Rory Bolt 25.9.14
+	public InputHandler inputHandlerController;
+
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
 		 * This method creates the UI and then links the buttons to the code here
@@ -427,7 +430,11 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("Move Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+<<<<<<< HEAD
 		resetMap(); ///THIS IS FOR TESTING ONLY
+=======
+		inputHandlerController.movement ();//RB 18/9/14
+>>>>>>> origin/master
 	}
 
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
@@ -485,20 +492,24 @@ public class InputOutput : MonoBehaviour {
 	// - the selection canvas that is the parent of the button then needs to be destroyed.
 	public void btnFaceNorth(){
 		Debug.LogWarning("BtnFaceNorth Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
+		inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 	}
 	public void btnFaceEast(){
 		Debug.LogWarning("BtnFaceEast Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
+		inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 
 	}
 	public void btnFaceSouth(){
 		Debug.LogWarning("BtnFaceSouth Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
+		inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
 	public void btnFaceWest(){
 		Debug.LogWarning("BtnFaceWest Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
+		inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 		
 	}

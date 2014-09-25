@@ -11,44 +11,67 @@ public class Interactible : MonoBehaviour {
 	 * Added a reference to the event system and an if statement to check if the click was cast over a UI element (edits have been commented)
 	 */
 
-	GameObject blah;
 	Game gameController;
 	public enum SelectionType{Background, SM, GS, Blip, OpenDoor, ClosedDoor, Square, DeploymentZone};
 	public SelectionType attemptedSelection;
+
+	InputHandler inputHandlerController; //Added 18/9/14
 
 	public EventSystem eventSystem; //Added by Alisdair 14/9/14
 
 	void Start()
 	{
 		//Create a reference to the Game
-		blah = GameObject.FindWithTag ("GameController");
-		gameController = blah.GetComponent<Game>();
+		gameController = GameObject.FindWithTag ("GameController").GetComponent<Game>();
+
+		//Create a reference to the GameController's InputHandler
+		inputHandlerController = GameObject.FindWithTag ("GameController").GetComponent<InputHandler> ();
 
 		//Find the event system Added By Alisdair 14/9/14
 		eventSystem = GameObject.FindWithTag ("EventSystem").GetComponent<EventSystem>();
 	}
 
+	void OnMouseOver(){
+		if (attemptedSelection == SelectionType.Square)
+			gameObject.renderer.material.color = Color.green;
+	}
+
+	void OnMouseExit(){
+		if (attemptedSelection == SelectionType.Square)
+			gameObject.renderer.material.color = Color.white;
+	}
 	void OnMouseDown()
 	{
-		if (!eventSystem.IsPointerOverEventSystemObject()) { //if statement Added By Alisdair 14/9/14 Reference: http://forum.unity3d.com/threads/raycast-into-gui.263397/#post-1742031
+		if (!eventSystem.IsPointerOverEventSystemObject())
+        { //if statement Added By Alisdair 14/9/14 Reference: http://forum.unity3d.com/threads/raycast-into-gui.263397/#post-1742031
 			Debug.Log ("The pointer was clicked on an interactable GameObject"); //Added By Alisdair 14/9/14
 			//th first if statement checks to see if the click is meant for the UI
-				if (isSelectable () &&
-					gameController.gameState != Game.GameState.AttackSelection &&
-					gameController.gameState != Game.GameState.MoveSelection) {
-					//Select the unit
-						gameController.selectUnit (gameObject);
-					} else if (gameController.gameState == Game.GameState.AttackSelection) {
-			
-					} else if (gameController.gameState == Game.GameState.MoveSelection) {
+			if (isSelectable ())
+			{
+				if (gameController.gameState == Game.GameState.AttackSelection)
+	            {
 
-					} else {
-						//deselect everything if not clicking on a valid selection
-							if (gameController.selectedUnit != null)
-								gameController.deselect ();
-					}
-				} 
-		else {//Added By Alisdair 14/9/14
+				}
+	            else if (gameController.gameState == Game.GameState.MoveSelection)
+	            {
+	                inputHandlerController.moveTarget = gameObject;
+					inputHandlerController.moving ();
+				}
+				else
+				{
+					//Select the unit
+					gameController.selectUnit (gameObject);
+				}
+			}
+            else
+            {
+				//deselect everything if not clicking on a valid selection
+				if (gameController.selectedUnit != null)
+					gameController.deselect ();
+			}
+		}
+		else
+        {//Added By Alisdair 14/9/14
 			Debug.Log ("The pointer was clicked over a UI Element)");//Added By Alisdair 14/9/14
 		}//Added By Alisdair 14/9/14
 	}
