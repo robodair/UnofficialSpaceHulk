@@ -80,8 +80,6 @@ public class InputOutput : MonoBehaviour {
 
 	public void generateMap () { //Method Added by Alisdair Robertson 9/9/2014
 
-		Debug.Log("Generating Map"); 
-
 		/*
 		 * The First part of this method is generating the visual map
 		 */
@@ -219,7 +217,6 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void selectUnit (GameObject unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
-		Debug.Log("Selecting Unit: " + unit.ToString());
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
@@ -241,7 +238,6 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void deselect(){ //Filled by Alisdair 11/9/2014
-		Debug.Log("Deselecting selected units...");
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
@@ -350,8 +346,6 @@ public class InputOutput : MonoBehaviour {
 			}
 		}
 
-
-		Debug.Log("Resetting Map - Calling generateMap()");
 		//Alisdair 11/Sept/2014
 		generateMap (); //Rerun generate map so that it matches the map class again
 		selectUnit(selectedUnit, selectedUnitActions); //Reselect a unit if one has been selected
@@ -361,7 +355,6 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method disables all the action buttons on the GUI
 		 */ 
-		Debug.Log("Disabling All UI Action Buttons");
 
 		//make the buttons uninteractable
 		btnAttack.interactable = false;
@@ -376,40 +369,31 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method is for updating the GUI command buttons to reflect the commands that are allowed for the specific unit
 		 */
-		Debug.Log("Enabling requested UI Action Buttons:");
 
 		//disable all the buttons
 		updateGUIActions ();
 
 		//loop throguh all the objects in the list and enable the required buttons
-		Debug.Log ("Button action list is of Length: " + actions.Length);
-		for (int i = 0; i < actions.Length; i++) {
-			Debug.Log ("Testing Action " + i + ": " + actions[i]);
+		for (int i = 0; i < actions.Length; i++) {;
 
 			switch (actions[i]){
 			case Game.ActionType.Attack:
 				btnAttack.interactable = true;
-				Debug.Log("Enabling Attack Button");
 				break;
 			case Game.ActionType.Move:
 				btnMove.interactable = true;
-				Debug.Log("Enabling Move Button");
 				break;
 			case Game.ActionType.Overwatch:
-				btnOverwatch.interactable = true;
-				Debug.Log("Enabling Overwatch Button");
+				btnOverwatch.interactable = true;;
 				break;
 			case Game.ActionType.Reveal:
 				btnReveal.interactable = true;
-				Debug.Log("Enabling Reveal Button");
 				break;
 			case Game.ActionType.Shoot:
 				btnShoot.interactable = true;
-				Debug.Log("Enabling Shoot Button");
 				break;
 			case Game.ActionType.ToggleDoor:
 				btnToggleDoor.interactable = true;
-				Debug.Log("Enabling ToggleDoor Button");
 				break;
 			default:
 				Debug.LogError("There was not an ActionType at position: " + i + " in the actions Array. updateGUIActions(Game.ActionType[] actions)");
