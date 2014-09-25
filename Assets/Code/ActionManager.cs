@@ -103,7 +103,7 @@ public class ActionManager {
 		makeActions (actionUpdate);//make an action array
 	}
 
-	private void postAction()//Created by Nick Lee 18-9-14
+	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 
 	}
@@ -301,19 +301,19 @@ public class ActionManager {
 		postAction ();
 	}
 
-	private void revealMethod()//Created by Nick Lee 18-9-14
+	private void revealMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 		postAction ();
 		update (Game.ActionType.Reveal);
 	}
 
-	private void toggleDoorMethod()//Created by Nick Lee 18-9-14
+	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 		postAction ();
 		update (Game.ActionType.ToggleDoor);
 	}
 
-	private void overwatchMethod()//Created by Nick Lee 18-9-14
+	private void overwatchMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 		unit.isOnOverwatch = true; //sets overwatch to true
 		update (Game.ActionType.Overwatch);
@@ -351,7 +351,7 @@ public class ActionManager {
 		return die; //returns the die value
 	}
 
-	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14
+	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 25-9-14
 	{
 		if (userUnit.AP <= 0) {
 			//Remember to add command points
@@ -361,7 +361,7 @@ public class ActionManager {
 		}
 	}
 
-	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14
+	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 25-9-14
 	{
 		actionType = actionMade; //gets action made
 		executor = unit; //the unit executing the action
@@ -371,7 +371,7 @@ public class ActionManager {
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
 
-		if (actionUsed == Game.ActionType.Move) {
+		if (actionType == Game.ActionType.Move) {
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
@@ -385,7 +385,7 @@ public class ActionManager {
 			sustainedFireChanged = null; //cant gain sustained fire
 			dieRolled = null; //no dice rolling required
 		}
-		else if (actionUsed == Game.ActionType.Attack) {
+		else if (actionType == Game.ActionType.Attack) {
 			executie = target; //target of the attack
 			movePosition = unit.position; //no position change
 			moveFacing = unit.facing; //no facing change
@@ -405,19 +405,19 @@ public class ActionManager {
 			}
 			sustainedFireChanged = null; //no gain in sustained fire possible
 		}
-		else if (actionUsed == Game.ActionType.Shoot) {
+		else if (actionType == Game.ActionType.Shoot) {
 			executie = target; //target set
 			movePosition = unit.position; //position unchanged
 			moveFacing = unit.facing; //facing unchanged
 			sustainedFireLost = null; //sustained fire cannot be lost
 		}
-		else if (actionUsed == Game.ActionType.Reveal) {
+		else if (actionType == Game.ActionType.Reveal) {
 
 		}
-		else if (actionUsed == Game.ActionType.ToggleDoor) {
+		else if (actionType == Game.ActionType.ToggleDoor) {
 
 		}
-		else if (actionUsed == Game.ActionType.Overwatch) {
+		else if (actionType == Game.ActionType.Overwatch) {
 			executie = null; //no target unit
 			movePosition = moving; //no change movement
 			moveFacing = compassFacing; //no change in facing
