@@ -17,12 +17,7 @@ public class InputHandler : MonoBehaviour {
 	public void movement()
 	{
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
-		foreach(Square square in availableSquares.Keys)
-		{
-			Debug.LogWarning (square.position);
-		}
 		gameController.gameState = Game.GameState.MoveSelection;
-		Debug.LogWarning (gameController.gameState);
 		//ioController.showAvailableSquares(); 
 		//For when there's some sort of thing to show which squares are available
 	}
@@ -38,9 +33,6 @@ public class InputHandler : MonoBehaviour {
 		{
 			if (moveTargetSquare == square.position)
 			{
-				Debug.LogWarning (moveTarget);
-				Debug.LogWarning (moveTargetVector);
-				Debug.LogWarning (moveTargetSquare);
 				ioController.instantiateFacingSelection (moveTargetSquare);
 				break;
 			}
@@ -51,7 +43,6 @@ public class InputHandler : MonoBehaviour {
 	//then SHOULD deselect the unit and set the GameState back to Inactive
 	public void orientationClicked (Game.Facing facing)
 	{
-		Debug.Log ("I got to here");
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Move);
 
 		actionManager.path = gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
@@ -59,12 +50,9 @@ public class InputHandler : MonoBehaviour {
 		                                                       UnitData.getMoveSet (gameController.selectedUnit.unitType));
 		actionManager.performAction();
 		
-		Debug.Log ("I actually got to here");
 		gameController.gameState = Game.GameState.Inactive;
 		if (gameController.unitSelected != null)
 			gameController.deselect ();
-		Debug.LogWarning (gameController.gameState);
-		Debug.LogWarning (gameController.selectedUnit.position);
 		ioController.resetMap ();
 	}
 
