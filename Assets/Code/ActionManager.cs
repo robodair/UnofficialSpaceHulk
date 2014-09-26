@@ -322,7 +322,7 @@ public class ActionManager {
 
 	private int diceRoll(Unit roller, Game.ActionType shootOrAttack)//Created by Nick Lee 16-9-14, modified 25-9-14
 	{
-		int die = Random.Range (1, 6);
+		int die = Random.Range (1, 7);
 		//creates the die int
 		if(roller.unitType.Equals(game.playerTurn) && shootOrAttack == Game.ActionType.Attack)
 		{//makes sure that the die are that of an attacker
