@@ -236,6 +236,16 @@ public class ActionManager {
 				update (Game.ActionType.Attack);
 			}
 		}
+		if(attacker.unitType = Game.EntityType.GS)
+		{
+			Debug.Log ("attackers dice rolled: " + attDie[0] + ", " + attDie[1] + ", " attDie[2]);
+			Debug.Log ("defenders dice rolled: " + defDie[0]);
+		}
+		if(attacker.unitType = Game.EntityType.SM)
+		{
+			Debug.Log ("defenders dice rolled: " + defDie[0] + ", " + defDie[1] + ", " defDie[2]);
+			Debug.Log ("attackers dice rolled: " + attDie[0]);
+		}
 		postAction ();
 	}
 
@@ -297,6 +307,7 @@ public class ActionManager {
 
 	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 26-9-14
 	{
+		Movement = Game.MoveType.Forward;
 		moving = (Vector2)game.moveTransform[Movement][0]; //gets the object from the dictionary and converts to a vector2
 		moving = game.facingDirection[unit.facing] * moving;
 		moving = unit.position + moving; //gets final position
