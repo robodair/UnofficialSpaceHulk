@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-9-14.1
+ * Version 26-9-14.2
  */
 
 using UnityEngine;
@@ -207,7 +207,8 @@ public class InputOutput : MonoBehaviour {
 				}
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
-				Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
+				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
+				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
 			}
 
 
