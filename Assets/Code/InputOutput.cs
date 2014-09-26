@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 25-9-14.0
+ * Version 26-9-14.2
  */
 
 using UnityEngine;
@@ -144,6 +144,7 @@ public class InputOutput : MonoBehaviour {
 					case Game.EntityType.Door:
 						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, new Vector3(xPos, (baseYPos + 1), zPos), Quaternion.identity); //Create the closed door object above the floor object
 						square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
+						square.occupant.gameObject = doorPiece; //Pass the reference to the occupant as well Added by Alisdair 26/9/14
 						break;
 				
 					case Game.EntityType.GS:
@@ -206,7 +207,8 @@ public class InputOutput : MonoBehaviour {
 				}
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
-				Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
+				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
+				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
 			}
 
 
@@ -299,39 +301,39 @@ public class InputOutput : MonoBehaviour {
 
 		//Added removing old gameobjects to this method - Alisdair 19-9-2014
 
-		/* Commented out as uneeded Alisdair 25/9/14
-
-		Debug.Log ("Resetting Map - Removing GameObjects");
-
-		for (int i = 0; i < mapClass.map.Length; i++) {
-
-			Square square = (Square) mapClass.map.GetValue(i);
-
-			try{
-				Destroy(square.occupant.gameObject);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
-			}
-
-			try{
-				Destroy (square.door.gameObject);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
-			}
-
-			try{
-				Destroy(square.model);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
-			}
-		}
-		*/
+//		Commented out as uneeded Alisdair 25/9/14
+//
+//		Debug.Log ("Resetting Map - Removing GameObjects");
+//
+//		for (int i = 0; i < mapClass.map.Length; i++) {
+//
+//			Square square = (Square) mapClass.map.GetValue(i);
+//
+//			try{
+//				Destroy(square.occupant.gameObject);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
+//			}
+//
+//			try{
+//				Destroy (square.door.gameObject);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
+//			}
+//
+//			try{
+//				Destroy(square.model);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
+//			}
+//		}
+//		
 
 		//Switched to iterating through a list of all the gameobjects, 
 		//This way it doesn't matter if references in the map class are incorrect - Alisdair 25/9/14
@@ -348,7 +350,10 @@ public class InputOutput : MonoBehaviour {
 
 		//Alisdair 11/Sept/2014
 		generateMap (); //Rerun generate map so that it matches the map class again
-		selectUnit(selectedUnit, selectedUnitActions); //Reselect a unit if one has been selected
+
+		if (gameClass.unitSelected){ //Reselecting unit after the map has been regenerated.
+			gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+		}
 	}
 
 	void updateGUIActions(){
@@ -445,6 +450,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("ToggleDoor Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		inputHandlerController.toggleDoor ();
 	}
 
 	//METHODS ADDED 17-9-14
