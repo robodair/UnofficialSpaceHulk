@@ -300,39 +300,39 @@ public class InputOutput : MonoBehaviour {
 
 		//Added removing old gameobjects to this method - Alisdair 19-9-2014
 
-		/* Commented out as uneeded Alisdair 25/9/14
-
-		Debug.Log ("Resetting Map - Removing GameObjects");
-
-		for (int i = 0; i < mapClass.map.Length; i++) {
-
-			Square square = (Square) mapClass.map.GetValue(i);
-
-			try{
-				Destroy(square.occupant.gameObject);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
-			}
-
-			try{
-				Destroy (square.door.gameObject);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
-			}
-
-			try{
-				Destroy(square.model);
-			}
-			catch (UnityException ex)
-			{
-				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
-			}
-		}
-		*/
+//		Commented out as uneeded Alisdair 25/9/14
+//
+//		Debug.Log ("Resetting Map - Removing GameObjects");
+//
+//		for (int i = 0; i < mapClass.map.Length; i++) {
+//
+//			Square square = (Square) mapClass.map.GetValue(i);
+//
+//			try{
+//				Destroy(square.occupant.gameObject);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
+//			}
+//
+//			try{
+//				Destroy (square.door.gameObject);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
+//			}
+//
+//			try{
+//				Destroy(square.model);
+//			}
+//			catch (UnityException ex)
+//			{
+//				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
+//			}
+//		}
+//		
 
 		//Switched to iterating through a list of all the gameobjects, 
 		//This way it doesn't matter if references in the map class are incorrect - Alisdair 25/9/14
