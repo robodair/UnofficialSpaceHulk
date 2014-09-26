@@ -90,12 +90,17 @@ public class InputHandler : MonoBehaviour {
 			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Shoot);
 			actionManager.target = mapController.getUnit(attackTarget);
 			actionManager.performAction();
-			ioController.resetMap();
 			gameController.gameState = Game.GameState.InactiveSelected;
+			ioController.resetMap();
 		}
 		else
 		{
 			Debug.LogWarning ("Target not in Line of Sight!");
 		}
+	}
+
+	public void toggleDoor()
+	{
+		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.ToggleDoor);
 	}
 }
