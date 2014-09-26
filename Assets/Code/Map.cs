@@ -36,6 +36,10 @@ public class Map : MonoBehaviour {
 	//Added findArea method with full functionality
 	//Added the placeUnit method, and made shiftUnit call it.
 
+	//Ian Mallett 26.9.14
+	//Made the placeUnit method correctly set the units position
+	//when placing in a deployment area.
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -389,8 +393,10 @@ public class Map : MonoBehaviour {
 		}
 	}
 
-	//Places the given unit at the position on the map. Logs an error if
-	//the square does not exist or is already occupied.
+	//Places the given unit at the position on the map. In the case of deployment
+	//areas, only the x position is required, the y position of the unit is set
+	//based on the units already in the area. Logs an error if the square does
+	//not exist or is already occupied.
 	public void placeUnit(Unit unit)
 	{
 		//Place the unit at the final position
@@ -429,6 +435,7 @@ public class Map : MonoBehaviour {
 			int areaIndex = -1 - (int)unit.position.x;
 			DeploymentArea area = otherAreas[areaIndex];
 			area.units.Add(unit);
+			unit.position.y = area.units.Count - 1;
 		}
 		
 		//If there is no such position

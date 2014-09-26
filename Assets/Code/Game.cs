@@ -51,6 +51,17 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 23.9.14
 	//Added partial functionality to setTurn method.
 
+	//Ian Mallett 25.9.14
+	//Added partial functionality to deployment() method.
+	//Changed Starting GameState to StartingSMDeployment and StartingGSDeployment
+	//Added deployBlip with no functionality method
+
+	//Ian Mallett 26.9.14
+	//Continued adding functionality to the placeBlip method.
+	//Began adding functionality to the actionPhase and revealPhase methods
+	//Removed the nextPhase method, as it does not have any purpose or use.
+
+
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
 	 * game data. This means that it stores all the data relating to the
@@ -69,7 +80,8 @@ public class Game : MonoBehaviour {
 	 */
 
 	//The state the game is currently in, see code design document for brief description of each.
-	public enum GameState{Starting, Deployment, RevealPhase, Inactive, InactiveSelected, AttackSelection, MoveSelection,
+	public enum GameState{StartingSMDeployment, StartingGSDeployment, DeploymentPhase, RevealPhase,
+		Inactive, InactiveSelected, AttackSelection, MoveSelection,
 		PerformAction, ShowAction, ActionWait, Reveal, NetworkWait};
 	public GameState gameState;
 
@@ -125,7 +137,8 @@ public class Game : MonoBehaviour {
 	//
 	//Map Specific
 	//
-	public int BlipsPerTurn;
+	public int blipsPerTurn;
+
 
 	//Triggers
 	private int SMEscaped;
@@ -185,9 +198,9 @@ public class Game : MonoBehaviour {
 			playerTurn = PlayerType.GS;
 			if (thisPlayer == PlayerType.GS)
 			{
-				if (BlipsPerTurn > 0)
+				if (blipsPerTurn > 0)
 				{
-					gameState = GameState.Deployment;
+					gameState = GameState.DeploymentPhase;
 					deployment ();
 				}
 				else
@@ -252,22 +265,51 @@ public class Game : MonoBehaviour {
 
 	public void deployment()
 	{
+		//Show the deployment phase for the appropriate player
+		if (gameState == GameState.DeploymentPhase)
+		{
+			int[] blipSizes = new int[blipsPerTurn];
+			for (int i = 0; i < blipsPerTurn; i++)
+			{
+				int blipNum = Random.Range (0, 22);
+				if (blipNum < 8)
+				{
+					blipSizes[i] = 1;
+				}
+				else if (blipNum < 14)
+				{
+					blipSizes[i] = 2;
+				}
+				else
+				{
+					blipSizes[i] = 3;
+				}
+			}
 
-	}
-
-	public void nextPhase()
-	{
-
+			//Make ioModule show Genestealer deployment
+		}
 	}
 
 	public void revealPhase()
 	{
+		gameState = GameState.RevealPhase;
 
+		//Make ioModule show reveal phase													SEND ALICE ISSUE
 	}
 
 	public void actionPhase()
 	{
+		if (unitSelected)
+		{
+			gameState = GameState.InactiveSelected;
+			selectUnit(selectedUnit.gameObject);
+		}
+		else
+		{
+			gameState = GameState.Inactive;
+		}
 
+		//Make ioModule show main phase
 	}
 
 	public void deploy(EntityType unitType, Vector2 position, Facing facing)
@@ -275,6 +317,30 @@ public class Game : MonoBehaviour {
 		Unit placeUnit = new Unit (makeName(unitType), unitType, position, facing);
 		gameMap.placeUnit (placeUnit);
 		ioModule.placeUnit (placeUnit);
+	}
+
+	//Method for placing a blip in a deploymentArea. The deploymentArea
+	//parameter is the index of the deploymentArea in the map.
+	public void deployBlip(int deploymentArea, int gsInBlip)
+	{
+		if (gameState == GameState.DeploymentPhase)
+		{
+			if (gameMap.otherAreas.Length > deploymentArea)
+			{
+				DeploymentArea targetArea = gameMap.otherAreas[deploymentArea];
+				Unit blip = new Unit("Blip", EntityType.Blip, new Vector2(-1 - deploymentArea, 0), targetArea.relativePosition);
+				gameMap.placeUnit (blip);
+				ioModule.placeUnit (blip);
+			}
+			else
+			{
+				Debug.LogError("No such deploymentArea for \"deployBlip\" method");
+			}
+		}
+		else
+		{
+			Debug.LogError("\"deployBlip\" method called in an invalid GameState");
+		}
 	}
 
 	public void selectUnit(GameObject model)
@@ -457,12 +523,12 @@ public class Game : MonoBehaviour {
 		}
 		else if (unitType.Equals (EntityType.GS))
 		{
-			switch (Random.Range (0, 6))
+			switch (Random.Range (0, 7))
 			{
 				case 0:
 					return "Biter";
 				case 1:
-					return "Mangler";
+					return "Ankle-Biter";
 				case 2:
 					return "Claw";
 				case 3:
@@ -471,6 +537,8 @@ public class Game : MonoBehaviour {
 					return "Hungry";
 				case 5:
 					return "Fluffy";
+				case 6:
+					return "Mangler";
 				default:
 					return "Cute";
 			}

@@ -116,22 +116,12 @@ public class Algorithm : MonoBehaviour {
 				}
 			}
 
-			Debug.Log ("CurrentPath: ");
-			
-			for (int i = 0; i < currentPath.path.Count; i++)
-			{
-				Debug.Log (currentPath.path[i]);
-			}
-			
-			Debug.Log ("/CurrentPath");
-
 
 			//End if the shortest path is not shorter than the bestPath
 			if (bestPath != null)
 			{
 				if (currentPath.APCost >= bestPath.APCost)
 				{
-					Debug.Log ("CurrentPath is shorter than bestPath");
 					pathComplete = true;
 					break;
 				}
@@ -199,7 +189,6 @@ public class Algorithm : MonoBehaviour {
 									if (newPath.finalSquare == targetSquare &&
 									    newPath.finalFacing.Equals (targetFacing))
 									{
-										Debug.Log("Setting best path as currentPath + " + newPath.path[newPath.path.Count - 1]);
 										if (bestPath != null)
 										{
 											if (newPath.APCost < bestPath.APCost)
@@ -297,12 +286,6 @@ public class Algorithm : MonoBehaviour {
 		{
 			Path currentPath = currentPaths[0];
 
-			Debug.Log ("Current Path:");
-			for (int i = 0; i < currentPath.path.Count; i++)
-			{
-				Debug.Log (currentPath.path[i]);
-			}
-			Debug.Log ("\\CurrentPath");
 			
 			
 			

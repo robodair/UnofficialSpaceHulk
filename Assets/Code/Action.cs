@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Action : MonoBehaviour {
+public class Action {
 
 	//Created by Ian Mallett 1.9.14
 
@@ -19,6 +19,9 @@ public class Action : MonoBehaviour {
 
 	//Ian Mallett 23.9.14
 	//Changed Arrays to Lists
+
+	//Ian Mallett 25.9.14
+	//Removed the extension of Monobehaviour. 
 	
 	public Game.ActionType actionType;
 	public Unit executor;
