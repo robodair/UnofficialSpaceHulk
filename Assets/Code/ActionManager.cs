@@ -158,29 +158,16 @@ public class ActionManager {
 	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-9-14
 	{ 
 		Game.Facing defFacing;
-		int Die1;
-		int Die2;
-		int Die3;
-		int Die4;
-		//creates die
-		if (attacker.unitType == Game.EntityType.GS) {
-			Die1 = diceRoll (attacker, Game.ActionType.Attack);
-			Die2 = diceRoll (attacker, Game.ActionType.Attack);
-			Die3 = diceRoll (attacker, Game.ActionType.Attack);
-			Die4 = diceRoll (defender, Game.ActionType.Attack);
-			//determines which die are attackers and which are defenders
-		} else {
-			Die1 = diceRoll (defender, Game.ActionType.Attack);
-			Die2 = diceRoll (defender, Game.ActionType.Attack);
-			Die3 = diceRoll (defender, Game.ActionType.Attack);
-			Die4 = diceRoll (attacker, Game.ActionType.Attack);
-			//determines which die are attackers and which are defenders
-		}
-		if (Die2 > Die1)
-			Die1 = Die2;
-		if (Die3 > Die1)
-			Die1 = Die3;
-		//creates the dice rolls and then gets highest roll for the genestealer
+		List<int> defDie = new List<int> ();
+		List<int> attDie = new List<int> ();
+
+		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++)
+			attDie.Add (diceRoll (attacker, Game.ActionType.Attack));
+		attDie.Sort (); //gets attackers die and adds them to list
+
+		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++)
+			defDie.Add (diceRoll (attacker, Game.ActionType.Attack));
+		defDie.Sort (); //gets defenders die and adds them to the list
 
 		defender.isOnOverwatch = false; //sets defenders overwatch to false
 		Quaternion defDirection = game.facingDirection[defender.facing];
@@ -188,26 +175,26 @@ public class ActionManager {
 		//gets the facing of the units
 		if (Mathf.Abs (Mathf.Abs (attDirection.eulerAngles.z - defDirection.eulerAngles.z) - 180) < 0.1f) {
 			//if units are facing each other
-			if(Die1 > Die4)
+			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
 				game.gameMap.removeUnit (defender.position);
 				destroyedUnits.Add (defender);
 				//if attacker wins kill defender
 			}
-			if(Die4 > Die1)
+			if(defDie[defDie.Count - 1] > attDie[attDie.Count - 1])
 			{
 				game.gameMap.removeUnit (attacker.position);
 				destroyedUnits.Add (attacker);
 				//if defender wins kill attacker
 			}
 		} else { //if not facing each other
-			if(Die1 > Die4)
+			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
 				game.gameMap.removeUnit (defender.position);
 				destroyedUnits.Add (defender);
 				//if attacker wins kill defender
 			}
-			if(Die4 >= Die1)
+			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
 			{ //if defender draws or wins
 				switch(attacker.facing)
 				{
@@ -295,6 +282,8 @@ public class ActionManager {
 					//changes sustained fire and jam variables if required during overwatch
 				}
 		}
+		Debug.Log ("dice one rolled: " + die1);
+		Debug.Log ("dice two rolled: " + die2);
 		update (Game.ActionType.Shoot);
 		shot = false; //set shot to false
 		postAction ();
@@ -313,12 +302,13 @@ public class ActionManager {
 		moving = unit.position + moving; //gets final position
 		if (game.gameMap.hasDoor (moving)) {
 			if (game.gameMap.isDoorOpen (moving))
-				game.gameMap.setDoorState (moving, false);
+				game.gameMap.setDoorState (moving, false); //sets door state to closed
 			else
-				game.gameMap.setDoorState (moving, true);
+				game.gameMap.setDoorState (moving, true); //sets door stat to open
 		}
 		else
 			Debug.Log ("no door in front of unit, actionManager, toggledoor");
+		//error catching and message
 		update(Game.ActionType.ToggleDoor);
 		postAction ();
 	}
@@ -450,7 +440,7 @@ public class ActionManager {
 			}
 			dieRolled.Clear();
 		} else
-			Debug.Log ("Error with action type , ActionManager");
+			Debug.Log ("Error with action type , ActionManager, makeActions");
 		//error message and catching
 
 		returnAction.actionType = actionType;
