@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-9-14.0
+ * Version 26-9-14.1
  */
 
 using UnityEngine;
@@ -349,7 +349,10 @@ public class InputOutput : MonoBehaviour {
 
 		//Alisdair 11/Sept/2014
 		generateMap (); //Rerun generate map so that it matches the map class again
-		selectUnit(selectedUnit, selectedUnitActions); //Reselect a unit if one has been selected
+
+		if (gameClass.unitSelected){ //Reselecting unit after the map has been regenerated.
+			gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+		}
 	}
 
 	void updateGUIActions(){
