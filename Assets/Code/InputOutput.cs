@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 25-9-14.0
+ * Version 26-9-14.0
  */
 
 using UnityEngine;
@@ -144,6 +144,7 @@ public class InputOutput : MonoBehaviour {
 					case Game.EntityType.Door:
 						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, new Vector3(xPos, (baseYPos + 1), zPos), Quaternion.identity); //Create the closed door object above the floor object
 						square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
+						square.occupant.gameObject = doorPiece; //Pass the reference to the occupant as well Added by Alisdair 26/9/14
 						break;
 				
 					case Game.EntityType.GS:
