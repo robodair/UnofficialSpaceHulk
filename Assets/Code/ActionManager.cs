@@ -306,9 +306,20 @@ public class ActionManager {
 		postAction ();
 	}
 
-	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
+	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 26-9-14
 	{
-		update (Game.ActionType.ToggleDoor);
+		moving = (Vector2)game.moveTransform[Movement][0]; //gets the object from the dictionary and converts to a vector2
+		moving = game.facingDirection[unit.facing] * moving;
+		moving = unit.position + moving; //gets final position
+		if (game.gameMap.hasDoor (moving)) {
+			if (game.gameMap.isDoorOpen (moving))
+				game.gameMap.setDoorState (moving, false);
+			else
+				game.gameMap.setDoorState (moving, true);
+		}
+		else
+			Debug.Log ("no door in front of unit, actionManager, toggledoor");
+		update(Game.ActionType.ToggleDoor);
 		postAction ();
 	}
 
@@ -353,7 +364,7 @@ public class ActionManager {
 	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 25-9-14
 	{
 		if (userUnit.AP <= 0) {
-			//Remember to add command points
+			//Remember to remove command points
 		} else {
 			userUnit.AP = userUnit.AP - APUsed;
 			//removes required amount of AP from units current AP count
@@ -414,7 +425,16 @@ public class ActionManager {
 
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-
+			if (unit.hasSustainedFire) {
+				unit.sustainedFireTarget = null;
+				unit.hasSustainedFire = false;
+				sustainedFireLost.Add (unit);
+				sustainedFireChanged.Add (unit, null);
+			}
+			if (unit.isOnOverwatch) {
+				unit.isOnOverwatch = false;
+				lostOverwatch.Add (unit);
+			}
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
 			executie = null; //no target unit
@@ -422,8 +442,12 @@ public class ActionManager {
 			moveFacing = compassFacing; //no change in facing
 			unitJams = false; //no jamming
 			destroyedUnits.Clear(); //nothing destroyed
-			sustainedFireChanged.Clear();
-			sustainedFireLost.Clear();
+			if (unit.hasSustainedFire) {
+				unit.sustainedFireTarget = null;
+				unit.hasSustainedFire = false;
+				sustainedFireLost.Add (unit);
+				sustainedFireChanged.Add (unit, null);
+			}
 			dieRolled.Clear();
 		} else
 			Debug.Log ("Error with action type , ActionManager");
