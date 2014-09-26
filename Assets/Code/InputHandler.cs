@@ -90,6 +90,8 @@ public class InputHandler : MonoBehaviour {
 			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Shoot);
 			actionManager.target = mapController.getUnit(attackTarget);
 			actionManager.performAction();
+			ioController.resetMap();
+			gameController.gameState = Game.GameState.InactiveSelected;
 		}
 		else
 		{
