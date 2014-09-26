@@ -236,14 +236,14 @@ public class ActionManager {
 				update (Game.ActionType.Attack);
 			}
 		}
-		if(attacker.unitType = Game.EntityType.GS)
+		if(attacker.unitType == Game.EntityType.GS)
 		{
-			Debug.Log ("attackers dice rolled: " + attDie[0] + ", " + attDie[1] + ", " attDie[2]);
+			Debug.Log ("attackers dice rolled: " + attDie[0] + ", " + attDie[1] + ", " + attDie[2]);
 			Debug.Log ("defenders dice rolled: " + defDie[0]);
 		}
-		if(attacker.unitType = Game.EntityType.SM)
+		if(attacker.unitType == Game.EntityType.SM)
 		{
-			Debug.Log ("defenders dice rolled: " + defDie[0] + ", " + defDie[1] + ", " defDie[2]);
+			Debug.Log ("defenders dice rolled: " + defDie[0] + ", " + defDie[1] + ", " + defDie[2]);
 			Debug.Log ("attackers dice rolled: " + attDie[0]);
 		}
 		postAction ();

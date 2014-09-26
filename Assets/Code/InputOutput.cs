@@ -450,6 +450,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
 		Debug.LogWarning ("ToggleDoor Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		inputHandlerController.toggleDoor ();
 	}
 
 	//METHODS ADDED 17-9-14
