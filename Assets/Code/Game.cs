@@ -198,6 +198,7 @@ public class Game : MonoBehaviour {
 			playerTurn = PlayerType.GS;
 			if (thisPlayer == PlayerType.GS)
 			{
+				resetAP (PlayerType.GS);
 				if (blipsPerTurn > 0)
 				{
 					gameState = GameState.DeploymentPhase;
@@ -223,6 +224,7 @@ public class Game : MonoBehaviour {
 				}
 				else
 				{
+					resetAP (PlayerType.GS);
 					algorithm.AITurn();
 				}
 			}
@@ -234,6 +236,7 @@ public class Game : MonoBehaviour {
 			playerTurn = PlayerType.SM;
 			if (thisPlayer == PlayerType.SM)
 			{
+				resetAP (PlayerType.SM);
 				
 				//Reselect the currently selected unit
 				//and change the Game State.
@@ -259,6 +262,34 @@ public class Game : MonoBehaviour {
 				gameState = GameState.NetworkWait;
 
 				//Update the display
+			}
+		}
+	}
+
+	//Sets the current AP of every unit on the board belonging to the
+	//given player to that unit's maximum AP.
+	private void resetAP(PlayerType player)
+	{
+		if (player == PlayerType.SM)
+		{
+			foreach (Unit marine in gameMap.getMarines)
+			{
+				marine.AP = UnitData.getMaxAP(EntityType.SM);
+			}
+		}
+
+		else
+		{
+			foreach (Square square in gameMap.map)
+			{
+				if (square.isOccupied)
+				{
+					if (square.occupant.unitType == EntityType.Blip ||
+					    square.occupant.unitType == EntityType.GS)
+					{
+						square.occupant.AP = UnitData.getMaxAP(square.occupant.unitType);
+					}
+				}
 			}
 		}
 	}
@@ -315,6 +346,7 @@ public class Game : MonoBehaviour {
 	public void deploy(EntityType unitType, Vector2 position, Facing facing)
 	{
 		Unit placeUnit = new Unit (makeName(unitType), unitType, position, facing);
+		placeUnit.AP = UnitData.getMaxAP (unitType);
 		gameMap.placeUnit (placeUnit);
 		ioModule.placeUnit (placeUnit);
 	}
