@@ -272,7 +272,7 @@ public class Game : MonoBehaviour {
 	{
 		if (player == PlayerType.SM)
 		{
-			foreach (Unit marine in gameMap.getMarines)
+			foreach (Unit marine in gameMap.getMarines())
 			{
 				marine.AP = UnitData.getMaxAP(EntityType.SM);
 			}

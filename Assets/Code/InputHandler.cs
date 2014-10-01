@@ -20,6 +20,7 @@ public class InputHandler : MonoBehaviour {
 	{
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
 		gameController.gameState = Game.GameState.MoveSelection;
+		foundTarget = false;
 		//ioController.showAvailableSquares(); 
 		//For when there's some sort of thing to show which squares are available
 	}
@@ -57,8 +58,8 @@ public class InputHandler : MonoBehaviour {
 		actionManager.performAction();
 		
 		gameController.gameState = Game.GameState.Inactive;
-		if (gameController.unitSelected)
-			gameController.deselect ();
+		//if (gameController.unitSelected)
+		//	gameController.deselect ();
 		ioController.resetMap ();
 	}
 

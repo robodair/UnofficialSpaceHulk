@@ -17,13 +17,14 @@ public class Interactible : MonoBehaviour {
 
 	InputHandler inputHandlerController; //Added 18/9/14
 
+
 	public EventSystem eventSystem; //Added by Alisdair 14/9/14
 
 	void Start()
 	{
 		//Create a reference to the Game
 		gameController = GameObject.FindWithTag ("GameController").GetComponent<Game>();
-
+		
 		//Create a reference to the GameController's InputHandler
 		inputHandlerController = GameObject.FindWithTag ("GameController").GetComponent<InputHandler> ();
 
@@ -97,7 +98,8 @@ public class Interactible : MonoBehaviour {
             else
             {
 				//deselect everything if not clicking on a valid selection
-				if (gameController.selectedUnit != null)
+				gameController.gameState = Game.GameState.InactiveSelected;
+				if (gameController.unitSelected)
 					gameController.deselect ();
 			}
 		}
