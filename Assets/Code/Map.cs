@@ -40,6 +40,10 @@ public class Map : MonoBehaviour {
 	//Made the placeUnit method correctly set the units position
 	//when placing in a deployment area.
 
+	//Ian Mallett 1.10.14
+	//Fixed an issue where opening a door would not cause it
+	//to remove the occupant and set the square to unoccupied.
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -327,12 +331,9 @@ public class Map : MonoBehaviour {
 				//If opening the door
 				if (isOpen == true)
 				{
-					//Remove the square's occupant if it was the door
-					if (square.occupant.Equals(square.door))
-					{
-						square.occupant = null;
-						square.isOccupied = false;
-					}
+					//Remove the square's occupant
+					square.occupant = null;
+					square.isOccupied = false;
 					square.doorIsOpen = true;
 				}
 				//If closing the door
