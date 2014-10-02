@@ -364,9 +364,10 @@ public class ActionManager {
 
 	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 25-9-14
 	{
-		if (userUnit.AP <= 0) {
+		if (userUnit.AP <= 0 && userUnit.unitType == Game.EntityType.SM) {
+			Debug.Log ("Command point used");
 			//Remember to remove command points
-		} else {
+		} else{
 			userUnit.AP = userUnit.AP - APUsed;
 			//removes required amount of AP from units current AP count
 		}
