@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 2-10-14.2
+ * Version 2-10-14.3
  */
 
 using UnityEngine;
@@ -119,7 +119,7 @@ public class InputOutput : MonoBehaviour {
 			if (square.isOccupied){
 
 				//Switch to assign facing
-				Quaternion facing;
+				Quaternion facing, smfacing;
 				switch (square.occupant.facing){
 					case Game.Facing.North:
 						facing = Quaternion.identity;
@@ -164,7 +164,7 @@ public class InputOutput : MonoBehaviour {
 						break;
 
 					case Game.EntityType.SM:
-						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), facing); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), smRotation(facing)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 				}
@@ -584,5 +584,16 @@ public class InputOutput : MonoBehaviour {
 			btnEndTurn.interactable = true;
 		}
 	}
+
+	//Adjust quaternion that makes sense for use with the space marine model - Alisdair 2-10-2014
+	Quaternion smRotation(Quaternion reference){
+	
+		int x = (int) reference.eulerAngles.x + 270;
+		int y = (int) reference.eulerAngles.y - 90;
+		int z = (int) reference.eulerAngles.z;
+		Quaternion returnQuaternion = Quaternion.Euler(x, y, z);
+		return returnQuaternion;
+	}
+
 
 }
