@@ -562,6 +562,7 @@ public class Algorithm : MonoBehaviour {
 
 	public void AITurn()
 	{
-
+		Debug.Log ("MY TURN!");
+		game.setTurn (Game.PlayerType.SM);
 	}
 }
