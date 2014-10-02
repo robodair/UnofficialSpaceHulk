@@ -61,6 +61,9 @@ public class Game : MonoBehaviour {
 	//Began adding functionality to the actionPhase and revealPhase methods
 	//Removed the nextPhase method, as it does not have any purpose or use.
 
+	//Ian Mallett 2.10.14
+	//Added support for CP when checking whether actions are available.
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -142,7 +145,7 @@ public class Game : MonoBehaviour {
 
 	//Triggers
 	private int SMEscaped;
-	private Vector2 escapePosition;
+	public Vector2 escapePosition;
 
 	void Start()
 	{
@@ -458,7 +461,8 @@ public class Game : MonoBehaviour {
 		//Most actions are only available in the InactiveSelected state
 		if (gameState == GameState.InactiveSelected)
 		{
-			if (unit.AP >= UnitData.getAPCost(action))
+			if (unit.AP >= UnitData.getAPCost(action) ||
+			   (thisPlayer == PlayerType.SM && unit.AP + remainingCP >= UnitData.getAPCost (action)))
 			{
 				switch (action)
 				{

@@ -294,7 +294,9 @@ public class Algorithm : MonoBehaviour {
 			{
 				Path newPath = addMovement (currentPath, move, moveSet);
 
-				if (newPath.APCost <= unit.AP)
+				//Check whether the unit can get there
+				if (newPath.APCost <= unit.AP ||
+				    (game.thisPlayer == Game.PlayerType.SM && newPath.APCost <= unit.AP + game.remainingCP))
 				{
 					//Check whether the path already exists
 					bool destinationExists = false;
