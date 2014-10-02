@@ -564,7 +564,7 @@ public class InputOutput : MonoBehaviour {
 			btnEndTurn.interactable = false;
 		}
 
-		if (gameClass.gameState.Equals (Game.GameState.NetworkWait) && gameClass.playerTurn.Equals(gameClass.thisPlayer)) {
+		if (gameClass.gameState.Equals (Game.GameState.NetworkWait)) {
 			btnEndTurn.interactable = false;
 		}
 
