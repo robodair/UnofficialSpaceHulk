@@ -100,6 +100,13 @@ public class Algorithm : MonoBehaviour {
 		bool pathComplete = false;
 
 
+		//Check whether the best path is to go nowhere
+		if (initialSquare == targetSquare &&
+		    initialFacing == targetFacing)
+		{
+			return new Path(initialSquare, initialFacing);
+		}
+
 
 		//While finding the path
 		while (!pathComplete)
