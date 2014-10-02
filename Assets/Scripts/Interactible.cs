@@ -38,7 +38,18 @@ public class Interactible : MonoBehaviour {
 		if (gameController.gameState != Game.GameState.AttackSelection)
 		{
 			if (attemptedSelection == SelectionType.Square)
-				gameObject.renderer.material.color = Color.green;
+			{
+				if(gameController.unitSelected)
+				{
+					if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
+				                                                        	gameObject.transform.position.z)))
+						gameObject.renderer.material.color = Color.green;
+					else
+						gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+				}
+				else
+					gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+			}
 		}
 		else if(gameController.thisPlayer == Game.PlayerType.SM)
 		{ 

@@ -38,18 +38,32 @@ public class InputHandler : MonoBehaviour {
 				Vector3 moveTargetVector = moveTarget.transform.position;
 				moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
 
-				foreach(Square square in availableSquares.Keys)
+				if (squareAvailable(moveTargetSquare))
 				{
-					if (moveTargetSquare == square.position)
-					{
-						foundTarget = true;
-						ioController.instantiateFacingSelection (moveTargetSquare);
-						facingInProgress = true;
-						break;
-					}
+					foundTarget = true;
+					ioController.instantiateFacingSelection (moveTargetSquare);
+					facingInProgress = true;
 				}
 			}
 		}
+	}
+
+	//RB 2.10.14
+	//Support for highlighting checks in Interactible class
+	public bool squareAvailable(Vector2 target)
+	{
+		if(gameController.unitSelected)
+		{
+			availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
+			foreach (Square square in availableSquares.Keys)
+			{
+				if(target == square.position)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	//Once the facing selection has been done, creates an ActionManager to handle the movement
