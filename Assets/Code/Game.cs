@@ -61,6 +61,9 @@ public class Game : MonoBehaviour {
 	//Began adding functionality to the actionPhase and revealPhase methods
 	//Removed the nextPhase method, as it does not have any purpose or use.
 
+	///Alisdair Robertson 2.10.14
+	/// Added a call to the defineBtnEndTurn() method of the InputOutput class whenever the gamestate changes
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -202,11 +205,13 @@ public class Game : MonoBehaviour {
 				if (blipsPerTurn > 0)
 				{
 					gameState = GameState.DeploymentPhase;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 					deployment ();
 				}
 				else
 				{
 					gameState = GameState.RevealPhase;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 					revealPhase ();
 				}
 				//Reselect the unit
@@ -218,6 +223,7 @@ public class Game : MonoBehaviour {
 			else
 			{
 				gameState = GameState.NetworkWait;
+				ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 				if (gameIsMultiplayer)
 				{
 					//Send to the network
@@ -243,11 +249,13 @@ public class Game : MonoBehaviour {
 				if (unitSelected)
 				{
 					gameState = GameState.InactiveSelected;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 					selectUnit (selectedUnit.gameObject);
 				}
 				else
 				{
 					gameState = GameState.Inactive;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 				}
 				//Set the player CP
 				remainingCP = Random.Range(1, 7);
@@ -260,6 +268,7 @@ public class Game : MonoBehaviour {
 			else
 			{
 				gameState = GameState.NetworkWait;
+				ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 
 				//Update the display
 			}
@@ -324,6 +333,7 @@ public class Game : MonoBehaviour {
 	public void revealPhase()
 	{
 		gameState = GameState.RevealPhase;
+		ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 
 		//Make ioModule show reveal phase													SEND ALICE ISSUE
 	}
@@ -333,11 +343,13 @@ public class Game : MonoBehaviour {
 		if (unitSelected)
 		{
 			gameState = GameState.InactiveSelected;
+			ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 			selectUnit(selectedUnit.gameObject);
 		}
 		else
 		{
 			gameState = GameState.Inactive;
+			ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 		}
 
 		//Make ioModule show main phase
@@ -395,6 +407,7 @@ public class Game : MonoBehaviour {
 				if (gameState == GameState.Inactive)
 				{
 					gameState = GameState.InactiveSelected;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 				}
 
 				//Find the unit's actions
@@ -442,6 +455,7 @@ public class Game : MonoBehaviour {
 				if (gameState == GameState.InactiveSelected)
 				{
 					gameState = GameState.Inactive;
+					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 				}
 				ioModule.deselect();
 				unitSelected = false;

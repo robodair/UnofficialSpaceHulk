@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-9-14.2
+ * Version 2-10-14.0
  */
 
 using UnityEngine;
@@ -32,6 +32,10 @@ public class InputOutput : MonoBehaviour {
 
 	//Rory Bolt 25.9.14
 	public InputHandler inputHandlerController;
+
+	//End Turn button added 2-10-2014 by Alisdair
+	GameObject btnEndTurnGO;
+	Button btnEndTurn;
 
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
@@ -75,6 +79,13 @@ public class InputOutput : MonoBehaviour {
 		//assign the text elements
 		unitAPText = GameObject.Find("APText");
 		playerCPText = GameObject.Find ("CPText");
+
+
+		//Assign the method to call from the end turn button added 2-10-14 Alisdair
+		btnEndTurnGO = GameObject.Find ("BtnTurn");
+		btnEndTurn = btnEndTurnGO.GetComponent<Button>();
+		btnEndTurn.onClick.AddListener(() => {btnEndTurnClicked();});
+		defineEndTurnBtn(); //Set the state of the end turn button
 
 	}
 
@@ -453,8 +464,6 @@ public class InputOutput : MonoBehaviour {
 		inputHandlerController.toggleDoor ();
 	}
 
-	//METHODS ADDED 17-9-14
-
 	//Method to create a facing selection canvas (at a specified position)
 	// - Need to add new gameobject decleration to the top of this class for the button canvas
 	// Needs to assign methods to call to the buttons
@@ -475,34 +484,30 @@ public class InputOutput : MonoBehaviour {
 		btnWest.onClick.AddListener(() => {btnFaceWest();});
 	}
 
-	//Methods for buttons
+	//Methods for buttons - Aisdair 17-9-14
 	//- each button needs to call a method on the selection/input class to tell it what button has been clicked
 	// - the selection canvas that is the parent of the button then needs to be destroyed.
 	public void btnFaceNorth(){
-		Debug.LogWarning("BtnFaceNorth Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
 		inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 	}
 	public void btnFaceEast(){
-		Debug.LogWarning("BtnFaceEast Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
 		inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 
 	}
 	public void btnFaceSouth(){
-		Debug.LogWarning("BtnFaceSouth Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
 		inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
 	public void btnFaceWest(){
-		Debug.LogWarning("BtnFaceWest Clicked, no method assigned to call (ASK ALISDAIR AND RORY. Destroying canvas");
 		inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
 
-	//Method to convert vector 2 to vector 3
+	//Method to convert vector 2 to vector 3 - Alisdair 22-9-14
 	Vector3 makePosition(Vector2 position, float elevation){
 		int xPos = (int) position.x;
 		int zPos = (int) position.y;
@@ -533,6 +538,37 @@ public class InputOutput : MonoBehaviour {
 			
 		}
 
+	}
+
+	//When end turn button clicked - Added 2-10-14 Alisdair
+	void btnEndTurnClicked(){
+
+		switch (gameClass.playerTurn){
+			case (Game.PlayerType.GS):
+				gameClass.setTurn(Game.PlayerType.SM);
+				break;
+			case (Game.PlayerType.SM):
+				gameClass.setTurn(Game.PlayerType.GS);
+				break;
+			default:
+				Debug.LogError("Houston we have a problem. No player turn is assigned.");
+				gameClass.setTurn(Game.PlayerType.GS);
+				break;
+		}
+	}
+
+	//Method to activate or deactivate the end turn button (To be called every time something is clicked on in the interactable script ?Is this the best place?) - Added by 2-10-14 Alisdair
+	public void defineEndTurnBtn(){
+		//Check to see if the End turn button should be enabled or not, and assign the required state
+		if (gameClass.gameState.Equals (Game.GameState.AttackSelection)) {
+			btnEndTurn.interactable = false;
+		}
+		else if (gameClass.gameState == Game.GameState.MoveSelection) {
+			btnEndTurn.interactable = false;
+		}
+		else {
+			btnEndTurn.interactable = true;
+		}
 	}
 
 }
