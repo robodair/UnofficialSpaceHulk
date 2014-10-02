@@ -61,8 +61,8 @@ public class Game : MonoBehaviour {
 	//Began adding functionality to the actionPhase and revealPhase methods
 	//Removed the nextPhase method, as it does not have any purpose or use.
 
-	///Alisdair Robertson 2.10.14
-	/// Added a call to the defineBtnEndTurn() method of the InputOutput class whenever the gamestate changes
+	//Alisdair Robertson 2.10.14
+	// Added a call to the defineBtnEndTurn() method of the InputOutput class whenever the gamestate changes
 
 	//Ian Mallett 2.10.14
 	//Added support for CP when checking whether actions are available.
@@ -218,11 +218,6 @@ public class Game : MonoBehaviour {
 					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
 					revealPhase ();
 				}
-				//Reselect the unit
-				if (unitSelected)
-				{
-					selectUnit (selectedUnit.gameObject);
-				}
 			}
 			else
 			{
@@ -254,7 +249,6 @@ public class Game : MonoBehaviour {
 				{
 					gameState = GameState.InactiveSelected;
 					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
-					selectUnit (selectedUnit.gameObject);
 				}
 				else
 				{
@@ -276,6 +270,13 @@ public class Game : MonoBehaviour {
 
 				//Update the display
 			}
+		}
+
+		
+		//Reselect the unit to match the new gameState
+		if (unitSelected)
+		{
+			selectUnit (selectedUnit.gameObject);
 		}
 	}
 
