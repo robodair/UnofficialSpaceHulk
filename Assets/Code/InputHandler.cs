@@ -14,6 +14,7 @@ public class InputHandler : MonoBehaviour {
 	Vector2 moveTargetSquare;
 	Dictionary<Square, int> availableSquares;
 	bool foundTarget = false;
+	public bool facingInProgress = false;//RB 2.10.14 for stopping simultaneous movements
 
 	//Sets the GameState to MoveSelection, enabling user to start inputting the move command
 	public void movement()
@@ -30,25 +31,28 @@ public class InputHandler : MonoBehaviour {
 	//selection buttons where the user clicked
 	public void moving()
 	{
-		if (!foundTarget)
+		if (!facingInProgress)
 		{
-			Vector3 moveTargetVector = moveTarget.transform.position;
-			moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
-
-			foreach(Square square in availableSquares.Keys)
+			if (!foundTarget)
 			{
-				if (moveTargetSquare == square.position)
+				Vector3 moveTargetVector = moveTarget.transform.position;
+				moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
+
+				foreach(Square square in availableSquares.Keys)
 				{
-					foundTarget = true;
-					ioController.instantiateFacingSelection (moveTargetSquare);
-					break;
+					if (moveTargetSquare == square.position)
+					{
+						foundTarget = true;
+						ioController.instantiateFacingSelection (moveTargetSquare);
+						facingInProgress = true;
+						break;
+					}
 				}
 			}
 		}
 	}
 	
-	//Once the facing selection has been done, creates an ActionManager to handle the movement, 
-	//then SHOULD deselect the unit and set the GameState back to Inactive
+	//Once the facing selection has been done, creates an ActionManager to handle the movement
 	public void orientationClicked (Game.Facing facing)
 	{
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Move);
@@ -63,6 +67,7 @@ public class InputHandler : MonoBehaviour {
 		
 		//if (gameController.unitSelected)
 		//	gameController.deselect ();
+		facingInProgress = false;
 		ioController.resetMap ();
 	}
 

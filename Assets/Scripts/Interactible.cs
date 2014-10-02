@@ -106,6 +106,7 @@ public class Interactible : MonoBehaviour {
 					if(gameController.gameState == Game.GameState.MoveSelection)
 					{
 						Destroy(ioController.currentFacingSelectionCanvas);
+						inputHandlerController.facingInProgress = false;
 						gameController.gameState = Game.GameState.InactiveSelected;
 					}
 					else if (gameController.gameState == Game.GameState.AttackSelection)
