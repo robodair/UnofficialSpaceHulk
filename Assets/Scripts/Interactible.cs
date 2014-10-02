@@ -16,6 +16,7 @@ public class Interactible : MonoBehaviour {
 	public SelectionType attemptedSelection;
 
 	InputHandler inputHandlerController; //Added 18/9/14
+	InputOutput ioController;
 
 
 	public EventSystem eventSystem; //Added by Alisdair 14/9/14
@@ -27,6 +28,7 @@ public class Interactible : MonoBehaviour {
 		
 		//Create a reference to the GameController's InputHandler
 		inputHandlerController = GameObject.FindWithTag ("GameController").GetComponent<InputHandler> ();
+		ioController = GameObject.FindWithTag ("GameController").GetComponent<InputOutput> ();
 
 		//Find the event system Added By Alisdair 14/9/14
 		eventSystem = GameObject.FindWithTag ("EventSystem").GetComponent<EventSystem>();
@@ -97,10 +99,21 @@ public class Interactible : MonoBehaviour {
 			}
             else
             {
+				//Additional checks RB 2.10.14
 				//deselect everything if not clicking on a valid selection
-				gameController.gameState = Game.GameState.InactiveSelected;
 				if (gameController.unitSelected)
+				{
+					if(gameController.gameState == Game.GameState.MoveSelection)
+					{
+						Destroy(ioController.currentFacingSelectionCanvas);
+						gameController.gameState = Game.GameState.InactiveSelected;
+					}
+					else if (gameController.gameState == Game.GameState.AttackSelection)
+					{
+						gameController.gameState = Game.GameState.InactiveSelected;
+					}
 					gameController.deselect ();
+				}
 			}
 		}
 		else

@@ -28,7 +28,7 @@ public class InputOutput : MonoBehaviour {
 
 	//Facing Selection canvas Added by Alisdair 17/9/2014
 	public GameObject facingSelectionCanvas;
-	GameObject currentFacingSelectionCanvas;
+	public GameObject currentFacingSelectionCanvas; //Made public 2.10.14 RB
 
 	//Rory Bolt 25.9.14
 	public InputHandler inputHandlerController;
