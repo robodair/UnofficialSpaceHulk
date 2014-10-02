@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 2-10-14.1
+ * Version 2-10-14.2
  */
 
 using UnityEngine;
@@ -464,19 +464,31 @@ public class InputOutput : MonoBehaviour {
 	// - Need to add new gameobject decleration to the top of this class for the button canvas
 	// Needs to assign methods to call to the buttons
 	public void instantiateFacingSelection(Vector2 position){
+		instantiateFacingSelection(position, true, true, true, true);
+	}
 
+	//Second method to create a facing selection canvas, with parameters to select which buttons show up
+	public void instantiateFacingSelection(Vector2 position, bool north, bool east, bool south, bool west){
 		//Create the canvas at the position
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
-
+		
 		//Assign methods to the buttons
 		Button btnNorth = GameObject.Find ("BtnNorth").GetComponent<Button>();
 		btnNorth.onClick.AddListener(() => {btnFaceNorth();});
+		btnNorth.interactable = north;
+
 		Button btnEast = GameObject.Find ("BtnEast").GetComponent<Button>();
 		btnEast.onClick.AddListener(() => {btnFaceEast();});
+		btnEast.interactable = east;
+
 		Button btnSouth = GameObject.Find ("BtnSouth").GetComponent<Button>();
 		btnSouth.onClick.AddListener(() => {btnFaceSouth();});
+		btnSouth.interactable = south;
+
 		Button btnWest = GameObject.Find ("BtnWest").GetComponent<Button>();
 		btnWest.onClick.AddListener(() => {btnFaceWest();});
+		btnWest.interactable = west;
+
 	}
 
 	//Methods for buttons - Aisdair 17-9-14
