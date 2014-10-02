@@ -422,7 +422,6 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("Attack Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 		inputHandlerController.attack ();
 	}
 
@@ -430,7 +429,6 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("Move Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 		inputHandlerController.movement ();//RB 18/9/14
 	}
 
@@ -452,7 +450,6 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("Shoot Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 		inputHandlerController.attack ();
 	}
 
@@ -460,7 +457,6 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("ToggleDoor Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 		inputHandlerController.toggleDoor ();
 	}
 
@@ -468,7 +464,6 @@ public class InputOutput : MonoBehaviour {
 	// - Need to add new gameobject decleration to the top of this class for the button canvas
 	// Needs to assign methods to call to the buttons
 	public void instantiateFacingSelection(Vector2 position){
-		Debug.Log ("Creating facing selection buttons @: " + position + " -Alisdair");
 
 		//Create the canvas at the position
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
