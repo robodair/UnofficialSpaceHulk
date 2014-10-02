@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 3-10-14.0
+ * Version 3-10-14.1
  */
 
 using UnityEngine;
@@ -36,6 +36,9 @@ public class InputOutput : MonoBehaviour {
 	//End Turn button added 2-10-2014 by Alisdair
 	GameObject btnEndTurnGO;
 	Button btnEndTurn;
+
+	//Color store for selecton/deselection added Alisdair 3-10-2014
+	Color preSelectionColor;
 
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
@@ -244,6 +247,7 @@ public class InputOutput : MonoBehaviour {
 		selectedUnitActions = actions;
 
 		//colour the selectedUnit unit
+		preSelectionColor = selectedUnit.renderer.material.color;
 		selectedUnit.renderer.material.color = Color.cyan;
 
 		//update the GUI actions
@@ -258,7 +262,7 @@ public class InputOutput : MonoBehaviour {
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
 		//Must change this to a tint later, rather than a full material colour
 		if (selectedUnit != null) {
-			selectedUnit.renderer.material.color = Color.white;
+			selectedUnit.renderer.material.color = preSelectionColor;
 
 			selectedUnit = null;
 
