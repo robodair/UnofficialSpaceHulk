@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 4-10-14.0
+ * Version 4-10-14.1
  */
 
 using UnityEngine;
@@ -17,7 +17,6 @@ public class InputOutput : MonoBehaviour {
 	public Game gameClass; //Added 11/9/2014 Alisdair 
 
 	GameObject selectedUnit; //Added by Alisdair 11/9/14
-	Game.ActionType[] selectedUnitActions; //Added by Alisdair 25/9/2014
 
 	//UI and Button References added 14/9/14 by Alisdair
 	public GameObject UICanvas;
@@ -41,8 +40,53 @@ public class InputOutput : MonoBehaviour {
 	//Color store for selecton/deselection added Alisdair 3-10-2014
 	Color preSelectionColor;
 
-	//Bool to indicate whether an action is being shown or not Alisdair 3-10-2014
-	bool actionComplete = true;
+	//Other action showing declerations Alisdair 4-10-14 
+	List<Action> showActionsList = new List<Action>();
+	public float stepMoveAmmount;
+	public float stepRotateAmmount;
+
+	//Float for the elevation of all new units
+	public float unitElevation;
+
+	public void Update(){
+		//Get the action from the first position in the list
+			//Determine what action type it is
+				//Use a switch to direct to correct type of action
+					//e.g. if movement, move toward the position @ 1 * time.deltatime
+				//Check if the action has been completed (to within a fudge distance)
+				//If within fudge distance, complete the action and remove the action object from the list
+				//else, leave the action to be iterated again in the next frame
+
+		if(showActionsList.Count != 0){
+			switch (showActionsList[0].actionType){
+			case (Game.ActionType.Move):
+
+				//Executor pos and rot
+				Unit exeUnit = showActionsList[0].executor;
+				Vector3 exePos = showActionsList[0].executor.gameObject.transform.position;
+				Quaternion exeRot = showActionsList[0].executor.gameObject.transform.rotation;
+
+				//Create aim pos and rot
+				Vector3 aimPos = makePosition(showActionsList[0].movePosition, unitElevation);
+				Quaternion aimRot = makeRotation(makeFacing(showActionsList[0].moveFacing), exeUnit.unitType);
+
+				//Make part of the movements
+				exePos.Equals(Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount));
+				exeRot.Equals(Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount));
+
+				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
+				if (exePos.Equals(aimPos) && exeRot.Equals(aimRot)){
+					showActionsList.RemoveAt(0);
+				}
+				break;
+			default:
+				Debug.LogWarning("Game to show an action now");
+				
+				break;
+			}
+		}
+	}
+
 
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
@@ -125,53 +169,30 @@ public class InputOutput : MonoBehaviour {
 			//if the square has a unit or door create that unit or door on it
 			if (square.isOccupied){
 
-				//Switch to assign facing
-				Quaternion facing, smfacing;
-				switch (square.occupant.facing){
-					case Game.Facing.North:
-						facing = Quaternion.identity;
-						break;
-
-					case Game.Facing.East:
-						facing = Quaternion.Euler(0,90,0);
-						break;
-
-					case Game.Facing.South:
-						facing = Quaternion.Euler(0,180,0);
-						break;
-
-					case Game.Facing.West:
-						facing = Quaternion.Euler(0,270,0);
-						break;
-
-					default:
-						facing = Quaternion.identity;
-						Debug.LogError("Unable to determine direction for " + square.occupant.unitType + " @ xPos: " + xPos + " zPos: " + zPos + ". set to Quaternion.identity. Refer Alisdair");
-						break;
-
-				}
+				//Assign facing
+				Quaternion facing = makeFacing(square.occupant.facing);
 
 				//Switch to place units
 				switch (square.occupant.unitType){
 				
 					case Game.EntityType.Blip:
-						unit = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, (baseYPos + 1), zPos), facing); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, (unitElevation + 0.5f), zPos), makeRotation(facing, Game.EntityType.Door)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 	
 					case Game.EntityType.Door:
-						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, new Vector3(xPos, (baseYPos + 1), zPos), Quaternion.identity); //Create the closed door object above the floor object
+						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, new Vector3(xPos, (unitElevation + 0.5f), zPos), makeRotation(facing, Game.EntityType.Door)); //Create the closed door object above the floor object
 						square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
 						square.occupant.gameObject = doorPiece; //Pass the reference to the occupant as well Added by Alisdair 26/9/14
 						break;
 				
 					case Game.EntityType.GS:
-						unit = (GameObject) Instantiate(GenestealerPrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), makeRotation(facing, Game.EntityType.GS)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(GenestealerPrefab, new Vector3(xPos, (unitElevation), zPos), makeRotation(facing, Game.EntityType.GS)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 
 					case Game.EntityType.SM:
-						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), makeRotation(facing, Game.EntityType.SM)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (unitElevation), zPos), makeRotation(facing, Game.EntityType.SM)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 				}
@@ -233,40 +254,9 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	//Instantaneously implement all the changes in the action Alisdair 3-10-14
-	//As of 4-10-14 this just puts up debug statements
 	//Eventually this will be modified to take time (combine with update?)
 	public void showActionSequence(Action[] actions){
-		foreach (Action action in actions){
-			switch (action.actionType){
-			case (Game.ActionType.Attack):
-				Debug.LogWarning("Game to show Attack action now");
-
-				break;
-			case (Game.ActionType.Move):
-				Debug.LogWarning("Game to show Move action now");
-
-				break;
-			case (Game.ActionType.Overwatch):
-				Debug.LogWarning("Game to show Overwatch action now");
-
-				break;
-			case (Game.ActionType.Reveal):
-				Debug.LogWarning("Game to show Reveal action now");
-
-				break;
-			case (Game.ActionType.Shoot):
-				Debug.LogWarning("Game to show Shoot action now");
-
-				break;
-			case (Game.ActionType.ToggleDoor):
-				Debug.LogWarning("Game to show Toggle Door action now");
-
-				break;
-
-				while (!actionComplete){
-				}
-			}
-		}
+		showActionsList.AddRange(actions);
 	}
 
 	public void selectUnit (GameObject unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
@@ -281,7 +271,6 @@ public class InputOutput : MonoBehaviour {
 
 		//assign the variable to the new unit
 		selectedUnit = unit;
-		selectedUnitActions = actions;
 
 		//colour the selectedUnit unit
 		preSelectionColor = selectedUnit.renderer.material.color;
@@ -580,7 +569,7 @@ public class InputOutput : MonoBehaviour {
 				return Quaternion.Euler(0,270,0);
 			
 			default:
-				Debug.LogError("Unable to determine facing set to Quaternion.identity. Refer Alisdair");
+				Debug.LogError("Unable to determine facing set to Quaternion.identity.");
 				return Quaternion.identity;
 				
 			
