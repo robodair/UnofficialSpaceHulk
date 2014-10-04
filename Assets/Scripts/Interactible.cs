@@ -118,11 +118,11 @@ public class Interactible : MonoBehaviour {
 					{
 						Destroy(ioController.currentFacingSelectionCanvas);
 						inputHandlerController.facingInProgress = false;
-						gameController.gameState = Game.GameState.InactiveSelected;
+						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
 					else if (gameController.gameState == Game.GameState.AttackSelection)
 					{
-						gameController.gameState = Game.GameState.InactiveSelected;
+						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
 					gameController.deselect ();
 				}

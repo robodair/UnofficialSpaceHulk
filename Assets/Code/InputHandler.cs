@@ -20,8 +20,7 @@ public class InputHandler : MonoBehaviour {
 	public void movement()
 	{
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
-		gameController.gameState = Game.GameState.MoveSelection;
-		ioController.defineEndTurnBtn(); //Define the state of the end turn button Alisdair 2-10-14
+		gameController.changeGameState(Game.GameState.MoveSelection);
 		foundTarget = false;
 		//ioController.showAvailableSquares(); 
 		//For when there's some sort of thing to show which squares are available
@@ -76,8 +75,7 @@ public class InputHandler : MonoBehaviour {
 		                                                       UnitData.getMoveSet (gameController.selectedUnit.unitType));
 		actionManager.performAction();
 		
-		gameController.gameState = Game.GameState.Inactive;
-		ioController.defineEndTurnBtn(); //Define the state of the end turn button Alisdair 2-10-14
+		gameController.changeGameState(Game.GameState.Inactive);
 		
 		//if (gameController.unitSelected)
 		//	gameController.deselect ();
@@ -88,10 +86,7 @@ public class InputHandler : MonoBehaviour {
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
 	public void attack()
 	{
-		gameController.gameState = Game.GameState.AttackSelection;
-		ioController.defineEndTurnBtn(); //Define the state of the end turn button Alisdair 2-10-14
-		
-		Debug.LogWarning (gameController.gameState);
+		gameController.changeGameState(Game.GameState.AttackSelection);
 	}
 
 	public void attacking()
@@ -115,8 +110,7 @@ public class InputHandler : MonoBehaviour {
 			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Shoot);
 			actionManager.target = mapController.getUnit(attackTarget);
 			actionManager.performAction();
-			gameController.gameState = Game.GameState.InactiveSelected;
-		ioController.defineEndTurnBtn(); //Define the state of the end turn button Alisdair 2-10-14
+			gameController.changeGameState(Game.GameState.InactiveSelected);
 			
 			ioController.resetMap();
 		}
