@@ -1,12 +1,13 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 3-10-14.1
+ * Version 4-10-14.0
  */
 
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic; // For use of Lists Alisdair 3-10-14
 
 public class InputOutput : MonoBehaviour {
 
@@ -39,6 +40,9 @@ public class InputOutput : MonoBehaviour {
 
 	//Color store for selecton/deselection added Alisdair 3-10-2014
 	Color preSelectionColor;
+
+	//Bool to indicate whether an action is being shown or not Alisdair 3-10-2014
+	bool actionComplete = true;
 
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
@@ -162,12 +166,12 @@ public class InputOutput : MonoBehaviour {
 						break;
 				
 					case Game.EntityType.GS:
-						unit = (GameObject) Instantiate(GenestealerPrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), facing); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(GenestealerPrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), makeRotation(facing, Game.EntityType.GS)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 
 					case Game.EntityType.SM:
-						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), smRotation(facing)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (baseYPos + 0.5f), zPos), makeRotation(facing, Game.EntityType.SM)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 				}
@@ -228,8 +232,41 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
+	//Instantaneously implement all the changes in the action Alisdair 3-10-14
+	//As of 4-10-14 this just puts up debug statements
+	//Eventually this will be modified to take time (combine with update?)
 	public void showActionSequence(Action[] actions){
-		Debug.LogError("showActionSequence method INCOMPLETE. Refer Alisdair.");
+		foreach (Action action in actions){
+			switch (action.actionType){
+			case (Game.ActionType.Attack):
+				Debug.LogWarning("Game to show Attack action now");
+
+				break;
+			case (Game.ActionType.Move):
+				Debug.LogWarning("Game to show Move action now");
+
+				break;
+			case (Game.ActionType.Overwatch):
+				Debug.LogWarning("Game to show Overwatch action now");
+
+				break;
+			case (Game.ActionType.Reveal):
+				Debug.LogWarning("Game to show Reveal action now");
+
+				break;
+			case (Game.ActionType.Shoot):
+				Debug.LogWarning("Game to show Shoot action now");
+
+				break;
+			case (Game.ActionType.ToggleDoor):
+				Debug.LogWarning("Game to show Toggle Door action now");
+
+				break;
+
+				while (!actionComplete){
+				}
+			}
+		}
 	}
 
 	public void selectUnit (GameObject unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
@@ -593,13 +630,22 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	//Adjust quaternion that makes sense for use with the space marine model - Alisdair 2-10-2014
-	Quaternion smRotation(Quaternion reference){
-	
-		int x = (int) reference.eulerAngles.x + 270;
-		int y = (int) reference.eulerAngles.y - 90;
-		int z = (int) reference.eulerAngles.z;
-		Quaternion returnQuaternion = Quaternion.Euler(x, y, z);
-		return returnQuaternion;
+	Quaternion makeRotation(Quaternion reference, Game.EntityType type){
+
+		Quaternion returnQuaternion;
+
+		switch (type){
+			case (Game.EntityType.SM):
+				int x = (int) reference.eulerAngles.x + 270;
+				int y = (int) reference.eulerAngles.y - 90;
+				int z = (int) reference.eulerAngles.z;
+				returnQuaternion = Quaternion.Euler(x, y, z);
+				return returnQuaternion;
+
+			default:
+				returnQuaternion = reference;
+				return returnQuaternion;
+		}
 	}
 
 
