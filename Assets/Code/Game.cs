@@ -67,6 +67,15 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 2.10.14
 	//Added support for CP when checking whether actions are available.
 
+	//Ian Mallett 3.10.14
+	//Fixed a bug where the selected unit was not always reselected
+	//when the turn was changed.
+
+	//Ian Mallett 4.10.14
+	//Added the changeGameState method with defineEndTurn call.
+	//Changed all instances where the gameState was manually set with calls to this method. Also removed
+	//calls to the defineEndTurn method outside of the changeGameState method.
+
 
 
 	/* Game Class
@@ -208,21 +217,18 @@ public class Game : MonoBehaviour {
 				resetAP (PlayerType.GS);
 				if (blipsPerTurn > 0)
 				{
-					gameState = GameState.DeploymentPhase;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.DeploymentPhase);
 					deployment ();
 				}
 				else
 				{
-					gameState = GameState.RevealPhase;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.RevealPhase);
 					revealPhase ();
 				}
 			}
 			else
 			{
-				gameState = GameState.NetworkWait;
-				ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+				changeGameState(GameState.NetworkWait);
 				if (gameIsMultiplayer)
 				{
 					//Send to the network
@@ -247,13 +253,11 @@ public class Game : MonoBehaviour {
 				//and change the Game State.
 				if (unitSelected)
 				{
-					gameState = GameState.InactiveSelected;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.InactiveSelected);
 				}
 				else
 				{
-					gameState = GameState.Inactive;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.Inactive);
 				}
 				//Set the player CP
 				remainingCP = Random.Range(1, 7);
@@ -265,8 +269,7 @@ public class Game : MonoBehaviour {
 			//If this is the genestealer player
 			else
 			{
-				gameState = GameState.NetworkWait;
-				ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+				changeGameState(GameState.NetworkWait);
 
 				//Update the display
 			}
@@ -337,8 +340,7 @@ public class Game : MonoBehaviour {
 
 	public void revealPhase()
 	{
-		gameState = GameState.RevealPhase;
-		ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+		changeGameState(GameState.RevealPhase);
 
 		//Make ioModule show reveal phase													SEND ALICE ISSUE
 	}
@@ -347,14 +349,12 @@ public class Game : MonoBehaviour {
 	{
 		if (unitSelected)
 		{
-			gameState = GameState.InactiveSelected;
-			ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+			changeGameState(GameState.InactiveSelected);
 			selectUnit(selectedUnit.gameObject);
 		}
 		else
 		{
-			gameState = GameState.Inactive;
-			ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+			changeGameState(GameState.Inactive);
 		}
 
 		//Make ioModule show main phase
@@ -411,8 +411,7 @@ public class Game : MonoBehaviour {
 				//Change the gameState
 				if (gameState == GameState.Inactive)
 				{
-					gameState = GameState.InactiveSelected;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.InactiveSelected);
 				}
 
 				//Find the unit's actions
@@ -459,8 +458,7 @@ public class Game : MonoBehaviour {
 			{
 				if (gameState == GameState.InactiveSelected)
 				{
-					gameState = GameState.Inactive;
-					ioModule.defineEndTurnBtn(); //Set the state of the End turn button in the IO module Alisdair 2-10-14
+					changeGameState(GameState.Inactive);
 				}
 				ioModule.deselect();
 				unitSelected = false;
@@ -548,6 +546,12 @@ public class Game : MonoBehaviour {
 		{
 			unit.currentLoS = algorithm.findLoS(unit);
 		}
+	}
+
+	public void changeGameState(GameState newState)
+	{
+		gameState = newState;
+		ioModule.defineEndTurnBtn();
 	}
 
 	//Randomly chooses a name from a set of names
