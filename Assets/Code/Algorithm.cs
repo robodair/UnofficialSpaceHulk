@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -31,6 +31,9 @@ public class Algorithm : MonoBehaviour {
 
 	//Ian Mallett 21.9.14
 	//Uncommented a line that had not been supported previously.
+
+	//Ian Mallett 3.10.14
+	//Made the AI set the turn back to the Space Marine player's turn.
 
 	public Game game;
 	public Map map;
