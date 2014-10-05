@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 5-10-14.2
+ * Version 5-10-14.3
  */
 
 using UnityEngine;
@@ -97,7 +97,8 @@ public class InputOutput : MonoBehaviour {
 				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
 				//also update the unit AP and CP fields
 				if (exePos.Equals(aimPos) && exeRot.Equals(aimRot)){
-					updateCPAP(exeUnit.AP);
+					Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
+					updateCPAP(action.APCost);
 					showActionsList.RemoveAt(0);
 				}
 
@@ -116,7 +117,8 @@ public class InputOutput : MonoBehaviour {
 				removeSusFire(action.sustainedFireLost);
 
 				//update the CP & AP displays
-				updateCPAP(exeUnit.AP);
+				Debug.Log("UpdateCPAP case OVERWATCH with AP: " + action.APCost);
+				updateCPAP(action.APCost);
 
 				//remove the action
 				showActionsList.RemoveAt(0);
@@ -143,6 +145,7 @@ public class InputOutput : MonoBehaviour {
 					}
 
 					//Finish the action and update the AP
+					Debug.Log("UpdateCPAP case TOGGLEDOOR with AP: " + action.APCost);
 					updateCPAP(action.APCost);
 				}
 				break;
@@ -198,6 +201,9 @@ public class InputOutput : MonoBehaviour {
 		//assign the text elements
 		unitAPText = GameObject.Find("APText");
 		playerCPText = GameObject.Find ("CPText");
+		currentAP = 0;
+		currentCP = 0;
+		Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
 
 
@@ -341,18 +347,20 @@ public class InputOutput : MonoBehaviour {
 		//assign the variable to the new unit
 		selectedUnit = unit.gameObject;
 
-		//get and show the AP and CP for the unit
-		currentAP = unit.AP;
-		currentCP = gameClass.remainingCP;
-		updateCPAP(0);
+
 
 		//colour the selectedUnit unit
 		preSelectionColor = selectedUnit.renderer.material.color;
 		selectedUnit.renderer.material.color = Color.cyan;
 
-		//update the GUI actions & AP text 
+		//update the GUI actionst 
 		updateGUIActions(actions);
-		updateCPAP(unit.AP);
+
+		//get and show the AP and CP for the unit
+		currentAP = unit.AP;
+		currentCP = gameClass.remainingCP;
+		Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
+		updateCPAP(0);
 	}
 
 	public void deselect(){ //Filled by Alisdair 11/9/2014
@@ -369,6 +377,8 @@ public class InputOutput : MonoBehaviour {
 
 			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
+			Debug.Log("UpdateCPAP DESELECT with AP: " + 0);
+			currentAP = 0;
 			updateCPAP(0);
 		} 
 		else {
@@ -731,20 +741,21 @@ public class InputOutput : MonoBehaviour {
 
 	//Method to update the displayed CP and AP
 	void updateCPAP(int aPUsed){
+		Debug.Log("APUSED: " + aPUsed);
 		//if it does not cut into CP, just display it
-		if (aPUsed <= currentAP){
-			currentAP -= aPUsed;
-			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
-		}
-		//If it does cut into CP, calculate how much, and then display it
-		else{
-			currentCP = (currentAP+currentCP) - aPUsed;
-			currentAP = 0;
-
+		if (aPUsed < currentAP || aPUsed == currentAP){
+			currentAP = currentAP - aPUsed;
 			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
 		}
+		//If it does cut into CP, calculate how much, and then display it
+		else{
+			currentCP = (currentAP + currentCP) - aPUsed;
+			currentAP = 0;
 		
-		
+			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
+			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
+		}
 	}
+
 }
