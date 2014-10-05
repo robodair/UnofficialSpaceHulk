@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 5-10-14.0
+ * Version 5-10-14.1
  */
 
 using UnityEngine;
@@ -296,7 +296,7 @@ public class InputOutput : MonoBehaviour {
 		showActionsList.AddRange(actions);
 	}
 
-	public void selectUnit (GameObject unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
+	public void selectUnit (Unit unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
@@ -307,14 +307,15 @@ public class InputOutput : MonoBehaviour {
 		}
 
 		//assign the variable to the new unit
-		selectedUnit = unit;
+		selectedUnit = unit.gameObject;
 
 		//colour the selectedUnit unit
 		preSelectionColor = selectedUnit.renderer.material.color;
 		selectedUnit.renderer.material.color = Color.cyan;
 
-		//update the GUI actions
+		//update the GUI actions & AP text 
 		updateGUIActions(actions);
+		updateCPAP(unit.AP);
 	}
 
 	public void deselect(){ //Filled by Alisdair 11/9/2014
@@ -329,8 +330,9 @@ public class InputOutput : MonoBehaviour {
 
 			selectedUnit = null;
 
-			//set the gui to show no actions
+			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
+			updateCPAP(0);
 		} 
 		else {
 			Debug.LogWarning ("There is not a unit selected.");
