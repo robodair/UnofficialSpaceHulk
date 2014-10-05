@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 5-10-14.1
+ * Version 5-10-14.2
  */
 
 using UnityEngine;
@@ -52,6 +52,10 @@ public class InputOutput : MonoBehaviour {
 	public GameObject overwatchSprite;
 	public GameObject sustainedFireSprite;
 
+	//variables for tracking AP and CP
+	int currentAP;
+	int currentCP;
+
 	public void Update(){
 		//Get the action from the first position in the list
 			//Determine what action type it is
@@ -67,13 +71,17 @@ public class InputOutput : MonoBehaviour {
 			Unit exeUnit = action.executor;
 			Vector3 exePos = action.executor.gameObject.transform.position;
 			Quaternion exeRot = action.executor.gameObject.transform.rotation;
+		
+			//Target pos and rot decleration
+			Unit tarUnit;
+			Vector3 tarPos;
+			Quaternion tarRot;
+
 
 			//Make the action
 			switch (action.actionType){
 			case (Game.ActionType.Move):
-
-
-
+			
 				//Create aim pos and rot
 				Vector3 aimPos = makePosition(action.movePosition, unitElevation);
 				Quaternion aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
@@ -113,6 +121,30 @@ public class InputOutput : MonoBehaviour {
 				//remove the action
 				showActionsList.RemoveAt(0);
 
+				break;
+
+			case (Game.ActionType.ToggleDoor):
+				if (action.target != null){
+					//target unit being assigned
+					tarUnit = action.target;
+					tarPos = action.target.gameObject.transform.position;
+					tarRot = action.target.gameObject.transform.rotation;
+
+					//Check if the door is open or closed, and replace it with the door of the other type
+					if (tarUnit.gameObject.name.Equals("ClosedDoorPrefab")){
+						GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, tarPos, tarRot);
+						Destroy(tarUnit.gameObject);
+						tarUnit.gameObject = newDoor;
+					}
+					else if(tarUnit.gameObject.name.Equals("OpenDoorPrefab")){
+						GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, tarPos, tarRot);
+						Destroy(tarUnit.gameObject);
+						tarUnit.gameObject = newDoor;
+					}
+
+					//Finish the action and update the AP
+					updateCPAP(action.APCost);
+				}
 				break;
 
 			default:
@@ -308,6 +340,11 @@ public class InputOutput : MonoBehaviour {
 
 		//assign the variable to the new unit
 		selectedUnit = unit.gameObject;
+
+		//get and show the AP and CP for the unit
+		currentAP = unit.AP;
+		currentCP = gameClass.remainingCP;
+		updateCPAP(0);
 
 		//colour the selectedUnit unit
 		preSelectionColor = selectedUnit.renderer.material.color;
@@ -693,8 +730,21 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	//Method to update the displayed CP and AP
-	void updateCPAP(int aP){
-		unitAPText.GetComponent<Text>().text = "Unit Action Points: " + aP;
-		playerCPText.GetComponent<Text>().text = "Player Command Points: " + gameClass.remainingCP;
+	void updateCPAP(int aPUsed){
+		//if it does not cut into CP, just display it
+		if (aPUsed <= currentAP){
+			currentAP -= aPUsed;
+			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
+		}
+		//If it does cut into CP, calculate how much, and then display it
+		else{
+			currentCP = (currentAP+currentCP) - aPUsed;
+			currentAP = 0;
+
+			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
+			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
+		}
+		
+		
 	}
 }
