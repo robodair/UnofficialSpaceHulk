@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 4-10-14.1
+ * Version 5-10-14.0
  */
 
 using UnityEngine;
@@ -48,6 +48,10 @@ public class InputOutput : MonoBehaviour {
 	//Float for the elevation of all new units
 	public float unitElevation;
 
+	//Declerations for hint objects Alisdair 5-10-14 
+	public GameObject overwatchSprite;
+	public GameObject sustainedFireSprite;
+
 	public void Update(){
 		//Get the action from the first position in the list
 			//Determine what action type it is
@@ -58,27 +62,59 @@ public class InputOutput : MonoBehaviour {
 				//else, leave the action to be iterated again in the next frame
 
 		if(showActionsList.Count != 0){
-			switch (showActionsList[0].actionType){
+			Action action = showActionsList[0];
+			//Executor pos and rot
+			Unit exeUnit = action.executor;
+			Vector3 exePos = action.executor.gameObject.transform.position;
+			Quaternion exeRot = action.executor.gameObject.transform.rotation;
+
+			//Make the action
+			switch (action.actionType){
 			case (Game.ActionType.Move):
 
-				//Executor pos and rot
-				Unit exeUnit = showActionsList[0].executor;
-				Vector3 exePos = showActionsList[0].executor.gameObject.transform.position;
-				Quaternion exeRot = showActionsList[0].executor.gameObject.transform.rotation;
+
 
 				//Create aim pos and rot
-				Vector3 aimPos = makePosition(showActionsList[0].movePosition, unitElevation);
-				Quaternion aimRot = makeRotation(makeFacing(showActionsList[0].moveFacing), exeUnit.unitType);
+				Vector3 aimPos = makePosition(action.movePosition, unitElevation);
+				Quaternion aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
 
 				//Make part of the movements
 				exePos.Equals(Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount));
 				exeRot.Equals(Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount));
 
+				//Remove overwatch sprites for those units that have lost overwatch or sustained fire
+				removeOverwatch(action.lostOverwatch);
+				removeSusFire(action.sustainedFireLost);
+
 				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
+				//also update the unit AP and CP fields
 				if (exePos.Equals(aimPos) && exeRot.Equals(aimRot)){
+					updateCPAP(exeUnit.AP);
 					showActionsList.RemoveAt(0);
 				}
+
 				break;
+
+			case (Game.ActionType.Overwatch):
+				//determine the position the sprite
+				Vector3 spritePosition = exePos;
+				spritePosition.y += 1.3f;
+
+				//instantiate the sprite at the position & give reference to the unit
+				exeUnit.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
+
+				//Remove overwatch sprites for those units that have lost overwatch or sustained fire
+				removeOverwatch(action.lostOverwatch);
+				removeSusFire(action.sustainedFireLost);
+
+				//update the CP & AP displays
+				updateCPAP(exeUnit.AP);
+
+				//remove the action
+				showActionsList.RemoveAt(0);
+
+				break;
+
 			default:
 				Debug.LogWarning("Game to show an action now");
 				
@@ -130,6 +166,7 @@ public class InputOutput : MonoBehaviour {
 		//assign the text elements
 		unitAPText = GameObject.Find("APText");
 		playerCPText = GameObject.Find ("CPText");
+		updateCPAP(0);
 
 
 		//Assign the method to call from the end turn button added 2-10-14 Alisdair
@@ -637,5 +674,25 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	//Method to remove the overwatch sprites from all the units Alisdair 5-10-14
+	void removeOverwatch(List <Unit> units){
+		foreach (Unit unit in units){
+			if (unit.sustainedFireSprite)
+				Destroy(unit.overwatchSprite);
+		}
+	}
 
+	//Method to remove sustained fire sprites
+	void removeSusFire(List <Unit> units){
+		foreach (Unit unit in units){
+			if (unit.sustainedFireSprite)
+				Destroy(unit.sustainedFireSprite);
+		}
+	}
+
+	//Method to update the displayed CP and AP
+	void updateCPAP(int aP){
+		unitAPText.GetComponent<Text>().text = "Unit Action Points: " + aP;
+		playerCPText.GetComponent<Text>().text = "Player Command Points: " + gameClass.remainingCP;
+	}
 }

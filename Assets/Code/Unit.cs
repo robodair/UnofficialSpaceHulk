@@ -41,6 +41,10 @@ public class Unit {
 	public int noOfGS;
 	public GameObject gameObject;
 
+	//sprite objects added Alisdair 5-10-14
+	public GameObject overwatchSprite;
+	public GameObject sustainedFireSprite;
+
 	public Unit(string name, Game.EntityType unitType,
 	            Vector2 position, Game.Facing facing)
 	{
