@@ -76,6 +76,10 @@ public class Game : MonoBehaviour {
 	//Changed all instances where the gameState was manually set with calls to this method. Also removed
 	//calls to the defineEndTurn method outside of the changeGameState method.
 
+	//Ian Mallett 5.10.14
+	//Passed the unit being selected to the InputOutput.selectUnit method
+	//rather than the gameObject of the unit.
+	//Added the InvoluntaryReveal action type.
 
 
 	/* Game Class
@@ -112,7 +116,7 @@ public class Game : MonoBehaviour {
 	public enum EntityType{SM, GS, Blip, Door, Square};
 
 	//Types of action. Note that attack is the Genestealer attack, and is therefore melee
-	public enum ActionType{Attack, Shoot, Move, ToggleDoor, Overwatch, Reveal};
+	public enum ActionType{Attack, Shoot, Move, ToggleDoor, Overwatch, Reveal, InvoluntaryReveal};
 
 	//Types of movement
 	public enum MoveType{Forward, Right, Left, Back, FrontRight, FrontLeft, BackRight, BackLeft, TurnRight,
