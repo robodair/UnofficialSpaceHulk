@@ -13,6 +13,11 @@ public class RevealManager : MonoBehaviour {
 	//Added partial functionality to place method
 	//Added partial functionality to voluntaryReveal method.
 
+	//Ian Mallett 5.10.14
+	//Removed the callingClass parameter from involuntaryReveal and changed the type
+	//of prevLoS from a list of Vector2 variables to a dictionary of Units with lists
+	//of Vector2s.
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;
@@ -21,7 +26,7 @@ public class RevealManager : MonoBehaviour {
 	public Game gameController;
 
 
-	public void involuntaryReveal(Vector2 blipPosition, ActionManager triggeringClass, List<Vector2> givenLoS)
+	public void involuntaryReveal(Vector2 blipPosition, Dictionary<Unit, List<Vector2>> prevLoS)
 	{
 
 	}

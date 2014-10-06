@@ -67,6 +67,9 @@ public class Action {
 	//currentLoS variable of the units will be the final LoS of the units.
 	public Dictionary<Unit, List<Vector2>> completeLoS;
 
+	//The line of sight of ever Space Marine on the map before this action.
+	public Dictionary<Unit, List<Vector2>> prevLoS;
+
 	//The set of units who gained a sustained fire bonus, or their sustained
 	//fire target changed as a result of the action. These are coupled with
 	//the new targed of the sustained fire.
