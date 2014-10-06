@@ -104,7 +104,7 @@ public class ActionManager {
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-
+		game.ioModule.showActionSequence(actions.ToArray ());
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 25-9-14
@@ -362,11 +362,11 @@ public class ActionManager {
 		return die; //returns the die value
 	}
 
-	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 25-9-14
+	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 6-10-14
 	{
 		if (userUnit.AP <= 0 && userUnit.unitType == Game.EntityType.SM) {
-			Debug.Log ("Command point used");
-			//Remember to remove command points
+			game.remainingCP--;
+			//removes CP used
 		} else{
 			userUnit.AP = userUnit.AP - APUsed;
 			//removes required amount of AP from units current AP count
