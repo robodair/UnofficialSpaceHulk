@@ -18,6 +18,9 @@ public class RevealManager : MonoBehaviour {
 	//of prevLoS from a list of Vector2 variables to a dictionary of Units with lists
 	//of Vector2s.
 
+	//Ian Mallett 6.10.14
+	//Added the actionManager parameter to the involuntaryReveal method.
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;
@@ -26,7 +29,7 @@ public class RevealManager : MonoBehaviour {
 	public Game gameController;
 
 
-	public void involuntaryReveal(Vector2 blipPosition, Dictionary<Unit, List<Vector2>> prevLoS)
+	public void involuntaryReveal(Vector2 blipPosition, ActionManager actionManager, Dictionary<Unit, List<Vector2>> prevLoS)
 	{
 
 	}
