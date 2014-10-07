@@ -35,6 +35,9 @@ public class Algorithm : MonoBehaviour {
 	//Ian Mallett 3.10.14
 	//Made the AI set the turn back to the Space Marine player's turn.
 
+	//Ian Mallett 7.10.14
+	//Added support for creating paths out of a 
+
 	public Game game;
 	public Map map;
 
@@ -141,86 +144,90 @@ public class Algorithm : MonoBehaviour {
 			for (int moveTypeIndex = 0; moveTypeIndex < moveOrder.Count; moveTypeIndex++)
 			{
 				Game.MoveType move = moveOrder[moveTypeIndex];
-				if (moveSet.ContainsKey(move))
+				//If the path wouldn't be trying to move off a deployment area unsuccessfully
+				if (currentPath.finalSquare.x >= 0 || move == Game.MoveType.Forward)
 				{
-					Path newPath = addMovement (currentPath, move, moveSet);
-
-
-					//Check whether the path already exists
-					bool destinationExists = false;
-
-					for (int i = 0; i < currentPositions.Count; i++)
+					if (moveSet.ContainsKey(move))
 					{
-						if (currentPositions[i].finalSquare == newPath.finalSquare &&
-						    currentPositions[i].finalFacing.Equals (newPath.finalFacing))
-						{
-							if (currentPositions[i].APCost > newPath.APCost)
-							{
-								currentPositions.RemoveAt(i);
-								break;
-							}
-							else
-							{
-								destinationExists = true;
-								break;
-							}
-						}
-					}
-					for (int i = 0; i < completedPositions.Count; i++)
-					{
-						if (completedPositions[i].finalSquare == newPath.finalSquare &&
-						    completedPositions[i].finalFacing.Equals (newPath.finalFacing))
-						{
-							if (completedPositions[i].APCost > newPath.APCost)
-							{
-								completedPositions.RemoveAt (i);
-								break;
-							}
-							else
-							{
-								destinationExists = true;
-								break;
-							}
-						}
-					}
+						Path newPath = addMovement (currentPath, move, moveSet);
 
-					//If the destination doesn't already exist, the unit is allowed to move to
-					//the target position, add the new path to the current positions
-					if (!destinationExists)
-					{
-						if (map.hasSquare (newPath.finalSquare))
+
+						//Check whether the path already exists
+						bool destinationExists = false;
+
+						for (int i = 0; i < currentPositions.Count; i++)
 						{
-							if (ignoreOccupants || !map.isOccupied(newPath.finalSquare) ||
-							    newPath.finalSquare == initialSquare)
+							if (currentPositions[i].finalSquare == newPath.finalSquare &&
+							    currentPositions[i].finalFacing.Equals (newPath.finalFacing))
 							{
-								if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
+								if (currentPositions[i].APCost > newPath.APCost)
 								{
-									//Check whether the path reaches the end
-									if (newPath.finalSquare == targetSquare &&
-									    newPath.finalFacing.Equals (targetFacing))
+									currentPositions.RemoveAt(i);
+									break;
+								}
+								else
+								{
+									destinationExists = true;
+									break;
+								}
+							}
+						}
+						for (int i = 0; i < completedPositions.Count; i++)
+						{
+							if (completedPositions[i].finalSquare == newPath.finalSquare &&
+							    completedPositions[i].finalFacing.Equals (newPath.finalFacing))
+							{
+								if (completedPositions[i].APCost > newPath.APCost)
+								{
+									completedPositions.RemoveAt (i);
+									break;
+								}
+								else
+								{
+									destinationExists = true;
+									break;
+								}
+							}
+						}
+
+						//If the destination doesn't already exist, the unit is allowed to move to
+						//the target position, add the new path to the current positions
+						if (!destinationExists)
+						{
+							if (map.hasSquare (newPath.finalSquare))
+							{
+								if (ignoreOccupants || !map.isOccupied(newPath.finalSquare) ||
+								    newPath.finalSquare == initialSquare)
+								{
+									if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
 									{
-										if (bestPath != null)
+										//Check whether the path reaches the end
+										if (newPath.finalSquare == targetSquare &&
+										    newPath.finalFacing.Equals (targetFacing))
 										{
-											if (newPath.APCost < bestPath.APCost)
+											if (bestPath != null)
+											{
+												if (newPath.APCost < bestPath.APCost)
+												{
+													bestPath = newPath;
+												}
+											}
+											else
 											{
 												bestPath = newPath;
 											}
 										}
 										else
 										{
-											bestPath = newPath;
+											currentPositions.Add (newPath);
 										}
-									}
-									else
-									{
-										currentPositions.Add (newPath);
 									}
 								}
 							}
 						}
+
+
 					}
-
-
 				}
 			}
 
@@ -249,26 +256,41 @@ public class Algorithm : MonoBehaviour {
 	//Adds the movement to the path and returns a new path with different references.
 	private Path addMovement(Path path, Game.MoveType move, Dictionary<Game.MoveType, int> moveSet)
 	{
-		Vector2 newPosition = (Vector2)path.finalSquare +
-			(Vector2)((Quaternion)game.facingDirection[path.finalFacing] *
-			          (Vector2)game.moveTransform[move][0]);
-		
-		Quaternion newDirection = (Quaternion)game.facingDirection[path.finalFacing] *
-			(Quaternion)game.moveTransform[move][1];
-		
-		
-		//Find the new Facing
+		Vector2 newPosition = new Vector2();
 		Game.Facing newFacing = Game.Facing.North;
-		foreach (Game.Facing facing in game.facingDirection.Keys)
-		{
-			if (Quaternion.Angle (game.facingDirection[facing], newDirection) < 1f)
-			{
-				newFacing = facing;
-				break;
+
+		//If the unit is on a square
+		if (path.finalSquare.x >= 0) {
+			newPosition = (Vector2)path.finalSquare +
+						  (Vector2)((Quaternion)game.facingDirection [path.finalFacing] *
+									(Vector2)game.moveTransform [move] [0]);
+			
+			Quaternion newDirection = (Quaternion)game.facingDirection [path.finalFacing] *
+									  (Quaternion)game.moveTransform [move] [1];
+			
+			
+			//Find the new Facing
+			newFacing = Game.Facing.North;
+			foreach (Game.Facing facing in game.facingDirection.Keys) {
+				if (Quaternion.Angle (game.facingDirection [facing], newDirection) < 1f) {
+					newFacing = facing;
+					break;
+				}
 			}
 		}
-		
-		
+		//If the unit is on a deployment area
+		else
+		{
+			if (move == Game.MoveType.Forward)
+			{
+				if (map.otherAreas.Length > -1 - path.finalSquare.x)
+				{
+					newPosition = map.otherAreas[-1 - (int)path.finalSquare.x].adjacentPosition;
+					newFacing = map.otherAreas[-1 - (int)path.finalSquare.x].relativePosition;
+				}
+			}
+		}
+
 		
 		//Create the new path
 		Path newPath = new Path(path);
@@ -302,64 +324,67 @@ public class Algorithm : MonoBehaviour {
 			//Find every addition to the path
 			foreach (Game.MoveType move in moveSet.Keys)
 			{
-				Path newPath = addMovement (currentPath, move, moveSet);
-
-				//Check whether the unit can get there
-				if (newPath.APCost <= unit.AP ||
-				    (game.thisPlayer == Game.PlayerType.SM && newPath.APCost <= unit.AP + game.remainingCP))
+				if (currentPath.finalSquare.x >= 0 || move == Game.MoveType.Forward)
 				{
-					//Check whether the path already exists
-					bool destinationExists = false;
-					
-					for (int i = 0; i < currentPaths.Count; i++)
-					{
-						if (currentPaths[i].finalSquare == newPath.finalSquare &&
-						    currentPaths[i].finalFacing.Equals (newPath.finalFacing))
-						{
-							if (currentPaths[i].APCost > newPath.APCost)
-							{
-								currentPaths.RemoveAt(i);
-								break;
-							}
-							else
-							{
-								destinationExists = true;
-								break;
-							}
-						}
-					}
-					for (int i = 0; i < completedPaths.Count; i++)
-					{
-						if (completedPaths[i].finalSquare == newPath.finalSquare &&
-						    completedPaths[i].finalFacing.Equals (newPath.finalFacing))
-						{
-							if (completedPaths[i].APCost > newPath.APCost)
-							{
-								completedPaths.RemoveAt (i);
-								break;
-							}
-							else
-							{
-								destinationExists = true;
-								break;
-							}
-						}
-					}
+					Path newPath = addMovement (currentPath, move, moveSet);
 
-					//If the destination doesn't already exist, the unit is allowed to move to
-					//the target position, add the new path to the current paths
-					if (!destinationExists)
+					//Check whether the unit can get there
+					if (newPath.APCost <= unit.AP ||
+					    (game.thisPlayer == Game.PlayerType.SM && newPath.APCost <= unit.AP + game.remainingCP))
 					{
-						if (map.hasSquare (newPath.finalSquare))
+						//Check whether the path already exists
+						bool destinationExists = false;
+						
+						for (int i = 0; i < currentPaths.Count; i++)
 						{
-							if (!map.isOccupied(newPath.finalSquare) ||
-							    newPath.finalSquare == unit.position)
+							if (currentPaths[i].finalSquare == newPath.finalSquare &&
+							    currentPaths[i].finalFacing.Equals (newPath.finalFacing))
 							{
-								if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
+								if (currentPaths[i].APCost > newPath.APCost)
 								{
+									currentPaths.RemoveAt(i);
+									break;
+								}
+								else
+								{
+									destinationExists = true;
+									break;
+								}
+							}
+						}
+						for (int i = 0; i < completedPaths.Count; i++)
+						{
+							if (completedPaths[i].finalSquare == newPath.finalSquare &&
+							    completedPaths[i].finalFacing.Equals (newPath.finalFacing))
+							{
+								if (completedPaths[i].APCost > newPath.APCost)
+								{
+									completedPaths.RemoveAt (i);
+									break;
+								}
+								else
+								{
+									destinationExists = true;
+									break;
+								}
+							}
+						}
 
-									currentPaths.Add (newPath);
+						//If the destination doesn't already exist, the unit is allowed to move to
+						//the target position, add the new path to the current paths
+						if (!destinationExists)
+						{
+							if (map.hasSquare (newPath.finalSquare))
+							{
+								if (!map.isOccupied(newPath.finalSquare) ||
+								    newPath.finalSquare == unit.position)
+								{
+									if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
+									{
 
+										currentPaths.Add (newPath);
+
+									}
 								}
 							}
 						}
