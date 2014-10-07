@@ -38,8 +38,8 @@ public class ActionManager {
 	private Dictionary<Unit, List<Vector2>> completeLoS = new Dictionary<Unit, List<Vector2>> ();
 	private Dictionary<Unit, Unit> sustainedFireChanged = new Dictionary<Unit, Unit> ();
 	private List<Unit> lostOverwatch = new List<Unit> ();
+	public Dictionary<Unit, List<Vector2>> prevLoS = new Dictionary<Unit, List<Vector2>> (); //created by Nick Lee 7-10-14
 	private Dictionary<Game.PlayerType, int[]> dieRolled = new Dictionary<Game.PlayerType, int[]> ();
-
 
 	public ActionManager(Unit unit, Game.ActionType action)	//Contents modified by Nick Lee 16-9-14
 	{
@@ -48,6 +48,9 @@ public class ActionManager {
 		//gets local game controller
 		actionUsed = action; //gets the action
 		this.unit = unit; //the unit using the action
+		marines = game.gameMap.getMarines ();
+		for (int j = 0; j < marines.Count; j++)
+			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
@@ -454,6 +457,7 @@ public class ActionManager {
 		returnAction.destroyedUnits = destroyedUnits;
 		returnAction.sustainedFireLost = sustainedFireLost;
 		returnAction.completeLoS = completeLoS;
+		returnAction.prevLoS = prevLoS;
 		returnAction.sustainedFireChanged = sustainedFireChanged;
 		returnAction.lostOverwatch = lostOverwatch;
 		returnAction.diceRoll = dieRolled;
