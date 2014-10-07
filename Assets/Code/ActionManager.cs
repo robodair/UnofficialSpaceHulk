@@ -20,12 +20,12 @@ public class ActionManager {
 	private Path customPath;//Created by Nick Lee 18-9-14
 	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
-	private int[] dieRolls = new int[3];
+	private bool overwatchKilled = false; //Created by Nick Lee 7-10-14
+	private List<int> dieRolls = new List<int> (); //Created by Nick Lee 7-10-14
 	public Unit target;
 	public Path path;
-	//gameController.ioModule.showActionSequence(actions);
 
-	//created by Nick Lee 24-Sep-14
+	//created by Nick Lee 24-9-14
 	private Game.ActionType actionType;
 	private Unit executor;
 	private Unit executie;
@@ -39,7 +39,6 @@ public class ActionManager {
 	private Dictionary<Unit, Unit> sustainedFireChanged = new Dictionary<Unit, Unit> ();
 	private List<Unit> lostOverwatch = new List<Unit> ();
 	private Dictionary<Game.PlayerType, int[]> dieRolled = new Dictionary<Game.PlayerType, int[]> ();
-	private int dieRollsIterator = 0;
 
 
 	public ActionManager(Unit unit, Game.ActionType action)	//Contents modified by Nick Lee 16-9-14
@@ -107,50 +106,44 @@ public class ActionManager {
 		game.ioModule.showActionSequence(actions.ToArray ());
 	}
 
-	private void moveMethod()//Created by Nick Lee 16-9-14, modified 25-9-14
+	private void moveMethod()//Created by Nick Lee 16-9-14, modified 7-10-14
 	{
-		Path currentPath;
-		if (!attackMove) {
-			currentPath = path;
-		} else {
-			currentPath = customPath;
-			attackMove = false;
-		}
-		//sets the path to iterate through
-
-		for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
-			Movement = currentPath.path[i];
-			//determines whether movement is rotation caused by an attack
-
-			removeAP (unit, UnitData.getMoveSet(unit.unitType)[Movement]);//removes required AP from unit
-			moving = (Vector2)game.moveTransform[Movement][0]; //gets the object from the dictionary and converts to a vector2
-			moving = game.facingDirection[unit.facing] * moving;
-			moving = unit.position + moving; //gets final position
-
-			Quaternion direction = game.facingDirection[unit.facing]*((Quaternion)game.moveTransform[Movement][1]);
-			//gets the quaternion from the current facing and the required movement
-			if(Mathf.Abs (direction.eulerAngles.z-0) < 0.1f)
-			{
-				compassFacing = Game.Facing.North;	//changes facing to north
+		if (!overwatchKilled) {
+			Path currentPath;
+			if (!attackMove) {
+					currentPath = path;
+			} else {
+					currentPath = customPath;
+					attackMove = false;
 			}
-			else if(Mathf.Abs (direction.eulerAngles.z-270) < 0.1f)
-			{
-				compassFacing = Game.Facing.East;	//changes facing to east
-			}
-			else if(Mathf.Abs (direction.eulerAngles.z-180) < 0.1f)
-			{
-				compassFacing = Game.Facing.South;	//changes facing to south
-			}
-			else if(Mathf.Abs (direction.eulerAngles.z-90) < 0.1f)
-			{
-				compassFacing = Game.Facing.West;	//changes facing to west
-			}
-			else
-				Debug.Log ("Invalid unit facing: ActionManager, move method");
-			//error catching and message
+			//sets the path to iterate through
 
-			game.gameMap.shiftUnit(unit.position, moving, compassFacing);
-			update (Game.ActionType.Move);
+			for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
+					Movement = currentPath.path [i];
+					//determines whether movement is rotation caused by an attack
+
+					removeAP (unit, UnitData.getMoveSet (unit.unitType) [Movement]);//removes required AP from unit
+					moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
+					moving = game.facingDirection [unit.facing] * moving;
+					moving = unit.position + moving; //gets final position
+
+					Quaternion direction = game.facingDirection [unit.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
+					//gets the quaternion from the current facing and the required movement
+					if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
+							compassFacing = Game.Facing.North;	//changes facing to north
+					} else if (Mathf.Abs (direction.eulerAngles.z - 270) < 0.1f) {
+							compassFacing = Game.Facing.East;	//changes facing to east
+					} else if (Mathf.Abs (direction.eulerAngles.z - 180) < 0.1f) {
+							compassFacing = Game.Facing.South;	//changes facing to south
+					} else if (Mathf.Abs (direction.eulerAngles.z - 90) < 0.1f) {
+							compassFacing = Game.Facing.West;	//changes facing to west
+					} else
+							Debug.Log ("Invalid unit facing: ActionManager, move method");
+					//error catching and message
+
+					game.gameMap.shiftUnit (unit.position, moving, compassFacing);
+					update (Game.ActionType.Move);
+			}
 		}
 		postAction ();
 	}
@@ -161,12 +154,21 @@ public class ActionManager {
 		List<int> defDie = new List<int> ();
 		List<int> attDie = new List<int> ();
 
-		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++)
-			attDie.Add (diceRoll (attacker, Game.ActionType.Attack));
+		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
+			attDie.Add (diceRoll ());
+			dieRolled.Add (game.playerTurn, dieRolls.ToArray());
+		}
 		attDie.Sort (); //gets attackers die and adds them to list
 
-		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++)
-			defDie.Add (diceRoll (attacker, Game.ActionType.Attack));
+		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
+			defDie.Add (diceRoll ());
+			if(game.playerTurn == Game.PlayerType.GS)
+				dieRolled.Add (Game.PlayerType.SM, dieRolls.ToArray());
+			else if(game.playerTurn == Game.PlayerType.SM)
+				dieRolled.Add (Game.PlayerType.GS, dieRolls.ToArray());
+			else
+				Debug.Log ("error in determining player action melee, actionManager attackMethod");
+		}
 		defDie.Sort (); //gets defenders die and adds them to the list
 
 		defender.isOnOverwatch = false; //sets defenders overwatch to false
@@ -249,30 +251,40 @@ public class ActionManager {
 		postAction ();
 	}
 
-	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 25-9-14
+	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 7-10-14
 	{
-		int die1 = diceRoll(shooter, Game.ActionType.Shoot);
-		int die2 = diceRoll(shooter, Game.ActionType.Shoot);
+		List<int> Dice = new List<int> ();
+		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
+			Dice.Add (diceRoll ());
+			dieRolled.Add (game.playerTurn, dieRolls.ToArray());
+		}
 		//rolls 2 die
+
 		if (!shooter.isJammed) {
 			//makes sure they are not jammed
 				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
 					//checks for sustained fire
-						if (die1 >= 5 || die2 >= 5) {
+					if (Dice[0] >= 5 || Dice[1] >= 5) {
 							//if kill criteria are met
 							game.gameMap.removeUnit (shootie.position);
 							destroyedUnits.Add (shootie);
 							sustainedFireChanged.Add (shooter, null);
+						if(overwatchShot){
+							overwatchKilled = true;
+						}
 							//removes unit being shot and changes required variable
 						}
 						//sustained fire shots (kill on 5's)
 				} else {
 				//if not sustained fire
 					sustainedFireChanged.Add (shooter, shootie);
-					if (die1 >= 6 || die2 >= 6) {
+					if (Dice[0] >= 6 || Dice[1] >= 6) {
 						game.gameMap.removeUnit (shootie.position);
 						destroyedUnits.Add (shootie);
 						sustainedFireChanged[shooter] = null;
+						if(overwatchShot){
+							overwatchKilled = true;
+						}
 						//if criteria met kills unit
 					} else {
 						shooter.sustainedFireTarget = target;
@@ -281,7 +293,7 @@ public class ActionManager {
 					}
 					//non-sustained fire shots (kill on 6's)
 				}
-				if (overwatchShot && die1 == die2) {
+				if (overwatchShot && Dice[0] == Dice[1]) {
 					shooter.isJammed = true;
 					shooter.isOnOverwatch = false;
 					shooter.hasSustainedFire = false;
@@ -292,8 +304,8 @@ public class ActionManager {
 					//changes sustained fire and jam variables if required during overwatch
 				}
 		}
-		Debug.Log ("dice one rolled: " + die1);
-		Debug.Log ("dice two rolled: " + die2);
+		Debug.Log ("dice one rolled: " + Dice[0]);
+		Debug.Log ("dice two rolled: " + Dice[2]);
 		update (Game.ActionType.Shoot);
 		shot = false; //set shot to false
 		postAction ();
@@ -331,34 +343,11 @@ public class ActionManager {
 		postAction ();
 	}
 
-	private int diceRoll(Unit roller, Game.ActionType shootOrAttack)//Created by Nick Lee 16-9-14, modified 25-9-14
+	private int diceRoll()//Created by Nick Lee 16-9-14, modified 7-10-14
 	{
 		int die = Random.Range (1, 7);
 		//creates the die int
-		if(roller.unitType.Equals(game.playerTurn) && shootOrAttack == Game.ActionType.Attack)
-		{//makes sure that the die are that of an attacker
-			dieRolls[dieRollsIterator] = die; //at die rolls iterator adds the roll
-			dieRollsIterator++; //adds one to the iterator
-			if(game.playerTurn == Game.PlayerType.GS && dieRollsIterator == 3)
-				dieRolled.Add (game.playerTurn, dieRolls); //if max die rolls for genestealer then adds to list
-			else if(game.playerTurn == Game.PlayerType.SM && dieRollsIterator == 1)
-			{
-				for(int y = 0; y < 2; y++)
-				{
-					dieRolls[dieRollsIterator] = 0;
-					dieRollsIterator++;
-					//makes the reamainder of the array contain 0
-				}
-				dieRolled.Add (game.playerTurn, dieRolls); //if max die rolls for marine then adds to list
-			}
-		} else if (shootOrAttack == Game.ActionType.Shoot){ //makes sure die are from a shoot attack
-			dieRolls[dieRollsIterator] = die;
-			dieRollsIterator++;
-			//sets value at iterator to die
-			if(dieRollsIterator == 2)
-				dieRolled.Add (game.playerTurn, dieRolls);
-			//when all die are rolledd adds to list
-		}
+		dieRolls.Add (die);
 		return die; //returns the die value
 	}
 
@@ -373,7 +362,7 @@ public class ActionManager {
 		}
 	}
 
-	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 25-9-14
+	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 7-10-14
 	{
 		actionType = actionMade; //gets action made
 		executor = unit; //the unit executing the action
@@ -484,7 +473,6 @@ public class ActionManager {
 		sustainedFireChanged.Clear ();
 		lostOverwatch.Clear ();
 		dieRolled.Clear ();
-		dieRollsIterator = 0;
 		//resets values
 	}
 }
