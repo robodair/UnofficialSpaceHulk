@@ -43,7 +43,7 @@ public class Interactible : MonoBehaviour {
 				{
 					if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
 				                                                        	gameObject.transform.position.z)))
-						gameObject.renderer.material.color = Color.green;
+						gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
 					else
 						gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 				}
@@ -68,16 +68,30 @@ public class Interactible : MonoBehaviour {
 	void OnMouseExit(){
 		if (gameController.thisPlayer == Game.PlayerType.SM)
 		{
-			if (attemptedSelection == SelectionType.Square ||
-			    attemptedSelection == SelectionType.GS)
+			if (attemptedSelection == SelectionType.GS)
 				gameObject.renderer.material.color = Color.white;
 		}
-		else 
-			if(attemptedSelection == SelectionType.Square ||
-			   attemptedSelection == SelectionType.SM)
+		else
+		{
+			if(attemptedSelection == SelectionType.SM)
 				gameObject.renderer.material.color = Color.white;
+		}
+
 		if (attemptedSelection == SelectionType.ClosedDoor)
 			gameObject.renderer.material.color = Color.yellow;
+
+		//RB 8.10.14 Redone to support highlighting of all available squares in movement
+		if (attemptedSelection == SelectionType.Square)
+		{
+			if(gameObject.renderer.material.color == Color.blue)
+				gameObject.renderer.material.color = Color.green;
+			if (!inputHandlerController.coloursSet)
+				gameObject.renderer.material.color = Color.white;
+			else if (gameObject.renderer.material.color != Color.green)
+			{
+				gameObject.renderer.material.color = Color.white;
+			}
+		}
 	}
 	void OnMouseDown()
 	{

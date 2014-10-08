@@ -21,6 +21,8 @@ public class InputHandler : MonoBehaviour {
 	bool south = false;
 	bool west = false;
 
+	public bool coloursSet = false;
+
 	bool foundTarget = false;
 	public bool facingInProgress = false;//RB 2.10.14 for stopping simultaneous movements
 
@@ -30,8 +32,15 @@ public class InputHandler : MonoBehaviour {
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
 		gameController.changeGameState(Game.GameState.MoveSelection);
 		foundTarget = false;
-		//ioController.showAvailableSquares(); 
-		//For when there's some sort of thing to show which squares are available
+		if(gameController.unitSelected)
+			availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
+
+		//RB 8.10.14 Changes colour of all squares available to move to
+		foreach (Square square in availableSquares.Keys)
+		{
+			square.model.renderer.material.color = Color.green;
+		}
+		coloursSet = true;
 	}
 
 	//Starts the movement action, setting the target positions and bringing up the facing 
@@ -45,8 +54,6 @@ public class InputHandler : MonoBehaviour {
 				Vector3 moveTargetVector = moveTarget.transform.position;
 				moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
 
-				if(gameController.unitSelected)
-					availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
 
 				if (squareAvailable(moveTargetSquare))
 				{
@@ -98,6 +105,12 @@ public class InputHandler : MonoBehaviour {
 					foundTarget = true;
 					ioController.instantiateFacingSelection (moveTargetSquare, north, east, south, west);
 					facingInProgress = true;
+
+					foreach (Square square in availableSquares.Keys)
+					{
+						square.model.renderer.material.color = Color.white;
+					}
+					coloursSet = false;
 				}
 			}
 		}
