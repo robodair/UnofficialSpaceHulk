@@ -13,6 +13,14 @@ public class InputHandler : MonoBehaviour {
 	public InputOutput ioController;
 	Vector2 moveTargetSquare;
 	Dictionary<Square, int> availableSquares;
+
+	//RB 8.10.14 Added for paths to specific facings checks
+	Path newPath;
+	bool north = false;
+	bool east = false;
+	bool south = false;
+	bool west = false;
+
 	bool foundTarget = false;
 	public bool facingInProgress = false;//RB 2.10.14 for stopping simultaneous movements
 
@@ -37,10 +45,58 @@ public class InputHandler : MonoBehaviour {
 				Vector3 moveTargetVector = moveTarget.transform.position;
 				moveTargetSquare = new Vector2(moveTargetVector.x, moveTargetVector.z);
 
+				if(gameController.unitSelected)
+					availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
+
 				if (squareAvailable(moveTargetSquare))
 				{
+					//RB 8.10.14 Paths to specific facings checks
+					newPath = new Path(gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
+					                                                          moveTargetSquare, Game.Facing.North, 
+					                                                          UnitData.getMoveSet (gameController.selectedUnit.unitType)));
+					if (newPath.APCost <= gameController.selectedUnit.AP ||
+					   	(gameController.thisPlayer == Game.PlayerType.SM && 
+			 			 newPath.APCost <= gameController.selectedUnit.AP + gameController.remainingCP))
+					{
+						north = true;
+					}
+					else
+						north = false;
+					newPath = new Path(gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
+					                                                     moveTargetSquare, Game.Facing.East, 
+					                                                     UnitData.getMoveSet (gameController.selectedUnit.unitType)));
+					if (newPath.APCost <= gameController.selectedUnit.AP ||
+					    (gameController.thisPlayer == Game.PlayerType.SM && 
+					 newPath.APCost <= gameController.selectedUnit.AP + gameController.remainingCP))
+					{
+						east = true;
+					}
+					else
+						east = false;
+					newPath = new Path(gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
+					                                                     moveTargetSquare, Game.Facing.South, 
+					                                                     UnitData.getMoveSet (gameController.selectedUnit.unitType)));
+					if (newPath.APCost <= gameController.selectedUnit.AP ||
+					    (gameController.thisPlayer == Game.PlayerType.SM && 
+					 newPath.APCost <= gameController.selectedUnit.AP + gameController.remainingCP))
+					{
+						south = true;
+					}
+					else south = false;
+					newPath = new Path(gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
+					                                                     moveTargetSquare, Game.Facing.West, 
+					                                                     UnitData.getMoveSet (gameController.selectedUnit.unitType)));
+					if (newPath.APCost <= gameController.selectedUnit.AP ||
+					    (gameController.thisPlayer == Game.PlayerType.SM && 
+					 newPath.APCost <= gameController.selectedUnit.AP + gameController.remainingCP))
+					{
+						west = true;
+					}
+					else
+						west = false;
+
 					foundTarget = true;
-					ioController.instantiateFacingSelection (moveTargetSquare);
+					ioController.instantiateFacingSelection (moveTargetSquare, north, east, south, west);
 					facingInProgress = true;
 				}
 			}
