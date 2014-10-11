@@ -97,7 +97,7 @@ public class Interactible : MonoBehaviour {
 	{
 		if (!eventSystem.IsPointerOverEventSystemObject())
         { //if statement Added By Alisdair 14/9/14 Reference: http://forum.unity3d.com/threads/raycast-into-gui.263397/#post-1742031
-			Debug.Log ("The pointer was clicked on an interactable GameObject"); //Added By Alisdair 14/9/14
+			//Debug.Log ("The pointer was clicked on an interactable GameObject"); //Added By Alisdair 14/9/14
 			//th first if statement checks to see if the click is meant for the UI
 			if (isSelectable ())
 			{
@@ -144,7 +144,7 @@ public class Interactible : MonoBehaviour {
 		}
 		else
         {//Added By Alisdair 14/9/14
-			Debug.Log ("The pointer was clicked over a UI Element)");//Added By Alisdair 14/9/14
+			//Debug.Log ("The pointer was clicked over a UI Element)");//Added By Alisdair 14/9/14
 		}//Added By Alisdair 14/9/14
 	}
 

@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 11-10-14.0
+ * Version 11-10-14.1
  */
 
 using UnityEngine;
@@ -66,11 +66,16 @@ public class InputOutput : MonoBehaviour {
 				//else, leave the action to be iterated again in the next frame
 
 		if(showActionsList.Count != 0){
+			//Debug.Log ("ShowActionsList.Count != 0");
+			gameClass.changeGameState(Game.GameState.ShowAction);//Cahange the state to showaction state
 			Action action = showActionsList[0];
+			//Debug.Log ("The action is of type: " + action.actionType);
 			//Executor pos and rot
 			Unit exeUnit = action.executor;
 			Vector3 exePos = action.executor.gameObject.transform.position;
 			Quaternion exeRot = action.executor.gameObject.transform.rotation;
+			//Debug.Log ("Unit Position: " + exePos);
+			//Debug.Log("Unit Rotation: " + exeRot);
 		
 			//Target pos and rot decleration
 			Unit tarUnit;
@@ -81,14 +86,17 @@ public class InputOutput : MonoBehaviour {
 			//Make the action
 			switch (action.actionType){
 			case (Game.ActionType.Move):
+				//Debug.Log("Update entered Move action sector of switch");
 			
 				//Create aim pos and rot
 				Vector3 aimPos = makePosition(action.movePosition, unitElevation);
+				//Debug.Log ("Aim position is " + aimPos);
 				Quaternion aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
+				//Debug.Log ("Aim Rotation is: " + aimRot);
 
 				//Make part of the movements
-				exePos.Equals(Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount));
-				exeRot.Equals(Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount));
+				action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount*Time.deltaTime);
+				action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime);
 
 				//Remove overwatch sprites for those units that have lost overwatch or sustained fire
 				removeOverwatch(action.lostOverwatch);
@@ -96,10 +104,12 @@ public class InputOutput : MonoBehaviour {
 
 				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
 				//also update the unit AP and CP fields
-				if (exePos.Equals(aimPos) && exeRot.Equals(aimRot)){
-					Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
-					updateCPAP(action.APCost);
-					showActionsList.RemoveAt(0);
+				if (exePos.Equals(aimPos)){
+					if(exeRot.Equals(aimRot)){
+						Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
+						updateCPAP(action.APCost);
+						showActionsList.RemoveAt(0);
+					}
 				}
 
 				break;
@@ -202,7 +212,7 @@ public class InputOutput : MonoBehaviour {
 		unitAPText = GameObject.Find("APText");
 		playerCPText = GameObject.Find ("CPText");
 		currentAP = 0;
-		currentCP = 0;
+		currentCP = gameClass.remainingCP;//Changed to reference game class Alisdair 11-10-14
 		Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
 
@@ -330,6 +340,7 @@ public class InputOutput : MonoBehaviour {
 
 	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
+		Debug.Log ("Showing an Action Sequence");
 		showActionsList.AddRange(actions);
 	}
 
@@ -344,7 +355,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
-
+		Debug.LogWarning("Unit selected");
 		//deselect any previously selected units (if there are any)
 		if (selectedUnit != null) {
 			deselect ();
@@ -373,7 +384,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
-
+		Debug.LogWarning("Unit deselected");
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
 		//Must change this to a tint later, rather than a full material colour
 		if (selectedUnit != null) {
@@ -747,17 +758,22 @@ public class InputOutput : MonoBehaviour {
 
 	//Method to update the displayed CP and AP
 	void updateCPAP(int aPUsed){
-		Debug.Log("APUSED: " + aPUsed);
+		Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
 		//if it does not cut into CP, just display it
 		if (aPUsed < currentAP || aPUsed == currentAP){
+			Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
 			currentAP = currentAP - aPUsed;
+			Debug.Log("New Current AP: " + currentAP);
 			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
 		}
 		//If it does cut into CP, calculate how much, and then display it
 		else{
+			Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
 			currentCP = (currentAP + currentCP) - aPUsed;
+			Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
 			currentAP = 0;
+			Debug.Log("Current AP set to: " + currentAP);
 		
 			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;

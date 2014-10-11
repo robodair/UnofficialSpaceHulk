@@ -149,7 +149,7 @@ public class InputHandler : MonoBehaviour {
 		//if (gameController.unitSelected)
 		//	gameController.deselect ();
 		facingInProgress = false;
-		ioController.resetMap ();
+		//ioController.resetMap (); COmmented out for testing Alisdair 11-10-14
 	}
 
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
