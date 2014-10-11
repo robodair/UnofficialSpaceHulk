@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 5-10-14.3
+ * Version 11-10-14.0
  */
 
 using UnityEngine;
@@ -328,9 +328,15 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
-	//Instantaneously implement all the changes in the action Alisdair 3-10-14
-	//Eventually this will be modified to take time (combine with update?)
+	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
+		showActionsList.AddRange(actions);
+	}
+
+	//REcieve the array of actions to perform & an ActionManager that calculated the lead up to an involuntary reveal
+	//This is for dealing with Overwatch Alisdair 11-10-14
+	public void showActionSequence(Action[] actions, ActionManager actionManager){
+		Debug.Log ("This showActionSequence does nothing with the Action Manager object, Ian please tell Alisdair what needs to happen, thxx :)" );
 		showActionsList.AddRange(actions);
 	}
 
