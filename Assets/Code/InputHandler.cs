@@ -32,15 +32,7 @@ public class InputHandler : MonoBehaviour {
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
 		gameController.changeGameState(Game.GameState.MoveSelection);
 		foundTarget = false;
-		if(gameController.unitSelected)
-			availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
-
-		//RB 8.10.14 Changes colour of all squares available to move to
-		foreach (Square square in availableSquares.Keys)
-		{
-			square.model.renderer.material.color = Color.green;
-		}
-		coloursSet = true;
+		showAvailableSquares ();
 	}
 
 	//Starts the movement action, setting the target positions and bringing up the facing 
@@ -106,11 +98,7 @@ public class InputHandler : MonoBehaviour {
 					ioController.instantiateFacingSelection (moveTargetSquare, north, east, south, west);
 					facingInProgress = true;
 
-					foreach (Square square in availableSquares.Keys)
-					{
-						square.model.renderer.material.color = Color.white;
-					}
-					coloursSet = false;
+					hideAvailableSquares();
 				}
 			}
 		}
@@ -132,6 +120,33 @@ public class InputHandler : MonoBehaviour {
 			}
 		}
 		return false;
+	}
+
+	public void showAvailableSquares ()
+	{
+		if(gameController.unitSelected)
+		{
+			availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
+		
+			//RB 8.10.14 Changes colour of all squares available to move to
+			foreach (Square square in availableSquares.Keys)
+			{
+				square.model.renderer.material.color = Color.green;
+			}
+			coloursSet = true;
+		}
+	}
+
+	public void hideAvailableSquares()
+	{
+		if(gameController.unitSelected)
+		{
+			foreach (Square square in availableSquares.Keys)
+			{
+				square.model.renderer.material.color = Color.white;
+			}
+			coloursSet = false;
+		}
 	}
 	
 	//Once the facing selection has been done, creates an ActionManager to handle the movement

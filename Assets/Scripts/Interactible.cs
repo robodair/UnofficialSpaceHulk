@@ -138,6 +138,7 @@ public class Interactible : MonoBehaviour {
 					{
 						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
+					inputHandlerController.hideAvailableSquares();
 					gameController.deselect ();
 				}
 			}
