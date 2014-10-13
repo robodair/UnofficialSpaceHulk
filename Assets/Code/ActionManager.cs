@@ -87,6 +87,7 @@ public class ActionManager {
 	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 25-9-14
 	{
 		marines = game.gameMap.getMarines ();
+		//makes a list of all marine units
 		for (int i = 0; i < marines.Count; i++) {
 			marines[i].currentLoS = game.algorithm.findLoS(marines[i]);
 		}//updates line of sight for all marines
@@ -105,22 +106,24 @@ public class ActionManager {
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-		game.ioModule.showActionSequence(actions.ToArray ());
+		game.ioModule.showActionSequence(actions.ToArray ()); //gives the action array to the input output module
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
 	{
-		Path currentPath;
+		Path currentPath; //makes a path variable
 		if (!attackMove) {
 			currentPath = path;
+		//if it isnt a movement caused by a melee attack
 		} else {
 			currentPath = customPath;
 			attackMove = false;
+			//else sets attackmove to false and gets the path made by the attack
 		}
 		//sets the path to iterate through
 
 		for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
-			if(!overwatchKilled)
+			if(!overwatchKilled) //if the unit wasn't killed by overwatch
 			{
 				Movement = currentPath.path [i];
 
@@ -144,39 +147,44 @@ public class ActionManager {
 				//error catching and message
 
 				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
+				//moves the unit
 			}
 			else
 			{
 				overwatchKilled = true;
 				i = currentPath.path.Count;
+				//if the unit was killed in the middle of a movement sets the killed to true and causes movements to stop
 			}
-			update (Game.ActionType.Move);
+			update (Game.ActionType.Move); //update method for moce
 		}
-		postAction ();
+		postAction (); //post action method
 	}
 
 	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-9-14
 	{ 
-		Game.Facing defFacing;
-		List<int> defDie = new List<int> ();
-		List<int> attDie = new List<int> ();
+		Game.Facing defFacing; //defenders facing
+		List<int> defDie = new List<int> (); //defenders dice rolls
+		List<int> attDie = new List<int> (); //attackers dice rolls
 
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
 			attDie.Add (diceRoll ());
 			dieRolled.Add (game.playerTurn, dieRolls.ToArray());
+			//gets the dice rolled by the attacker and their values and adds them to an array with the unit
 		}
-		attDie.Sort (); //gets attackers die and adds them to list
+		attDie.Sort (); //sorts the attackers dice
 
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
 			defDie.Add (diceRoll ());
+			//rolls a new dice and adds to the list
 			if(game.playerTurn == Game.PlayerType.GS)
 				dieRolled.Add (Game.PlayerType.SM, dieRolls.ToArray());
 			else if(game.playerTurn == Game.PlayerType.SM)
 				dieRolled.Add (Game.PlayerType.GS, dieRolls.ToArray());
 			else
 				Debug.Log ("error in determining player action melee, actionManager attackMethod");
+			//adds the unit type in term of player type and adds to dierolled dictionary
 		}
-		defDie.Sort (); //gets defenders die and adds them to the list
+		defDie.Sort (); //sorts the defenders dice
 
 		defender.isOnOverwatch = false; //sets defenders overwatch to false
 		Quaternion defDirection = game.facingDirection[defender.facing];
@@ -217,13 +225,13 @@ public class ActionManager {
 					{
 						defFacing = Game.Facing.West;
 						break;
-					//if attacker is facing east change defenders facing to west
+						//if attacker is facing east change defenders facing to west
 					}
 					case Game.Facing.South:
 					{
 						defFacing = Game.Facing.North;
 						break;
-					//if attacker is facing south change defenders facing to north
+						//if attacker is facing south change defenders facing to north
 					}
 					case Game.Facing.West:
 					{
@@ -242,7 +250,7 @@ public class ActionManager {
 				//creates path involving the units movement
 				attackMove = true; //sets attack move to true
 				moveMethod ();//makes a move
-				update (Game.ActionType.Attack);
+				update (Game.ActionType.Attack); //runs update for attack method
 			}
 		}
 		if(attacker.unitType == Game.EntityType.GS)
@@ -250,15 +258,17 @@ public class ActionManager {
 			Debug.Log ("attackers dice rolled: " + attDie[0] + ", " + attDie[1] + ", " + attDie[2]);
 			Debug.Log ("defenders dice rolled: " + defDie[0]);
 		}
+		//for debugging processes gets die rolls
 		if(attacker.unitType == Game.EntityType.SM)
 		{
 			Debug.Log ("defenders dice rolled: " + defDie[0] + ", " + defDie[1] + ", " + defDie[2]);
 			Debug.Log ("attackers dice rolled: " + attDie[0]);
 		}
-		postAction ();
+		//for debugging processes gets die rolls
+		postAction (); //runs postaction
 	}
 
-	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 7-10-14
+	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 13-10-14
 	{
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
@@ -369,7 +379,7 @@ public class ActionManager {
 		}
 	}
 
-	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 7-10-14
+	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 13-10-14
 	{
 		actionType = actionMade; //gets action made
 		executor = unit; //the unit executing the action
