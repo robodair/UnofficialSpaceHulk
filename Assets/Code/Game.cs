@@ -81,6 +81,9 @@ public class Game : MonoBehaviour {
 	//rather than the gameObject of the unit.
 	//Added the InvoluntaryReveal action type.
 
+	//Ian Mallett 13.10.14
+	//Disallowed selection and deselection during showAction game state.
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -400,7 +403,8 @@ public class Game : MonoBehaviour {
 	{
 		//If reselection is allowed
 		if (gameState != GameState.AttackSelection &&
-		    gameState != GameState.MoveSelection)
+		    gameState != GameState.MoveSelection &&
+		    gameState != GameState.ShowAction)
 		{
 			//Deselect any previous unit
 			if (unitSelected)
@@ -456,7 +460,8 @@ public class Game : MonoBehaviour {
 		//If deselection is allowed
 		if (gameState != GameState.MoveSelection &&
 		    gameState != GameState.AttackSelection &&
-		    gameState != GameState.Inactive)
+		    gameState != GameState.Inactive &&
+		    gameState != GameState.ShowAction)
 		{
 			if (unitSelected)
 			{
