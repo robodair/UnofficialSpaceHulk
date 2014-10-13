@@ -387,11 +387,11 @@ public class ActionManager {
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
-			APCost = UnitData.getMoveSet(executie.unitType)[Movement]; //APCost depends on type of movement
+			APCost = UnitData.getMoveSet(executor.unitType)[Movement]; //APCost depends on type of movement
 			unitJams = false; //cant jam
 			destroyedUnits.Clear(); //nothing can be killed by movement
-			if(executie.sustainedFireTarget != null)
-				sustainedFireLost.Add (executie.sustainedFireTarget); //if unit has sustained fire loses it
+			if(executor.sustainedFireTarget != null)
+				sustainedFireLost.Add (executor.sustainedFireTarget); //if unit has sustained fire loses it
 			else
 				sustainedFireLost.Clear(); //else set lost to null
 			sustainedFireChanged.Clear(); //cant gain sustained fire
@@ -403,13 +403,13 @@ public class ActionManager {
 			if(target.isOnOverwatch)
 				lostOverwatch.Add (target);
 			executie = target; //target of the attack
-			movePosition = executie.position; //no position change
-			moveFacing = executie.facing; //no facing change
-			if(executie.hasSustainedFire == true)
+			movePosition = executor.position; //no position change
+			moveFacing = executor.facing; //no facing change
+			if(executor.hasSustainedFire == true)
 			{
-				executie.hasSustainedFire = false;
-				executie.sustainedFireTarget = null;
-				sustainedFireLost.Add (unit);
+				executor.hasSustainedFire = false;
+				executor.sustainedFireTarget = null;
+				sustainedFireLost.Add (executor);
 				//if unit had sustained fire it loses it
 			}
 			if(target.hasSustainedFire == true)
@@ -424,36 +424,36 @@ public class ActionManager {
 			if(executor.isOnOverwatch)
 				lostOverwatch.Add (executor);
 			executie = target; //target set
-			movePosition = executie.position; //position unchanged
-			moveFacing = executie.facing; //facing unchanged
+			movePosition = executor.position; //position unchanged
+			moveFacing = executor.facing; //facing unchanged
 			sustainedFireLost.Clear(); //sustained fire cannot be lost
 		}
 		else if (actionType == Game.ActionType.Reveal) {
 
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-			if (executie.hasSustainedFire) {
-				executie.sustainedFireTarget = null;
-				executie.hasSustainedFire = false;
-				sustainedFireLost.Add (executie);
-				sustainedFireChanged.Add (executie, null);
+			if (executor.hasSustainedFire) {
+				executor.sustainedFireTarget = null;
+				executor.hasSustainedFire = false;
+				sustainedFireLost.Add (executor);
+				sustainedFireChanged.Add (executor, null);
 			}
-			if (executie.isOnOverwatch) {
-				executie.isOnOverwatch = false;
-				lostOverwatch.Add (executie);
+			if (executor.isOnOverwatch) {
+				executor.isOnOverwatch = false;
+				lostOverwatch.Add (executor);
 			}
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
 			executie = null; //no target unit
-			movePosition = moving; //no change movement
-			moveFacing = executie.facing; //no change in facing
+			movePosition = executor.position; //no change movement
+			moveFacing = executor.facing; //no change in facing
 			unitJams = false; //no jamming
 			destroyedUnits.Clear(); //nothing destroyed
-			if (executie.hasSustainedFire) {
-				executie.sustainedFireTarget = null;
-				executie.hasSustainedFire = false;
-				sustainedFireLost.Add (executie);
-				sustainedFireChanged.Add (executie, null);
+			if (executor.hasSustainedFire) {
+				executor.sustainedFireTarget = null;
+				executor.hasSustainedFire = false;
+				sustainedFireLost.Add (executor);
+				sustainedFireChanged.Add (executor, null);
 			}
 			dieRolled.Clear();
 		} else
@@ -484,6 +484,7 @@ public class ActionManager {
 		sustainedFireChanged = new Dictionary<Unit, Unit> ();
 		lostOverwatch = new List<Unit> ();
 		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+		returnAction = new Action ();
 		//resets values
 	}
 }
