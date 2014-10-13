@@ -6,6 +6,8 @@ public class ActionManager {
 
 	//Created by Ian Mallett 1.9.14
 	//modified By Nick Lee 23.9.14
+	public Unit target;
+	public Path path;
 
 	private Game.MoveType Movement;//Created by Nick Lee 18-9-14
 	private Unit unit; //Created by Nick Lee 16-9-14
@@ -22,10 +24,8 @@ public class ActionManager {
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
 	private bool overwatchKilled = false; //Created by Nick Lee 7-10-14
 	private List<int> dieRolls = new List<int> (); //Created by Nick Lee 7-10-14
-	public Unit target;
-	public Path path;
 
-	//created by Nick Lee 24-9-14
+	//modified by Nick Lee 13-10-14
 	private Game.ActionType actionType;
 	private Unit executor;
 	private Unit executie;
@@ -38,8 +38,8 @@ public class ActionManager {
 	private Dictionary<Unit, List<Vector2>> completeLoS = new Dictionary<Unit, List<Vector2>> ();
 	private Dictionary<Unit, Unit> sustainedFireChanged = new Dictionary<Unit, Unit> ();
 	private List<Unit> lostOverwatch = new List<Unit> ();
-	public Dictionary<Unit, List<Vector2>> prevLoS = new Dictionary<Unit, List<Vector2>> (); //created by Nick Lee 7-10-14
 	private Dictionary<Game.PlayerType, int[]> dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+	private Dictionary<Unit, List<Vector2>> prevLoS = new Dictionary<Unit, List<Vector2>> ();
 
 	public ActionManager(Unit unit, Game.ActionType action)	//Contents modified by Nick Lee 16-9-14
 	{
@@ -57,7 +57,6 @@ public class ActionManager {
 	{
 		if (unit.isOnOverwatch) {
 			unit.isOnOverwatch = false; //sets overwatch to false
-			lostOverwatch.Add (unit);
 		}
 		if (actionUsed == Game.ActionType.Move) {
 			moveMethod(); //if action is a movement
@@ -109,44 +108,49 @@ public class ActionManager {
 		game.ioModule.showActionSequence(actions.ToArray ());
 	}
 
-	private void moveMethod()//Created by Nick Lee 16-9-14, modified 7-10-14
+	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
 	{
-		if (!overwatchKilled) {
-			Path currentPath;
-			if (!attackMove) {
-					currentPath = path;
-			} else {
-					currentPath = customPath;
-					attackMove = false;
+		Path currentPath;
+		if (!attackMove) {
+			currentPath = path;
+		} else {
+			currentPath = customPath;
+			attackMove = false;
+		}
+		//sets the path to iterate through
+
+		for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
+			if(!overwatchKilled)
+			{
+				Movement = currentPath.path [i];
+
+				removeAP (unit, UnitData.getMoveSet (unit.unitType) [Movement]);//removes required AP from unit
+				moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
+				moving = game.facingDirection [unit.facing] * moving;
+				moving = unit.position + moving; //gets final position
+
+				Quaternion direction = game.facingDirection [unit.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
+				//gets the quaternion from the current facing and the required movement
+				if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
+						compassFacing = Game.Facing.North;	//changes facing to north
+				} else if (Mathf.Abs (direction.eulerAngles.z - 270) < 0.1f) {
+						compassFacing = Game.Facing.East;	//changes facing to east
+				} else if (Mathf.Abs (direction.eulerAngles.z - 180) < 0.1f) {
+						compassFacing = Game.Facing.South;	//changes facing to south
+				} else if (Mathf.Abs (direction.eulerAngles.z - 90) < 0.1f) {
+						compassFacing = Game.Facing.West;	//changes facing to west
+				} else
+						Debug.Log ("Invalid unit facing: ActionManager, move method");
+				//error catching and message
+
+				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
 			}
-			//sets the path to iterate through
-
-			for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
-					Movement = currentPath.path [i];
-					//determines whether movement is rotation caused by an attack
-
-					removeAP (unit, UnitData.getMoveSet (unit.unitType) [Movement]);//removes required AP from unit
-					moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
-					moving = game.facingDirection [unit.facing] * moving;
-					moving = unit.position + moving; //gets final position
-
-					Quaternion direction = game.facingDirection [unit.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
-					//gets the quaternion from the current facing and the required movement
-					if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
-							compassFacing = Game.Facing.North;	//changes facing to north
-					} else if (Mathf.Abs (direction.eulerAngles.z - 270) < 0.1f) {
-							compassFacing = Game.Facing.East;	//changes facing to east
-					} else if (Mathf.Abs (direction.eulerAngles.z - 180) < 0.1f) {
-							compassFacing = Game.Facing.South;	//changes facing to south
-					} else if (Mathf.Abs (direction.eulerAngles.z - 90) < 0.1f) {
-							compassFacing = Game.Facing.West;	//changes facing to west
-					} else
-							Debug.Log ("Invalid unit facing: ActionManager, move method");
-					//error catching and message
-
-					game.gameMap.shiftUnit (unit.position, moving, compassFacing);
-					update (Game.ActionType.Move);
+			else
+			{
+				overwatchKilled = true;
+				i = currentPath.path.Count;
 			}
+			update (Game.ActionType.Move);
 		}
 		postAction ();
 	}
@@ -259,8 +263,8 @@ public class ActionManager {
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
 			Dice.Add (diceRoll ());
-			dieRolled.Add (game.playerTurn, dieRolls.ToArray());
 		}
+		dieRolled.Add (game.playerTurn, Dice.ToArray());
 		//rolls 2 die
 
 		if (!shooter.isJammed) {
@@ -308,7 +312,7 @@ public class ActionManager {
 				}
 		}
 		Debug.Log ("dice one rolled: " + Dice[0]);
-		Debug.Log ("dice two rolled: " + Dice[2]);
+		Debug.Log ("dice two rolled: " + Dice[1]);
 		update (Game.ActionType.Shoot);
 		shot = false; //set shot to false
 		postAction ();
@@ -371,76 +375,85 @@ public class ActionManager {
 		executor = unit; //the unit executing the action
 		marines = game.gameMap.getMarines();
 		for(int u = 0; u < marines.Count; u++)
+		{
 			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+		}
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
 
 		if (actionType == Game.ActionType.Move) {
+			if(executor.isOnOverwatch)
+				lostOverwatch.Add (executor);
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
-			APCost = UnitData.getMoveSet(unit.unitType)[Movement]; //APCost depends on type of movement
+			APCost = UnitData.getMoveSet(executie.unitType)[Movement]; //APCost depends on type of movement
 			unitJams = false; //cant jam
 			destroyedUnits.Clear(); //nothing can be killed by movement
-			if(unit.sustainedFireTarget != null)
-				sustainedFireLost.Add (unit.sustainedFireTarget); //if unit has sustained fire loses it
+			if(executie.sustainedFireTarget != null)
+				sustainedFireLost.Add (executie.sustainedFireTarget); //if unit has sustained fire loses it
 			else
 				sustainedFireLost.Clear(); //else set lost to null
 			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
+			if(executor.isOnOverwatch)
+				lostOverwatch.Add (executor);
+			if(target.isOnOverwatch)
+				lostOverwatch.Add (target);
 			executie = target; //target of the attack
-			movePosition = unit.position; //no position change
-			moveFacing = unit.facing; //no facing change
-			if(unit.hasSustainedFire == true)
+			movePosition = executie.position; //no position change
+			moveFacing = executie.facing; //no facing change
+			if(executie.hasSustainedFire == true)
 			{
-				unit.hasSustainedFire = false;
-				unit.sustainedFireTarget = null;
+				executie.hasSustainedFire = false;
+				executie.sustainedFireTarget = null;
 				sustainedFireLost.Add (unit);
 				//if unit had sustained fire it loses it
 			}
 			if(target.hasSustainedFire == true)
 			{
-				unit.hasSustainedFire = false;
-				unit.sustainedFireTarget = null;
+				executie.hasSustainedFire = false;
+				executie.sustainedFireTarget = null;
 				sustainedFireLost.Add (target);
-				//if target had sustainedFireLost sustainedFireLost then LocationServiceStatus it
 			}
-			sustainedFireChanged = null; //no gain in sustained fire possible
+			sustainedFireChanged.Clear (); //no gain in sustained fire possible
 		}
 		else if (actionType == Game.ActionType.Shoot) {
+			if(executor.isOnOverwatch)
+				lostOverwatch.Add (executor);
 			executie = target; //target set
-			movePosition = unit.position; //position unchanged
-			moveFacing = unit.facing; //facing unchanged
+			movePosition = executie.position; //position unchanged
+			moveFacing = executie.facing; //facing unchanged
 			sustainedFireLost.Clear(); //sustained fire cannot be lost
 		}
 		else if (actionType == Game.ActionType.Reveal) {
 
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-			if (unit.hasSustainedFire) {
-				unit.sustainedFireTarget = null;
-				unit.hasSustainedFire = false;
-				sustainedFireLost.Add (unit);
-				sustainedFireChanged.Add (unit, null);
+			if (executie.hasSustainedFire) {
+				executie.sustainedFireTarget = null;
+				executie.hasSustainedFire = false;
+				sustainedFireLost.Add (executie);
+				sustainedFireChanged.Add (executie, null);
 			}
-			if (unit.isOnOverwatch) {
-				unit.isOnOverwatch = false;
-				lostOverwatch.Add (unit);
+			if (executie.isOnOverwatch) {
+				executie.isOnOverwatch = false;
+				lostOverwatch.Add (executie);
 			}
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
 			executie = null; //no target unit
 			movePosition = moving; //no change movement
-			moveFacing = compassFacing; //no change in facing
+			moveFacing = executie.facing; //no change in facing
 			unitJams = false; //no jamming
 			destroyedUnits.Clear(); //nothing destroyed
-			if (unit.hasSustainedFire) {
-				unit.sustainedFireTarget = null;
-				unit.hasSustainedFire = false;
-				sustainedFireLost.Add (unit);
-				sustainedFireChanged.Add (unit, null);
+			if (executie.hasSustainedFire) {
+				executie.sustainedFireTarget = null;
+				executie.hasSustainedFire = false;
+				sustainedFireLost.Add (executie);
+				sustainedFireChanged.Add (executie, null);
 			}
 			dieRolled.Clear();
 		} else
@@ -463,20 +476,14 @@ public class ActionManager {
 		returnAction.diceRoll = dieRolled;
 		actions.Add (returnAction);
 		//creates a return Action and adds it to the list of actions
-
-		actionType = Game.ActionType.Move;
-		executor = null;
-		executie = null;
-		movePosition = unit.position;
-		moveFacing = unit.facing;
-		APCost = 0;
-		unitJams = false;
-		destroyedUnits.Clear();
-		sustainedFireLost.Clear ();
-		completeLoS.Clear ();
-		sustainedFireChanged.Clear ();
-		lostOverwatch.Clear ();
-		dieRolled.Clear ();
+		
+		movePosition = new Vector2(); 
+		destroyedUnits = new List<Unit> ();
+		sustainedFireLost = new List<Unit> ();
+		completeLoS = new Dictionary<Unit, List<Vector2>> ();
+		sustainedFireChanged = new Dictionary<Unit, Unit> ();
+		lostOverwatch = new List<Unit> ();
+		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
 		//resets values
 	}
 }
