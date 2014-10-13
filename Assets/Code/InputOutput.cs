@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 11-10-14.2
+ * Version 13-10-14.0
  */
 
 using UnityEngine;
@@ -113,12 +113,20 @@ public class InputOutput : MonoBehaviour {
 				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
 				//also update the unit AP and CP fields
 				if (exePos == aimPos){
-					if(exeRot == aimRot){
-						Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
+					//Debug.Log("PositionEqual");
+					if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
+						//Debug.Log("Rotation Equal");
+						//Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
 						updateCPAP(action.APCost);
-						Debug.Log("Removing Action Object move to position @: " + action.movePosition);
+						//Debug.Log("Removing Action Object move to position @: " + action.movePosition);
 						showActionsList.RemoveAt(0);
 					}
+					else{
+						//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
+					}
+				}
+				else {
+					//Debug.Log ("Position not Equal, Position target is: " + aimPos);
 				}
 
 				break;
@@ -173,6 +181,14 @@ public class InputOutput : MonoBehaviour {
 				Debug.LogWarning("Game to show an action now");
 				
 				break;
+			}
+
+			//if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again) ALisdair 13-10-14
+			if (showActionsList.Count == 0){
+				gameClass.changeGameState(Game.GameState.Inactive);
+				if (gameClass.unitSelected){
+					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+				}
 			}
 		}
 	}
@@ -350,6 +366,7 @@ public class InputOutput : MonoBehaviour {
 	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
 		Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		updateGUIActions(); //Disable the GUI Actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
 
@@ -358,6 +375,7 @@ public class InputOutput : MonoBehaviour {
 	public void showActionSequence(Action[] actions, ActionManager actionManager){
 		Debug.Log ("This showActionSequence does nothing with the Action Manager object, Ian please tell Alisdair what needs to happen, thxx :)" );
 		Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		updateGUIActions(); //Disable the GUI actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
 
