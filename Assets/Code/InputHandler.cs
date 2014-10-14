@@ -196,7 +196,7 @@ public class InputHandler : MonoBehaviour {
 			actionManager.performAction();
 			gameController.changeGameState(Game.GameState.InactiveSelected);
 			
-			ioController.resetMap();
+			//ioController.resetMap();
 		}
 		else
 		{
@@ -208,6 +208,6 @@ public class InputHandler : MonoBehaviour {
 	{
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.ToggleDoor);
 		actionManager.performAction ();
-		ioController.resetMap ();
+		//ioController.resetMap ();
 	}
 }

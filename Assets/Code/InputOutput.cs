@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 13-10-14.0
+ * Version 14-10-14.0
  */
 
 using UnityEngine;
@@ -74,7 +74,7 @@ public class InputOutput : MonoBehaviour {
 				//else, leave the action to be iterated again in the next frame
 
 		if(showActionsList.Count != 0){
-			Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
+			//Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
 			gameClass.changeGameState(Game.GameState.ShowAction);//Cahange the state to showaction state
 			Action action = showActionsList[0];
 			//Debug.Log ("The action is of type: " + action.actionType);
@@ -85,10 +85,8 @@ public class InputOutput : MonoBehaviour {
 			//Debug.Log ("Unit Position: " + exePos);
 			//Debug.Log("Unit Rotation: " + exeRot);
 		
-			//Target pos and rot decleration
+			//Target unit decleration
 			Unit tarUnit;
-			Vector3 tarPos;
-			Quaternion tarRot;
 
 
 			//Make the action
@@ -153,31 +151,61 @@ public class InputOutput : MonoBehaviour {
 				break;
 
 			case (Game.ActionType.ToggleDoor):
-				if (action.target != null){
-					//target unit being assigned
-					tarUnit = action.target;
-					tarPos = action.target.gameObject.transform.position;
-					tarRot = action.target.gameObject.transform.rotation;
+				//Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
+				Debug.Log("Exe pos:" + exePos);
+				Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
+				Debug.Log ("converted to a door pos in map: " + doorMapPosition);
+				switch (action.executor.facing){
+				case (Game.Facing.North):
+					doorMapPosition.y++;
+					break;
 
-					//Check if the door is open or closed, and replace it with the door of the other type
-					if (tarUnit.gameObject.name.Equals("ClosedDoorPrefab")){
-						GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, tarPos, tarRot);
-						Destroy(tarUnit.gameObject);
-						tarUnit.gameObject = newDoor;
+				case (Game.Facing.East):
+					doorMapPosition.x--;
+					break;
+
+				case (Game.Facing.South):
+					doorMapPosition.y--;
+					break;
+
+				case (Game.Facing.West):
+					doorMapPosition.x++;
+					break;
+				}
+				Debug.Log ("Final Door Position: " + doorMapPosition);
+				Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+
+					//Check if the position has a door, Get the door (unit), Toggle the door 
+				Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
+				Unit doorToToggle;
+				//Check that the door is there, then assign the variables for use in toggling
+				if (mapClass.hasDoor(doorMapPosition)){
+					doorToToggle = mapClass.getOccupant(doorMapPosition);
+					//target unit variables being assigned
+					tarUnit = doorToToggle;
+
+					//If the door is open (in the map class, which is up to date), make it an open door
+					if (mapClass.isDoorOpen(doorMapPosition)){
+						GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, true), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
+						Destroy(mapSquareWithDoor.door.gameObject);
+						mapSquareWithDoor.door.gameObject = newDoor;
 					}
-					else if(tarUnit.gameObject.name.Equals("OpenDoorPrefab")){
-						GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, tarPos, tarRot);
+
+					else { //if the door is closed in the map class, show this also
+						GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, false), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
 						Destroy(tarUnit.gameObject);
-						tarUnit.gameObject = newDoor;
+						mapSquareWithDoor.door.gameObject = newDoor;
 					}
 
 					//Finish the action and update the AP
 					Debug.Log("UpdateCPAP case TOGGLEDOOR with AP: " + action.APCost);
 					updateCPAP(action.APCost);
+					showActionsList.RemoveAt(0);
 				}
+
 				break;
 
-			default:
+				default:
 				Debug.LogWarning("Game to show an action now");
 				
 				break;
@@ -266,9 +294,8 @@ public class InputOutput : MonoBehaviour {
 			//Vector3 y is vertical (leave at constant value)
 			int xPos = (int) positionV2.x;
 			int zPos = (int) positionV2.y;
-			float baseYPos = -0.5f;
 
-			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (baseYPos), zPos), Quaternion.identity); //Create the game object in the scene
+			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (-0.5f), zPos), Quaternion.identity); //Create the game object in the scene
 			square.model = floorPiece; //Pass reference to the gameobject back to the square
 
 			//Added Alisdair 11/9/2014 Theses are for passing the unit reference back to the square (if needed)
@@ -279,30 +306,27 @@ public class InputOutput : MonoBehaviour {
 			//if the square has a unit or door create that unit or door on it
 			if (square.isOccupied){
 
-				//Assign facing
-				Quaternion facing = makeFacing(square.occupant.facing);
-
 				//Switch to place units
 				switch (square.occupant.unitType){
 				
 					case Game.EntityType.Blip:
-						unit = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, (unitElevation + 0.5f), zPos), makeRotation(facing, Game.EntityType.Door)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(BlipPrefab, makePosition(square.position, unitElevation + 0.5f), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.Door)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 	
 					case Game.EntityType.Door:
-						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, new Vector3(xPos, (unitElevation + 0.5f), zPos), makeRotation(facing, Game.EntityType.Door)); //Create the closed door object above the floor object
+						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(square.position, unitElevation, square.door.facing, false), makeRotation(makeFacing(square.door.facing), Game.EntityType.Door)); //Create the closed door object above the floor object
 						square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
 						square.occupant.gameObject = doorPiece; //Pass the reference to the occupant as well Added by Alisdair 26/9/14
 						break;
 				
 					case Game.EntityType.GS:
-						unit = (GameObject) Instantiate(GenestealerPrefab, new Vector3(xPos, (unitElevation), zPos), makeRotation(facing, Game.EntityType.GS)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(GenestealerPrefab, makePosition(square.position, unitElevation), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.GS)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 
 					case Game.EntityType.SM:
-						unit = (GameObject) Instantiate(SpaceMarinePrefab, new Vector3(xPos, (unitElevation), zPos), makeRotation(facing, Game.EntityType.SM)); //Create the blip object above the floor object
+						unit = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(square.position, unitElevation), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.SM)); //Create the blip object above the floor object
 						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
 						break;
 				}
@@ -310,7 +334,7 @@ public class InputOutput : MonoBehaviour {
 					
 			//if the square has a door and it's open create it
 			if (square.hasDoor && square.doorIsOpen){
-				doorPiece = (GameObject) Instantiate(OpenDoorPrefab, new Vector3(xPos, (baseYPos + 0.55f), zPos), Quaternion.identity); //Create the open door object above the floor object
+				doorPiece = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(square.position, unitElevation + 1, square.door.facing, true), makeRotation(makeFacing(square.door.facing), Game.EntityType.Door)); //Create the open door object above the floor object
 				square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
 			}
 
@@ -330,7 +354,6 @@ public class InputOutput : MonoBehaviour {
 				//Vector3 y is vertical (leave at constant value)
 				int xPos = (int) adjPos.x;
 				int zPos = (int) adjPos.y;
-				float baseYPos = -0.5f;
 
 				//determine the position of the deployment area based on the facing 
 				switch (depArea.relativePosition){
@@ -357,7 +380,7 @@ public class InputOutput : MonoBehaviour {
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
 				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
-				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, baseYPos, zPos), depAreaFacing); //Create the game object in the scene
+				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, -0.5f, zPos), depAreaFacing); //Create the game object in the scene
 			}
 
 
@@ -451,16 +474,15 @@ public class InputOutput : MonoBehaviour {
 				unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor object & pass it back to the Unit Class
 				break;
 		
-			case Game.EntityType.Door:
-				unit.gameObject = (GameObject) Instantiate(ClosedDoorPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the closed door object above the floor object unit.gameObject
-				break;
-		
 			case Game.EntityType.GS:
 				unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
 				break;
 		
 			case Game.EntityType.SM:
 				unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
+				break;
+			default:
+				Debug.LogError("There was not a valid unit to place");
 				break;
 		}
 	}
@@ -470,6 +492,7 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void resetMap(){
+		Debug.LogWarning("Reset Map Called");
 
 		//Added removing old gameobjects to this method - Alisdair 19-9-2014
 
@@ -683,6 +706,29 @@ public class InputOutput : MonoBehaviour {
 		return v3;
 	}
 
+	//Method for positioning open doors
+	Vector3 makePositionDoor(Vector2 position, float elevation, Game.Facing facing, bool open){
+		float offset = 0.0f;
+		if (open){
+			offset = -0.75f; 
+		}
+		elevation++;
+		Vector3 newPosition;
+
+			if (facing == Game.Facing.East || facing == Game.Facing.West){
+				newPosition = makePosition(position, elevation);
+			newPosition.x += offset;
+				return newPosition;
+			}
+
+			else {
+				newPosition = makePosition(position, elevation);
+				newPosition.x += offset;
+				return newPosition;
+			}
+	}
+
+
 	//Method to get facing from Game enum Added by Alisdair 22/9/14
 	Quaternion makeFacing(Game.Facing facingEnum){
 
@@ -753,14 +799,23 @@ public class InputOutput : MonoBehaviour {
 	Quaternion makeRotation(Quaternion reference, Game.EntityType type){
 
 		Quaternion returnQuaternion;
+		int x, y, z;
 
 		switch (type){
 			case (Game.EntityType.SM):
-				int x = (int) reference.eulerAngles.x + 270;
-				int y = (int) reference.eulerAngles.y - 90;
-				int z = (int) reference.eulerAngles.z;
+				x = (int) reference.eulerAngles.x + 270;
+				y = (int) reference.eulerAngles.y - 90;
+				z = (int) reference.eulerAngles.z;
+				returnQuaternion = Quaternion.Euler(x, y, z);
+			return returnQuaternion;
+
+			case (Game.EntityType.Door): // Door case added Alisdair 14-10-14
+				x = (int) reference.eulerAngles.x + 90;
+				y = (int) reference.eulerAngles.y;
+				z = (int) reference.eulerAngles.z;
 				returnQuaternion = Quaternion.Euler(x, y, z);
 				return returnQuaternion;
+
 
 			default:
 				returnQuaternion = reference;
