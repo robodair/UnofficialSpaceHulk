@@ -72,7 +72,7 @@ public class RevealManager : MonoBehaviour {
 	{
 		//Find every square that is visible
 		List<Vector2> currentLoS = new List<Vector2> ();
-		foreach (Unit unit in gameController.gameMap.getMarines ())
+		foreach (Unit unit in gameController.gameMap.getUnits(Game.EntityType.SM))
 		{
 			foreach (Vector2 position in unit.currentLoS)
 			{

@@ -84,6 +84,10 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 13.10.14
 	//Disallowed selection and deselection during showAction game state.
 
+	//Ian Mallett 15.10.14
+	//Removed the check for correct game state for selecting a unit, as this 
+	//is checked elsewhere already.
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -207,7 +211,7 @@ public class Game : MonoBehaviour {
 		{
 			Debug.Log ("YOU WIN! Have a cookie.");
 		}
-		else if (gameMap.getMarines().Count == 0)
+		else if (gameMap.getUnits(EntityType.SM).Count == 0)
 		{
 			Debug.Log ("The genestealers won");
 		}
@@ -296,7 +300,7 @@ public class Game : MonoBehaviour {
 	{
 		if (player == PlayerType.SM)
 		{
-			foreach (Unit marine in gameMap.getMarines())
+			foreach (Unit marine in gameMap.getUnits (EntityType.SM))
 			{
 				marine.AP = UnitData.getMaxAP(EntityType.SM);
 			}
@@ -401,56 +405,44 @@ public class Game : MonoBehaviour {
 
 	public void selectUnit(GameObject model)
 	{
-		//If reselection is allowed
-		if (gameState != GameState.AttackSelection &&
-		    gameState != GameState.MoveSelection &&
-		    gameState != GameState.ShowAction)
+		//Deselect any previous unit
+		if (unitSelected)
 		{
-			//Deselect any previous unit
-			if (unitSelected)
-			{
-				deselect();
-			}
-			//Get the unit and get its set of actions
-			Unit unit = gameMap.getUnit(model);
-
-			if (unit != null)
-			{
-				//Change the gameState
-				if (gameState == GameState.Inactive)
-				{
-					changeGameState(GameState.InactiveSelected);
-				}
-
-				//Find the unit's actions
-				ActionType[] actionSet = UnitData.getActionSet(unit.unitType);
-				List<ActionType> availableActions = new List<ActionType>();
-				for (int i = 0; i < actionSet.Length; i++)
-				{
-					if (actionAvailable(unit, actionSet[i]))
-					{
-						availableActions.Add(actionSet[i]);
-					}
-				}
-
-				//Select the unit
-				selectedUnit = unit;
-				unitSelected = true;
-				Debug.Log ("Selecting Unit");
-				ioModule.selectUnit(unit, availableActions.ToArray());
-			}
-			//The unit doesn't exist
-			else
-			{
-				Debug.Log("Could not find the unit to match appropriate " +
-				          "model for \"selectUnit\" method");
-			}
+			deselect();
 		}
-		//(Re)Selection not allowed
+		//Get the unit and get its set of actions
+		Unit unit = gameMap.getUnit(model);
+
+		if (unit != null)
+		{
+			//Change the gameState
+			if (gameState == GameState.Inactive)
+			{
+				changeGameState(GameState.InactiveSelected);
+			}
+
+			//Find the unit's actions
+			ActionType[] actionSet = UnitData.getActionSet(unit.unitType);
+			List<ActionType> availableActions = new List<ActionType>();
+			for (int i = 0; i < actionSet.Length; i++)
+			{
+				if (actionAvailable(unit, actionSet[i]))
+				{
+					availableActions.Add(actionSet[i]);
+				}
+			}
+
+			//Select the unit
+			selectedUnit = unit;
+			unitSelected = true;
+			Debug.Log ("Selecting Unit");
+			ioModule.selectUnit(unit, availableActions.ToArray());
+		}
+		//The unit doesn't exist
 		else
 		{
-			Debug.LogError("Selection was attempted while in an " +
-			               "invalid game state.");
+			Debug.Log("Could not find the unit to match appropriate " +
+			          "model for \"selectUnit\" method");
 		}
 	}
 
@@ -551,7 +543,7 @@ public class Game : MonoBehaviour {
 
 	public void resetLoS()
 	{
-		foreach (Unit unit in gameMap.getMarines ())
+		foreach (Unit unit in gameMap.getUnits (EntityType.SM))
 		{
 			unit.currentLoS = algorithm.findLoS(unit);
 		}

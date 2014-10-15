@@ -16,6 +16,8 @@ public class ActionManager {
 	private Vector2 moving;//Created by Nick Lee 16-9-14
 	private Game.Facing compassFacing;//Created by Nick Lee 16-9-14
 	private List<Unit> marines = new List<Unit> ();//Created by Nick Lee 18-9-14
+	private List<Unit> blips = new List<Unit> ();//Created by Nick Lee 15-10-14
+	private List<Unit> blipsRevealed = new List<Unit> ();//Created by Nick Lee 15-10-14
 	private bool shot = false;//Created by Nick Lee 18-9-14
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
@@ -48,9 +50,8 @@ public class ActionManager {
 		//gets local game controller
 		actionUsed = action; //gets the action
 		this.unit = unit; //the unit using the action
-		marines = game.gameMap.getMarines ();
-		for (int j = 0; j < marines.Count; j++)
-			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		makePrevLoS ();
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
@@ -86,11 +87,15 @@ public class ActionManager {
 
 	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 25-9-14
 	{
-		marines = game.gameMap.getMarines ();
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
-		for (int i = 0; i < marines.Count; i++) {
-			marines[i].currentLoS = game.algorithm.findLoS(marines[i]);
-		}//updates line of sight for all marines
+		blips = game.gameMap.getUnits (Game.EntityType.Blip);
+		//makes a list of all blip units
+
+		updateLoS ();
+
+		makeActions (actionUpdate);//make an action array
+
 		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
@@ -98,10 +103,25 @@ public class ActionManager {
 					overwatchShot = true; //set overwatch shot to true
 					shot = true; //set shot equal to true
 					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+					overwatchShot = false; //set overwatch shot to false
 				}
 			}
 		}
-		makeActions (actionUpdate);//make an action array
+
+		for (int i = 0; i < marines.Count; i++) { //then for each marine
+			for (int t = 0; t < blips.Count; t++)
+			{
+				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
+				{
+					blipsRevealed.Add (blips[t]);
+				}
+			}
+		}
+		foreach (Unit blip in blipsRevealed) {
+			InvoluntaryReveal (blip);
+		}
+
+		makePrevLoS ();
 	}
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
@@ -383,13 +403,15 @@ public class ActionManager {
 	{
 		actionType = actionMade; //gets action made
 		executor = unit; //the unit executing the action
-		marines = game.gameMap.getMarines();
+		marines = game.gameMap.getUnits(Game.EntityType.SM);
 		for(int u = 0; u < marines.Count; u++)
 		{
 			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
 		}
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
+		if (overwatchShot)
+			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
 			if(executor.isOnOverwatch)
@@ -403,7 +425,7 @@ public class ActionManager {
 			if(executor.sustainedFireTarget != null)
 				sustainedFireLost.Add (executor.sustainedFireTarget); //if unit has sustained fire loses it
 			else
-				sustainedFireLost.Clear(); //else set lost to null
+				sustainedFireLost.Clear(); //else set sustainedFirelost to null
 			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
@@ -496,5 +518,68 @@ public class ActionManager {
 		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
 		returnAction = new Action ();
 		//resets values
+	}
+
+	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
+	{
+		marines = game.gameMap.getUnits(Game.EntityType.SM);
+		for(int u = 0; u < marines.Count; u++)
+		{
+			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+		}
+
+		returnAction.actionType = Game.ActionType.InvoluntaryReveal; //involuntary reveal
+		returnAction.executor = blipRevealed; //blip thats being revealed
+		returnAction.target = null; //no target
+		returnAction.movePosition = blipRevealed.position; //blips position
+		returnAction.moveFacing = blipRevealed.facing; //blips facing
+		returnAction.APCost = 0; //no cost for involuntary reveal
+		returnAction.unitJams = false; //cant jam
+		returnAction.completeLoS = completeLoS; //what the marines can see see see
+		returnAction.prevLoS = prevLoS; //what the marines could see see see
+		destroyedUnits.Clear ();
+		returnAction.destroyedUnits = destroyedUnits; //no units die... yet
+		sustainedFireLost.Clear ();
+		returnAction.sustainedFireLost = sustainedFireLost; //blips cant shoot silly
+		sustainedFireChanged.Clear ();
+		returnAction.sustainedFireChanged = sustainedFireChanged; //no change
+		lostOverwatch.Clear ();
+		returnAction.lostOverwatch = lostOverwatch; //again no change
+		dieRolled.Clear ();
+		returnAction.diceRoll = dieRolled; //die rolls for reveal, thats stupid
+		actions.Add (returnAction);
+
+		movePosition = new Vector2(); 
+		destroyedUnits = new List<Unit> ();
+		sustainedFireLost = new List<Unit> ();
+		completeLoS = new Dictionary<Unit, List<Vector2>> ();
+		sustainedFireChanged = new Dictionary<Unit, Unit> ();
+		lostOverwatch = new List<Unit> ();
+		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+		returnAction = new Action ();
+		//resets variables
+	}
+
+	private void updateLoS () //created by Nick Lee 15-10-14
+	{
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		for (int i = 0; i < marines.Count; i++) {
+			marines[i].currentLoS = game.algorithm.findLoS(marines[i]);
+		}//updates line of sight for all marines
+	}
+
+	private void makePrevLoS () //created by Nick Lee 15-10-14
+	{
+		prevLoS.Clear ();
+		prevLoS = new Dictionary<Unit, List<Vector2>> ();
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		for (int j = 0; j < marines.Count; j++)
+			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
+		//resets prevLoS and sets it again
+	}
+
+	private void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14
+	{
+
 	}
 }
