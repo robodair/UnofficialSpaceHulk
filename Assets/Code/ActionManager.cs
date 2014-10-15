@@ -578,7 +578,7 @@ public class ActionManager {
 		//resets prevLoS and sets it again
 	}
 
-	private void postInvolReveal(Unit centralGene)
+	private void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14
 	{
 
 	}
