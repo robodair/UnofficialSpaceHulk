@@ -31,6 +31,7 @@ public class InputHandler : MonoBehaviour {
 	{
 		availableSquares = gameController.algorithm.availableSquares (gameController.selectedUnit);
 		gameController.changeGameState(Game.GameState.MoveSelection);
+		gameController.selectUnit (gameController.selectedUnit.gameObject);
 		foundTarget = false;
 		showAvailableSquares ();
 	}
