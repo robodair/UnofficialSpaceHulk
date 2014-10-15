@@ -103,6 +103,7 @@ public class ActionManager {
 					overwatchShot = true; //set overwatch shot to true
 					shot = true; //set shot equal to true
 					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+					overwatchShot = false; //set overwatch shot to false
 				}
 			}
 		}
@@ -409,6 +410,8 @@ public class ActionManager {
 		}
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
+		if (overwatchShot)
+			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
 			if(executor.isOnOverwatch)
