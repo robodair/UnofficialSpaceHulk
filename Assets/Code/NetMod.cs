@@ -2,11 +2,10 @@
 using System.Collections;
 using System.Net.NetworkInformation;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System;
 //Created by Stephen on 13-8-14
-public class Network : MonoBehaviour {
+public class NetMod : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -25,25 +24,23 @@ public class Network : MonoBehaviour {
 
 	}
 }
-/*
+
 //TEST
 static class Module1
 {
 	private static List<System.Net.NetworkInformation.Ping> pingers = new List<System.Net.NetworkInformation.Ping>();
 	private static int instances = 0;
-	
 	private static object @lock = new object();
 	
 	private static int result = 0;
 	private static int timeOut = 250;
 	
 	private static int ttl = 5;
-	
 	public static void Main()
 	{
-		string baseIP = "192.168.1.";
-		
-		Debug.Log("Pinging 255 destinations of D-class in {0}*", baseIP);
+		string baseIP = "172.26.102.";
+		Debug.Log("Step 55");
+		Debug.Log("Pinging 255 destinations of D-class in  " + baseIP.ToString());
 		
 		CreatePingers(255);
 		
@@ -51,12 +48,12 @@ static class Module1
 		System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
 		byte[] data = enc.GetBytes("abababababababababababababababab");
 		
-		SpinWait wait = new SpinWait();
+
 		int cnt = 1;
 		
-		Stopwatch watch = Stopwatch.StartNew();
+
 		
-		foreach (Ping p in pingers) {
+		foreach (System.Net.NetworkInformation.Ping p in pingers) {
 			lock (@lock) {
 				instances += 1;
 			}
@@ -65,16 +62,13 @@ static class Module1
 			cnt += 1;
 		}
 		
-		while (instances > 0) {
-			wait.SpinOnce();
-		}
-		
-		watch.Stop();
+
+
 		
 		DestroyPingers();
 		
-		Debug.Log("Finished in {0}. Found {1} active IP-addresses.", watch.Elapsed.ToString(), result);
-		Console.ReadKey();
+		Debug.Log("Finished in {0}. Found {1} active IP-addresses. " + result.ToString());
+
 		
 	}
 	
@@ -96,7 +90,7 @@ static class Module1
 	private static void CreatePingers(int cnt)
 	{
 		for (int i = 1; i <= cnt; i++) {
-			Ping p = new Ping();
+			System.Net.NetworkInformation.Ping p = new System.Net.NetworkInformation.Ping();
 			p.PingCompleted += Ping_completed;
 			pingers.Add(p);
 		}
@@ -104,7 +98,7 @@ static class Module1
 	
 	private static void DestroyPingers()
 	{
-		foreach (Ping p in pingers) {
+		foreach (System.Net.NetworkInformation.Ping p in pingers) {
 			p.PingCompleted -= Ping_completed;
 			p.Dispose();
 		}
@@ -113,4 +107,4 @@ static class Module1
 		
 	}
 	
-}*/
+}
