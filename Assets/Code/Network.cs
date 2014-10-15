@@ -1,4 +1,4 @@
-﻿/*using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Net.NetworkInformation;
 using System.Threading;
@@ -25,6 +25,7 @@ public class Network : MonoBehaviour {
 
 	}
 }
+/*
 //TEST
 static class Module1
 {
