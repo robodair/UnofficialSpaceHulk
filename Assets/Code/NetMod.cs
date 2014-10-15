@@ -23,9 +23,28 @@ public class NetMod : MonoBehaviour {
 	{
 
 	}
+	public static bool PingHost(string nameOrAddress)
+	{
+		bool pingable = false;
+		System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping();
+		
+		try
+		{
+			PingReply reply = pinger.Send(nameOrAddress);
+			
+			pingable = reply.Status == IPStatus.Success;
+		}
+		catch (PingException)
+		{
+			// Discard PingExceptions and return false;
+		}
+		Debug.Log("Ping was " + pingable.ToString());
+		return pingable;
+	}
 }
 
-//TEST
+
+/*TEST
 static class Module1
 {
 	private static List<System.Net.NetworkInformation.Ping> pingers = new List<System.Net.NetworkInformation.Ping>();
@@ -107,4 +126,4 @@ static class Module1
 		
 	}
 	
-}
+}*/
