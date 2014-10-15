@@ -44,6 +44,9 @@ public class Map : MonoBehaviour {
 	//Fixed an issue where opening a door would not cause it
 	//to remove the occupant and set the square to unoccupied.
 
+	//Ian Mallett 15.10.14
+	//Replaced the getMarines method with the getUnits method
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -548,17 +551,30 @@ public class Map : MonoBehaviour {
 
 	//Method to find all the marines on the map, especially for updating LoS or checking
 	//overwatch and such.
-	public List<Unit> getMarines()
+	public List<Unit> getUnits(Game.EntityType unitType)
 	{
 		List<Unit> returnList = new List<Unit>();
 
+		//Check map
 		for (int i = 0; i < map.Length; i++)
 		{
 			if (map[i].isOccupied)
 			{
-				if (map[i].occupant.unitType == Game.EntityType.SM)
+				if (map[i].occupant.unitType == unitType)
 				{
 					returnList.Add (map[i].occupant);
+				}
+			}
+		}
+
+		//Check deployment areas
+		for (int i = 0; i < otherAreas.Length; i++)
+		{
+			for (int j = 0; j < otherAreas[i].units.Count; j++)
+			{
+				if (otherAreas[i].units[j].unitType == unitType)
+				{
+					returnList.Add (otherAreas[i].units[j]);
 				}
 			}
 		}
