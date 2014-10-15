@@ -107,7 +107,7 @@ public class ActionManager {
 			}
 		}
 
-		/*for (int i = 0; i < marines.Count; i++) { //then for each marine
+		for (int i = 0; i < marines.Count; i++) { //then for each marine
 			for (int t = 0; t < blips.Count; t++)
 			{
 				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
@@ -118,7 +118,7 @@ public class ActionManager {
 		}
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip);
-		}*/
+		}
 
 		makePrevLoS ();
 	}
@@ -517,7 +517,7 @@ public class ActionManager {
 		//resets values
 	}
 
-	/*private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
+	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
 	{
 		marines = game.gameMap.getUnits(Game.EntityType.SM);
 		for(int u = 0; u < marines.Count; u++)
@@ -532,17 +532,17 @@ public class ActionManager {
 		returnAction.moveFacing = blipRevealed.facing; //blips facing
 		returnAction.APCost = 0; //no cost for involuntary reveal
 		returnAction.unitJams = false; //cant jam
-		destroyedUnits = destroyedUnits.Clear ();
-		returnAction.destroyedUnits = destroyedUnits; //no units die... yet
-		sustainedFireLost = sustainedFireLost.Clear ();
-		returnAction.sustainedFireLost = sustainedFireLost; //blips cant shoot silly
 		returnAction.completeLoS = completeLoS; //what the marines can see see see
 		returnAction.prevLoS = prevLoS; //what the marines could see see see
-		sustainedFireChanged = sustainedFireChanged.Clear ();
+		destroyedUnits.Clear ();
+		returnAction.destroyedUnits = destroyedUnits; //no units die... yet
+		sustainedFireLost.Clear ();
+		returnAction.sustainedFireLost = sustainedFireLost; //blips cant shoot silly
+		sustainedFireChanged.Clear ();
 		returnAction.sustainedFireChanged = sustainedFireChanged; //no change
-		lostOverwatch = lostOverwatch.Clear ();
+		lostOverwatch.Clear ();
 		returnAction.lostOverwatch = lostOverwatch; //again no change
-		dieRolled = dieRolled.Clear ();
+		dieRolled.Clear ();
 		returnAction.diceRoll = dieRolled; //die rolls for reveal, thats stupid
 		actions.Add (returnAction);
 
@@ -555,7 +555,7 @@ public class ActionManager {
 		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
 		returnAction = new Action ();
 		//resets variables
-	}*/
+	}
 
 	private void updateLoS () //created by Nick Lee 15-10-14
 	{
