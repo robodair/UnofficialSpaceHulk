@@ -10,6 +10,9 @@ public class InputHandler : MonoBehaviour {
 	public GameObject attackTarget;
     public Map mapController;
 
+	public RevealManager revealManager;
+	Vector2 revealPosition;
+
 	public InputOutput ioController;
 	Vector2 moveTargetSquare;
 	Dictionary<Square, int> availableSquares;
@@ -210,5 +213,16 @@ public class InputHandler : MonoBehaviour {
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.ToggleDoor);
 		actionManager.performAction ();
 		//ioController.resetMap ();
+	}
+
+	public void revealing (Vector2 position, List<Vector2> selectableSquares)
+	{
+		revealPosition = position;
+
+	}
+
+	public void revealOrientationClicked(Game.Facing facing)
+	{
+		revealManager.place (revealPosition, facing);
 	}
 }
