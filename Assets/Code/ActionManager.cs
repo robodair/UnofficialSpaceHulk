@@ -107,7 +107,7 @@ public class ActionManager {
 			}
 		}
 
-		for (int i = 0; i < marines.Count; i++) { //then for each marine
+		/*for (int i = 0; i < marines.Count; i++) { //then for each marine
 			for (int t = 0; t < blips.Count; t++)
 			{
 				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
@@ -118,7 +118,7 @@ public class ActionManager {
 		}
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip);
-		}
+		}*/
 
 		makePrevLoS ();
 	}
@@ -422,7 +422,7 @@ public class ActionManager {
 			if(executor.sustainedFireTarget != null)
 				sustainedFireLost.Add (executor.sustainedFireTarget); //if unit has sustained fire loses it
 			else
-				sustainedFireLost.Clear(); //else set lost to null
+				sustainedFireLost.Clear(); //else set sustainedFirelost to null
 			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
@@ -517,26 +517,49 @@ public class ActionManager {
 		//resets values
 	}
 
-	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
+	/*private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
 	{
-		returnAction.actionType = Game.ActionType.InvoluntaryReveal;
-		returnAction.executor = blipRevealed;
-		returnAction.target = null;
-		returnAction.movePosition = movePosition;
-		returnAction.moveFacing = moveFacing;
-		returnAction.APCost = APCost;
-		returnAction.unitJams = unitJams;
-		returnAction.destroyedUnits = destroyedUnits;
-		returnAction.sustainedFireLost = sustainedFireLost;
-		returnAction.completeLoS = completeLoS;
-		returnAction.prevLoS = prevLoS;
-		returnAction.sustainedFireChanged = sustainedFireChanged;
-		returnAction.lostOverwatch = lostOverwatch;
-		returnAction.diceRoll = dieRolled;
-	}
+		marines = game.gameMap.getUnits(Game.EntityType.SM);
+		for(int u = 0; u < marines.Count; u++)
+		{
+			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+		}
+
+		returnAction.actionType = Game.ActionType.InvoluntaryReveal; //involuntary reveal
+		returnAction.executor = blipRevealed; //blip thats being revealed
+		returnAction.target = null; //no target
+		returnAction.movePosition = blipRevealed.position; //blips position
+		returnAction.moveFacing = blipRevealed.facing; //blips facing
+		returnAction.APCost = 0; //no cost for involuntary reveal
+		returnAction.unitJams = false; //cant jam
+		destroyedUnits = destroyedUnits.Clear ();
+		returnAction.destroyedUnits = destroyedUnits; //no units die... yet
+		sustainedFireLost = sustainedFireLost.Clear ();
+		returnAction.sustainedFireLost = sustainedFireLost; //blips cant shoot silly
+		returnAction.completeLoS = completeLoS; //what the marines can see see see
+		returnAction.prevLoS = prevLoS; //what the marines could see see see
+		sustainedFireChanged = sustainedFireChanged.Clear ();
+		returnAction.sustainedFireChanged = sustainedFireChanged; //no change
+		lostOverwatch = lostOverwatch.Clear ();
+		returnAction.lostOverwatch = lostOverwatch; //again no change
+		dieRolled = dieRolled.Clear ();
+		returnAction.diceRoll = dieRolled; //die rolls for reveal, thats stupid
+		actions.Add (returnAction);
+
+		movePosition = new Vector2(); 
+		destroyedUnits = new List<Unit> ();
+		sustainedFireLost = new List<Unit> ();
+		completeLoS = new Dictionary<Unit, List<Vector2>> ();
+		sustainedFireChanged = new Dictionary<Unit, Unit> ();
+		lostOverwatch = new List<Unit> ();
+		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+		returnAction = new Action ();
+		//resets variables
+	}*/
 
 	private void updateLoS () //created by Nick Lee 15-10-14
 	{
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		for (int i = 0; i < marines.Count; i++) {
 			marines[i].currentLoS = game.algorithm.findLoS(marines[i]);
 		}//updates line of sight for all marines
