@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 15-10-14.0
+ * Version 15-10-14.1
  */
 
 using UnityEngine;
@@ -292,8 +292,33 @@ public class InputOutput : MonoBehaviour {
 						case (ShootPhase.CreateBullets): 																		// Creating the bullets
 							//Debug.LogWarning("Creating the bullets");
 							
-							Vector3 bulStart = new Vector3(exePos.x, unitElevation + 0.5f, exePos.z);							// Create the Vector3 positions for the bullets to start and end at
-							Vector3 bulEnd = new Vector3(tarUnit.gameObject.transform.position.x, unitElevation + 0.5f, tarUnit.gameObject.transform.position.z);
+							Vector3 bulStart = new Vector3(exePos.x, unitElevation + 1.0f, exePos.z);							// Create the Vector3 positions for the bullets to start and end at
+							Vector3 bulEnd = new Vector3(tarUnit.gameObject.transform.position.x, unitElevation + 0.8f, tarUnit.gameObject.transform.position.z);
+
+							if (!attackSuccessful){ 																			// If the attack is not successful make the bullets miss
+								Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
+								int rand = Random.Range(1, 4);
+								switch (rand){
+									case 1: 																					// make the bullets miss above
+										bulEnd.y += 1;
+										break;
+									case 2: 																					// make the bullets miss below
+										bulEnd.y -= 2;
+										break;
+									case 3: 																					// make the bullets miss to the left
+										if (tarUnit.facing == Game.Facing.North || tarUnit.facing == Game.Facing.South)			
+											bulEnd.x += 1;
+										else
+											bulEnd.x -=1;
+										break;
+									case 4: 																					// make the bullets miss to the right
+										if (tarUnit.facing == Game.Facing.West || tarUnit.facing == Game.Facing.East)			
+											bulEnd.z += 1;
+										else
+											bulEnd.z -=1;
+										break; 
+								}
+							}
 
 					      	createBullet(bulStart, bulEnd, attackSuccessful, 0.0f);												// Create a bullet
 							createBullet(bulStart, bulEnd, attackSuccessful, 0.2f);												// Create a bullet
@@ -305,7 +330,6 @@ public class InputOutput : MonoBehaviour {
 							break;
 
 						case (ShootPhase.BulletsMoving): 																		// Waiting for the bullets to finish moving
-							Debug.LogWarning("Bullets Moving Phase");
 							if (bulletsComplete){
 								shootPhaseList.RemoveAt(0); 																	// Move to the next phase if all of the bullets have finished
 								bulletsComplete = false; 																		// Reset the variable ready for the next shoot action
@@ -313,7 +337,6 @@ public class InputOutput : MonoBehaviour {
 							break;
 
 						case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
-							Debug.LogWarning("UnitDeath Phase");
 							float alphaLevel = 255;
 							Renderer[] renderers = action.target.gameObject.GetComponentsInChildren<Renderer>(); 				//Get all the renderer gameobjects that need to be faded
 							foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
@@ -339,6 +362,7 @@ public class InputOutput : MonoBehaviour {
 								updateCPAP(action.APCost);
 								shootPhaseList.RemoveAt(0);
 								showActionsList.RemoveAt(0);
+								attackSuccessful = false; 																		//Reset bools for use in next shoot action
 								isFirstLoopofAction = true;
 							//}
 					
