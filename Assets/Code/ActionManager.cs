@@ -577,4 +577,9 @@ public class ActionManager {
 			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
 		//resets prevLoS and sets it again
 	}
+
+	private void postInvolReveal(Unit centralGene)
+	{
+
+	}
 }
