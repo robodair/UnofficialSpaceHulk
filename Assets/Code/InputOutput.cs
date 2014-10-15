@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 14-10-14.0
+ * Version 15-10-14.0
  */
 
 using UnityEngine;
@@ -18,203 +18,348 @@ public class InputOutput : MonoBehaviour {
 
 	GameObject selectedUnit; //Added by Alisdair 11/9/14
 
-	//UI and Button References added 14/9/14 by Alisdair
+	// UI and Button References added 14/9/14 by Alisdair
 	public GameObject UICanvas;
 	GameObject btnAttackGO, btnShootGO, btnMoveGO, btnToggleDoorGO, btnOverwatchGO, btnRevealGO;
 	Button btnAttack, btnShoot, btnMove, btnToggleDoor, btnOverwatch, btnReveal;
 
-	//UI text field references 14 Sept 14 by Alisdair
+	// UI text field references 14 Sept 14 by Alisdair
 	GameObject unitAPText, playerCPText;
 
-	//Facing Selection canvas Added by Alisdair 17/9/2014
+	// Facing Selection canvas Added by Alisdair 17/9/2014
 	public GameObject facingSelectionCanvas;
 	public GameObject currentFacingSelectionCanvas; //Made public 2.10.14 RB
 
-	//Rory Bolt 25.9.14
+	// Rory Bolt 25.9.14
 	public InputHandler inputHandlerController;
 
-	//End Turn button added 2-10-2014 by Alisdair
+	// End Turn button added 2-10-2014 by Alisdair
 	GameObject btnEndTurnGO;
 	Button btnEndTurn;
 
-	//Color store for selecton/deselection added Alisdair 3-10-2014
+	// Color store for selecton/deselection added Alisdair 3-10-2014
 	Color preSelectionColor;
 
-	//Other action showing declerations Alisdair 4-10-14 
+	// Other action showing declerations Alisdair 4-10-14 
 	List<Action> showActionsList = new List<Action>();
 	public float stepAmmount;
 	public int rotateStepMultiplier;
 	float stepMoveAmmount;
 	float stepRotateAmmount;
 
-	//Float for the elevation of all new units
+	// Float for the elevation of all new units
 	public float unitElevation;
 
-	//Declerations for hint objects Alisdair 5-10-14 
+	// Declerations for hint objects Alisdair 5-10-14 
 	public GameObject overwatchSprite;
 	public GameObject sustainedFireSprite;
 
-	//variables for tracking AP and CP
+	// variables for tracking AP and CP
 	int currentAP;
 	int currentCP;
 
-	//assign the step ammounts in the start method Alisdair 12-10-14
+	// Variables required for showing shoot actions - Alisdair 15-10-14
+	enum ShootPhase{RotateTowards, CreateBullets, BulletsMoving, UnitDeath, RotateBack}; // The stages of shooting
+	List<ShootPhase> shootPhaseList = new List<ShootPhase>(); // List to add the required phases of a shoot actions
+	public GameObject bulletPrefab, explosionPrefab; 	// Bullet and explosion gameobjects
+	bool isFirstLoopofAction = true; 	// Check to allow storage of a rotation to turn to
+	Quaternion beforeShooting;			// Quaternion of the unit before turning to face the target
+	bool attackSuccessful = false;		// Bool for inclusion of unit death
+	public bool bulletsComplete = false; // Bool for finishing bullets moving phase
+	Quaternion aimRot = Quaternion.identity; // Initially setup the aim rotation.
+
+
+
+
+	// assign the step ammounts in the start method Alisdair 12-10-14
 	public void Start(){
 		stepMoveAmmount = stepAmmount;
 		stepRotateAmmount = stepAmmount * rotateStepMultiplier;
 	}
 
 	public void Update(){
-		//Get the action from the first position in the list
-			//Determine what action type it is
-				//Use a switch to direct to correct type of action
-					//e.g. if movement, move toward the position @ 1 * time.deltatime
-				//Check if the action has been completed (to within a fudge distance)
-				//If within fudge distance, complete the action and remove the action object from the list
-				//else, leave the action to be iterated again in the next frame
+		// Get the action from the first position in the list
+			// Determine what action type it is
+				// Use a switch to direct to correct type of action
+					// e.g. if movement, move toward the position
+				// Check if the action has been completed
+				// complete the action and remove the action object from the list
+				// else, leave the action to be iterated again in the next frame
 
 		if(showActionsList.Count != 0){
 			//Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
-			gameClass.changeGameState(Game.GameState.ShowAction);//Cahange the state to showaction state
+			gameClass.changeGameState(Game.GameState.ShowAction);//Change the state to showaction state
 			Action action = showActionsList[0];
 			//Debug.Log ("The action is of type: " + action.actionType);
-			//Executor pos and rot
+
+			// Executor pos and rot
 			Unit exeUnit = action.executor;
 			Vector3 exePos = action.executor.gameObject.transform.position;
 			Quaternion exeRot = action.executor.gameObject.transform.rotation;
 			//Debug.Log ("Unit Position: " + exePos);
 			//Debug.Log("Unit Rotation: " + exeRot);
 		
-			//Target unit decleration
+			// Target unit decleration
 			Unit tarUnit;
 
 
-			//Make the action
+			// Make the action
 			switch (action.actionType){
-			case (Game.ActionType.Move):
-				//Debug.Log("Update entered Move action sector of switch");
-			
-				//Create aim pos and rot
-				Vector3 aimPos = makePosition(action.movePosition, unitElevation);
-				//Debug.Log ("Aim position is " + aimPos);
-				Quaternion aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
-				//Debug.Log ("Aim Rotation is: " + aimRot);
 
-				//Make part of the movements
-				action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount*Time.deltaTime);
-				action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime);
+				/// ============================
+				/// MOVE ACTION
+				/// ============================
+				case (Game.ActionType.Move):
+					//Debug.Log("Update entered Move action sector of switch");
+				
+					// Create aim pos and rot
+					Vector3 aimPos = makePosition(action.movePosition, unitElevation);
+					//Debug.Log ("Aim position is " + aimPos);
+					aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
+					//Debug.Log ("Aim Rotation is: " + aimRot);
 
-				//Remove overwatch sprites for those units that have lost overwatch or sustained fire
-				removeOverwatch(action.lostOverwatch);
-				removeSusFire(action.sustainedFireLost);
+					// Make part of the movements
+					action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount*Time.deltaTime);
+					action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime);
 
-				//Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
-				//also update the unit AP and CP fields
-				if (exePos == aimPos){
-					//Debug.Log("PositionEqual");
-					if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
-						//Debug.Log("Rotation Equal");
-						//Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
+					// Remove overwatch sprites for those units that have lost overwatch or sustained fire
+					removeOverwatch(action.lostOverwatch);
+					removeSusFire(action.sustainedFireLost);
+
+					// Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
+					// also update the unit AP and CP fields
+					if (exePos == aimPos){
+						//Debug.Log("PositionEqual");
+						if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
+							//Debug.Log("Rotation Equal");
+							//Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
+							updateCPAP(action.APCost);
+							//Debug.Log("Removing Action Object move to position @: " + action.movePosition);
+							showActionsList.RemoveAt(0);
+						}
+						else{
+							//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
+						}
+					}
+					else {
+						//Debug.Log ("Position not Equal, Position target is: " + aimPos);
+					}
+
+					break;
+
+				///=============================
+				/// Overwatch Action
+				/// 
+				/// ++++++++++++++++++++
+				/// INCOMPLETE
+
+				case (Game.ActionType.Overwatch):
+					// determine the position the sprite
+					Vector3 spritePosition = exePos;
+					spritePosition.y += 1.3f;
+
+					//instantiate the sprite at the position & give reference to the unit
+					exeUnit.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
+
+					//Remove overwatch sprites for those units that have lost overwatch or sustained fire
+					removeOverwatch(action.lostOverwatch);
+					removeSusFire(action.sustainedFireLost);
+
+					//update the CP & AP displays
+					Debug.Log("UpdateCPAP case OVERWATCH with AP: " + action.APCost);
+					updateCPAP(action.APCost);
+
+					//remove the action
+					showActionsList.RemoveAt(0);
+
+					break;
+
+				///=============================
+				/// ToggleDoor Action
+				///=============================
+
+				case (Game.ActionType.ToggleDoor):
+					//Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
+					Debug.Log("Exe pos:" + exePos);
+					Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
+					Debug.Log ("converted to a door pos in map: " + doorMapPosition);
+					switch (action.executor.facing){
+					case (Game.Facing.North):
+						doorMapPosition.y++;
+						break;
+
+					case (Game.Facing.East):
+						doorMapPosition.x--;
+						break;
+
+					case (Game.Facing.South):
+						doorMapPosition.y--;
+						break;
+
+					case (Game.Facing.West):
+						doorMapPosition.x++;
+						break;
+					}
+					Debug.Log ("Final Door Position: " + doorMapPosition);
+					Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+
+						//Check if the position has a door, Get the door (unit), Toggle the door 
+					Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
+					Unit doorToToggle;
+					//Check that the door is there, then assign the variables for use in toggling
+					if (mapClass.hasDoor(doorMapPosition)){
+						doorToToggle = mapClass.getOccupant(doorMapPosition);
+						//target unit variables being assigned
+						tarUnit = doorToToggle;
+
+						//If the door is open (in the map class, which is up to date), make it an open door
+						if (mapClass.isDoorOpen(doorMapPosition)){
+							GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, true), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
+							Destroy(mapSquareWithDoor.door.gameObject);
+							mapSquareWithDoor.door.gameObject = newDoor;
+						}
+
+						else { //if the door is closed in the map class, show this also
+							GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, false), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
+							Destroy(tarUnit.gameObject);
+							mapSquareWithDoor.door.gameObject = newDoor;
+						}
+
+						//Finish the action and update the AP
+						//Debug.Log("UpdateCPAP case TOGGLEDOOR with AP: " + action.APCost);
 						updateCPAP(action.APCost);
-						//Debug.Log("Removing Action Object move to position @: " + action.movePosition);
 						showActionsList.RemoveAt(0);
 					}
-					else{
-						//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
-					}
-				}
-				else {
-					//Debug.Log ("Position not Equal, Position target is: " + aimPos);
-				}
 
-				break;
-
-			case (Game.ActionType.Overwatch):
-				//determine the position the sprite
-				Vector3 spritePosition = exePos;
-				spritePosition.y += 1.3f;
-
-				//instantiate the sprite at the position & give reference to the unit
-				exeUnit.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
-
-				//Remove overwatch sprites for those units that have lost overwatch or sustained fire
-				removeOverwatch(action.lostOverwatch);
-				removeSusFire(action.sustainedFireLost);
-
-				//update the CP & AP displays
-				Debug.Log("UpdateCPAP case OVERWATCH with AP: " + action.APCost);
-				updateCPAP(action.APCost);
-
-				//remove the action
-				showActionsList.RemoveAt(0);
-
-				break;
-
-			case (Game.ActionType.ToggleDoor):
-				//Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
-				Debug.Log("Exe pos:" + exePos);
-				Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
-				Debug.Log ("converted to a door pos in map: " + doorMapPosition);
-				switch (action.executor.facing){
-				case (Game.Facing.North):
-					doorMapPosition.y++;
 					break;
 
-				case (Game.Facing.East):
-					doorMapPosition.x--;
+				///===========================
+				/// ATTACK ACTION - FOR MELEE
+				///===========================
+				/// INCOMPLETE
+				///++++++++++++++++++++++++++++
+
+				case (Game.ActionType.Attack):
+					//Determine if the attack is GS > SM, SM > GS, or GS <> SM.
+					// run the "animation"  of the attack (as characters are not rigged for animation, display this with game objects moving into one another and then back into their original position. (also use change of mesh colours)
+						//gs to sm
+						//sm to gs
+						//sm & gs
+
 					break;
 
-				case (Game.Facing.South):
-					doorMapPosition.y--;
-					break;
+				///============================================
+				/// SHOOT ACTION - Ranged Attack (SM shoots GS)
+				///============================================
+				case (Game.ActionType.Shoot):
+					tarUnit = action.target;
+					
+					if (isFirstLoopofAction){
+						beforeShooting = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 
-				case (Game.Facing.West):
-					doorMapPosition.x++;
-					break;
-				}
-				Debug.Log ("Final Door Position: " + doorMapPosition);
-				Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+						float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
+						Debug.LogWarning("Offset rotation IS: " + offset);
 
-					//Check if the position has a door, Get the door (unit), Toggle the door 
-				Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
-				Unit doorToToggle;
-				//Check that the door is there, then assign the variables for use in toggling
-				if (mapClass.hasDoor(doorMapPosition)){
-					doorToToggle = mapClass.getOccupant(doorMapPosition);
-					//target unit variables being assigned
-					tarUnit = doorToToggle;
+						aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
 
-					//If the door is open (in the map class, which is up to date), make it an open door
-					if (mapClass.isDoorOpen(doorMapPosition)){
-						GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, true), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
-						Destroy(mapSquareWithDoor.door.gameObject);
-						mapSquareWithDoor.door.gameObject = newDoor;
+						isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
+						shootPhaseList.Add(ShootPhase.RotateTowards); 															// Add the rotation phase
+						shootPhaseList.Add(ShootPhase.CreateBullets); 															// Add the phase for creating the bullets
+						shootPhaseList.Add(ShootPhase.BulletsMoving); 															// Add the bullet moving phase
+
+						if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
+							attackSuccessful = true;
+							//Debug.LogWarning("Shoot attack to be successful");
+							shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
+						}
+
+						shootPhaseList.Add(ShootPhase.RotateBack); 																//Finally add the stage for rotating back after the shoot action
+						
 					}
 
-					else { //if the door is closed in the map class, show this also
-						GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, false), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
-						Destroy(tarUnit.gameObject);
-						mapSquareWithDoor.door.gameObject = newDoor;
-					}
+					switch (shootPhaseList[0]){ 																				// Use a switch for actioning the phases
 
-					//Finish the action and update the AP
-					Debug.Log("UpdateCPAP case TOGGLEDOOR with AP: " + action.APCost);
-					updateCPAP(action.APCost);
-					showActionsList.RemoveAt(0);
-				}
+						case (ShootPhase.RotateTowards): 																		// Rotating the SM to face the GS
+							Debug.LogWarning("Rotate Toward phase");
+							
+							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
 
-				break;
+							//if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
+								shootPhaseList.RemoveAt(0); 																	// Move to the next phase
+							//}
+							break;
+
+						case (ShootPhase.CreateBullets): 																		// Creating the bullets
+							//Debug.LogWarning("Creating the bullets");
+							
+							Vector3 bulStart = new Vector3(exePos.x, unitElevation + 0.5f, exePos.z);							// Create the Vector3 positions for the bullets to start and end at
+							Vector3 bulEnd = new Vector3(tarUnit.gameObject.transform.position.x, unitElevation + 0.5f, tarUnit.gameObject.transform.position.z);
+
+					      	createBullet(bulStart, bulEnd, attackSuccessful, 0.0f);												// Create a bullet
+							createBullet(bulStart, bulEnd, attackSuccessful, 0.2f);												// Create a bullet
+							createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
+							createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
+							createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
+					
+							shootPhaseList.RemoveAt(0); 																		// Move to the next phase
+							break;
+
+						case (ShootPhase.BulletsMoving): 																		// Waiting for the bullets to finish moving
+							Debug.LogWarning("Bullets Moving Phase");
+							if (bulletsComplete){
+								shootPhaseList.RemoveAt(0); 																	// Move to the next phase if all of the bullets have finished
+								bulletsComplete = false; 																		// Reset the variable ready for the next shoot action
+							}
+							break;
+
+						case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
+							Debug.LogWarning("UnitDeath Phase");
+							float alphaLevel = 255;
+							Renderer[] renderers = action.target.gameObject.GetComponentsInChildren<Renderer>(); 				//Get all the renderer gameobjects that need to be faded
+							foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
+								Color color = rend.material.color;
+								color.a -= 0.02f;
+								alphaLevel = color.a;
+								rend.material.color = color;
+							}
+
+							if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+								Destroy (action.target.gameObject);
+						        shootPhaseList.RemoveAt(0); 																	// Move to the next phase
+							}
+
+							break;
+
+						case(ShootPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
+							Debug.LogWarning("RotateBack Phase");
+							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, beforeShooting, stepRotateAmmount*Time.deltaTime); 
+																																// Rotate the Space marine back to the correct direction
+							
+							//if(exeRot.eulerAngles.y == beforeShooting.eulerAngles.y){ // If the rotation back has completed, end the action
+								updateCPAP(action.APCost);
+								shootPhaseList.RemoveAt(0);
+								showActionsList.RemoveAt(0);
+								isFirstLoopofAction = true;
+							//}
+					
+							break;
+						}
+						break;
+
 
 				default:
-				Debug.LogWarning("Game to show an action now");
-				
-				break;
+					Debug.LogWarning("Game to show an action now");
+					break;
 			}
 
-			//if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again) ALisdair 13-10-14
+			///
+			/// AFTER EACH ACTION OBJECT?
+			/// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again) Alisdair 13-10-14
+			/// 
 			if (showActionsList.Count == 0){
 				gameClass.changeGameState(Game.GameState.Inactive);
 				if (gameClass.unitSelected){
+					gameClass.changeGameState(Game.GameState.InactiveSelected);
 					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
 				}
 			}
@@ -266,7 +411,7 @@ public class InputOutput : MonoBehaviour {
 		playerCPText = GameObject.Find ("CPText");
 		currentAP = 0;
 		currentCP = gameClass.remainingCP;//Changed to reference game class Alisdair 11-10-14
-		Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
+		//Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
 
 
@@ -278,6 +423,9 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
+	/// <summary>
+	/// Generates the game map as represented in the Map class.
+	/// </summary>
 	public void generateMap () { //Method Added by Alisdair Robertson 9/9/2014
 
 		/*
@@ -427,7 +575,7 @@ public class InputOutput : MonoBehaviour {
 		//get and show the AP and CP for the unit
 		currentAP = unit.AP;
 		currentCP = gameClass.remainingCP;
-		Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
+		//Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
 		updateCPAP(0);
 	}
 
@@ -445,7 +593,7 @@ public class InputOutput : MonoBehaviour {
 
 			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
-			Debug.Log("UpdateCPAP DESELECT with AP: " + 0);
+			//Debug.Log("UpdateCPAP DESELECT with AP: " + 0);
 			currentAP = 0;
 			updateCPAP(0);
 		} 
@@ -682,16 +830,19 @@ public class InputOutput : MonoBehaviour {
 		inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 	}
+
 	public void btnFaceEast(){
 		inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 
 	}
+
 	public void btnFaceSouth(){
 		inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
+
 	public void btnFaceWest(){
 		inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
 		Destroy(currentFacingSelectionCanvas);
@@ -841,26 +992,192 @@ public class InputOutput : MonoBehaviour {
 
 	//Method to update the displayed CP and AP
 	void updateCPAP(int aPUsed){
-		Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
-		//if it does not cut into CP, just display it
+		//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
+		// if it does not cut into CP, just display it
 		if (aPUsed < currentAP || aPUsed == currentAP){
-			Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
+			//Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
 			currentAP = currentAP - aPUsed;
-			Debug.Log("New Current AP: " + currentAP);
+			//Debug.Log("New Current AP: " + currentAP);
 			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
 		}
-		//If it does cut into CP, calculate how much, and then display it
+		// If it does cut into CP, calculate how much, and then display it
 		else{
-			Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
+			//Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
 			currentCP = (currentAP + currentCP) - aPUsed;
-			Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
+			//Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
 			currentAP = 0;
-			Debug.Log("Current AP set to: " + currentAP);
+			//Debug.Log("Current AP set to: " + currentAP);
 		
 			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
 		}
 	}
 
+	/// =================================================================================================
+	/// BEARING METHOD
+	/// Method for calculating the bearing of one gameobject from another (in degrees) 15-10-14 Alisdair
+	/// =================================================================================================
+
+	/// <summary>
+	/// Gives the bearing from one Vector3 value to another in the x z plane.
+	/// </summary>
+	/// <returns>Bearing in degrees from Home position to Target Position on the y axis</returns>
+	/// <param name="homePosition">Home position.</param>
+	/// <param name="targetPosition">Target position.</param>
+	float getBearing(GameObject home, Game.Facing homeFacing, GameObject target) {
+
+		Vector2 homePosition = new Vector2(home.transform.position.x, home.transform.position.z);
+		Vector2 targetPosition = new Vector2(target.transform.position.x, target.transform.position.z); // Convert to Vector2 values for simplicity
+
+		float acuteAngle = Vector2.Angle(homePosition, targetPosition); // Find the acute angle between the two vectors
+		
+		// Determine the quadrant of the target
+		string quadrant = ""; 
+		if (homePosition.y < targetPosition.y){ // If the target is to the north
+			quadrant = "N";
+		}
+		else if (homePosition.y > targetPosition.y) { // If the target is to the south
+			quadrant = "S";
+		}
+		if (homePosition.x < targetPosition.x) { // If the target is to the east
+			quadrant = quadrant + "E";
+		}
+		else if (homePosition.x > targetPosition.x){ // If the target is to the west
+			quadrant = quadrant + "W";
+		}
+
+		switch(homeFacing){	// Switch to determine the direction to rotate (+ or -) and then return the value based on the current facing of the gameobject
+
+		case (Game.Facing.North):
+			switch (quadrant){ 					// Switch determining the direction of rotation
+				case("N"):
+					return 0f; 					// North to north requires no rotation
+				case("S"):
+					return 180f; 				// North to south requires 180 degrees rotation
+				case("E"):
+					return 90f; 				// North to east is + 90
+				case("W"):
+					return -90f; 				// North to west is - 90
+				case("NE"):
+					return acuteAngle; 			// North to NE is a positive angle
+				case("NW"):
+					return -acuteAngle; 		// North to NW is a negative angle
+				case("SE"):
+					return 180f-acuteAngle; 	// North to SE is a positive angle
+				case("SW"):
+					return -180f+acuteAngle;	// North to SW is a negative angle
+				default:
+						Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+						return 0f;					// For shooting yourself in the foot you don't need to change rotation
+			}
+
+		case (Game.Facing.South):
+			switch (quadrant){ 					// Switch determining the direction of rotation
+				case("N"):
+					return 180f; 				// South to north requires 180 degree rotation
+				case("S"):
+					return 0f; 					// South to south requires no rotation
+				case("E"):
+					return -90f; 				// South to east is - 90
+				case("W"):
+					return 90f; 				// South to west is + 90
+				case("NE"):
+					return 180f-acuteAngle; 		// South to NE is positive angle
+				case("NW"):
+					return -180f+acuteAngle; 	// South to NW is negative angle
+				case("SE"):
+					return -acuteAngle;		 	// South to SE is negative
+				case("SW"):
+					return acuteAngle;			// South to SW is positive
+				default:
+					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					return 0f;					// For shooting yourself in the foot you don't need to change rotation
+			}
+			
+		case (Game.Facing.East):
+			switch (quadrant){ 					// Switch determining the direction of rotation
+				case("N"):
+					return -90f; 				// East to north is - 90
+				case("S"):
+					return 90f; 				// East to south is + 90 
+				case("E"):
+					return 0f; 					// East to east requires no rotation
+				case("W"):
+					return 180f; 				// East to west requires 180 degree rotation
+				case("NE"):
+					return -acuteAngle; 		// East to NE is negative 
+				case("NW"):
+					return -180f+acuteAngle; 	// East to NW is negative
+				case("SE"):
+					return acuteAngle;		 	// East to SE is positive
+				case("SW"):
+					return 180f-acuteAngle;		// East to SW is positive
+				default:
+					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					return 0f;					// For shooting yourself in the foot you don't need to change rotation
+			}
+			
+		case (Game.Facing.West):
+			switch (quadrant){ 					// Switch determining the direction of rotation
+				case("N"):
+					return 90f; 				// West to north is + 90
+				case("S"):
+					return -90f; 				// West to south is - 90
+				case("E"):
+					return 180f; 				// West to east requires 180 degrees
+				case("W"):
+					return 0f; 					// West to west requires no rotation
+				case("NE"):
+					return 180f-acuteAngle; 	// West to NE is positive
+				case("NW"):
+					return acuteAngle; 			// West to NW is positive
+				case("SE"):
+					return -180+acuteAngle;		// West to SE is negative
+				case("SW"):
+					return -180+acuteAngle;		// West to SW is negative
+				default:
+					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					return 0f;					// For shooting yourself in the foot you don't need to change rotation
+			}
+
+		default:
+			Debug.LogError ("A unit did not have a facing");
+			return 0f; //if the unit had no facing return no rotation
+		}
+	}	
+	
+	/// ==================================
+	/// BULLET CREATION
+	/// ==================================
+
+	/// <summary>
+	/// Creates a bullet gameObject in the scene.
+	/// </summary>
+	/// <param name="startPos">Start position.</param>
+	/// <param name="endPos">End position.</param>
+	/// <param name="explodes">If set to <c>true</c> explodes.</param>
+	/// <param name="waitSeconds">Wait seconds.</param>
+	/// <param name="recallOnFinish">If set to <c>true</c> recall on finish.</param>
+	// Method for creation and assignment of bullets 15-10-14 Alisdair
+	private void createBullet(Vector3 startPos, Vector3 endPos, bool explodes, float waitSeconds, bool recallOnFinish){
+
+		GameObject bullet = (GameObject) Instantiate(bulletPrefab, startPos, Quaternion.identity); // Instantiate the gameobject
+
+		bullet.GetComponent<Bullet>().setParameters(endPos, this, explodes, recallOnFinish, waitSeconds, explosionPrefab); // Access the script and assign the variables
+	}
+
+	/// <summary>
+	/// Override for creating a bullet that does not need to indicate when it's flight has completed.
+	/// </summary>
+	/// <param name="startPos">Start position.</param>
+	/// <param name="endPos">End position.</param>
+	/// <param name="explodes">If set to <c>true</c> explodes.</param>
+	/// <param name="waitSeconds">Wait seconds.</param>
+	// Override method for creating bullets
+	private void createBullet(Vector3 startPos, Vector3 endPos, bool explodes, float waitSeconds){
+
+		createBullet(startPos, endPos, explodes, waitSeconds, false); //Call the other method with preset variables
+	}
+	
 }
