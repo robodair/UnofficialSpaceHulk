@@ -568,6 +568,7 @@ public class ActionManager {
 	private void makePrevLoS () //created by Nick Lee 15-10-14
 	{
 		prevLoS.Clear ();
+		prevLoS = new Dictionary<Unit, List<Vector2>> ();
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		for (int j = 0; j < marines.Count; j++)
 			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
