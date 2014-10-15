@@ -211,7 +211,7 @@ public class Game : MonoBehaviour {
 		{
 			Debug.Log ("YOU WIN! Have a cookie.");
 		}
-		else if (gameMap.getMarines().Count == 0)
+		else if (gameMap.getUnits(EntityType.SM).Count == 0)
 		{
 			Debug.Log ("The genestealers won");
 		}
@@ -300,7 +300,7 @@ public class Game : MonoBehaviour {
 	{
 		if (player == PlayerType.SM)
 		{
-			foreach (Unit marine in gameMap.getMarines())
+			foreach (Unit marine in gameMap.getUnits (EntityType.SM))
 			{
 				marine.AP = UnitData.getMaxAP(EntityType.SM);
 			}
@@ -543,7 +543,7 @@ public class Game : MonoBehaviour {
 
 	public void resetLoS()
 	{
-		foreach (Unit unit in gameMap.getMarines ())
+		foreach (Unit unit in gameMap.getUnits (EntityType.SM))
 		{
 			unit.currentLoS = algorithm.findLoS(unit);
 		}
