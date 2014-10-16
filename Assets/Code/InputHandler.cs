@@ -175,11 +175,12 @@ public class InputHandler : MonoBehaviour {
 	public void attack()
 	{
 		gameController.changeGameState(Game.GameState.AttackSelection);
+		gameController.selectUnit (gameController.selectedUnit.gameObject);
 	}
 
 	public void attacking()
 	{
-		//do stuffs
+		//do things for melee attacks
 	}
 
 	public void shooting()

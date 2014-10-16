@@ -173,7 +173,7 @@ public class Interactible : MonoBehaviour {
 				return true;
 		}
 
-		else
+		else if (gameController.gameState != Game.GameState.ShowAction)
 		{
 			if (gameController.thisPlayer == Game.PlayerType.GS)
 				if (attemptedSelection == SelectionType.GS ||
