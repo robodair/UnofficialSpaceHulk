@@ -165,10 +165,7 @@ public class InputHandler : MonoBehaviour {
 		
 		gameController.changeGameState(Game.GameState.Inactive);
 		
-		//if (gameController.unitSelected)
-		//	gameController.deselect ();
 		facingInProgress = false;
-		//ioController.resetMap (); COmmented out for testing Alisdair 11-10-14
 	}
 
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
@@ -200,8 +197,6 @@ public class InputHandler : MonoBehaviour {
 			actionManager.target = mapController.getUnit(attackTarget);
 			actionManager.performAction();
 			gameController.changeGameState(Game.GameState.InactiveSelected);
-			
-			//ioController.resetMap();
 		}
 		else
 		{
@@ -213,7 +208,6 @@ public class InputHandler : MonoBehaviour {
 	{
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.ToggleDoor);
 		actionManager.performAction ();
-		//ioController.resetMap ();
 	}
 
 	public void revealing (Vector2 position, List<Vector2> selectableSquares)
