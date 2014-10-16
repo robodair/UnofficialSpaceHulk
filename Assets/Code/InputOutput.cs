@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 15-10-14.1
+ * Version 16-10-14.0
  */
 
 using UnityEngine;
@@ -390,7 +390,9 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
-
+	/// <summary>
+	/// Create the Game UI in the scene
+	/// </summary>
 	public void instantiateUI(){ //Method Added by Alisdair Robertson 11/9/14
 		/*
 		 * This method creates the UI and then links the buttons to the code here
@@ -443,8 +445,6 @@ public class InputOutput : MonoBehaviour {
 		btnEndTurnGO = GameObject.Find ("BtnTurn");
 		btnEndTurn = btnEndTurnGO.GetComponent<Button>();
 		btnEndTurn.onClick.AddListener(() => {btnEndTurnClicked();});
-		defineEndTurnBtn(); //Set the state of the end turn button
-
 	}
 
 	/// <summary>
@@ -946,23 +946,18 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
-	//Method to activate or deactivate the end turn button (To be called every time something is clicked on in the interactable script ?Is this the best place?) - Added by 2-10-14 Alisdair
+	/// <summary>
+	/// Make the end turn button interactable or not based on the game state
+	/// </summary>
 	public void defineEndTurnBtn(){
 		//Check to see if the End turn button should be enabled or not, and assign the required state
-		if (gameClass.gameState == Game.GameState.AttackSelection){
+		if (gameClass.gameState == Game.GameState.AttackSelection || 
+		    gameClass.gameState == Game.GameState.MoveSelection || 
+		    gameClass.gameState == Game.GameState.ShowAction ||
+		    gameClass.gameState == Game.GameState.NetworkWait){
 			if (gameClass.playerTurn == gameClass.thisPlayer) {
 				btnEndTurn.interactable = false;
 			}
-		}
-
-		else if (gameClass.gameState == Game.GameState.MoveSelection){
-			if (gameClass.playerTurn == gameClass.thisPlayer) {
-				btnEndTurn.interactable = false;
-			}
-		}
-
-		else if (gameClass.gameState == Game.GameState.NetworkWait) {
-			btnEndTurn.interactable = false;
 		}
 
 		else {
