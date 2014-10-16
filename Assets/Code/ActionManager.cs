@@ -129,7 +129,7 @@ public class ActionManager {
 
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-		game.ioModule.showActionSequence(actions.ToArray ()); //gives the action array to the input output module
+		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
