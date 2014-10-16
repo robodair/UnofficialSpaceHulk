@@ -24,7 +24,7 @@ public class ActionManager {
 	private Path customPath;//Created by Nick Lee 18-9-14
 	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
-	private bool overwatchKilled = false; //Created by Nick Lee 7-10-14
+	private bool movementStopped = false; //Created by Nick Lee 7-10-14
 	private List<int> dieRolls = new List<int> (); //Created by Nick Lee 7-10-14
 
 	//modified by Nick Lee 13-10-14
@@ -96,6 +96,22 @@ public class ActionManager {
 
 		makeActions (actionUpdate);//make an action array
 
+		
+		for (int i = 0; i < marines.Count; i++) { //then for each marine
+			for (int t = 0; t < blips.Count; t++) //and each blip
+			{
+				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
+				{ //and the blip isnt already in the list but is within a marines LoS
+					blipsRevealed.Add (blips[t]);
+					movementStopped = true;
+					//stops any further movement
+				}
+			}
+		}
+		foreach (Unit blip in blipsRevealed) {
+			InvoluntaryReveal (blip);
+		}
+
 		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
@@ -106,19 +122,6 @@ public class ActionManager {
 					overwatchShot = false; //set overwatch shot to false
 				}
 			}
-		}
-
-		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			for (int t = 0; t < blips.Count; t++)
-			{
-				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
-				{
-					blipsRevealed.Add (blips[t]);
-				}
-			}
-		}
-		foreach (Unit blip in blipsRevealed) {
-			InvoluntaryReveal (blip);
 		}
 
 		makePrevLoS ();
@@ -143,7 +146,7 @@ public class ActionManager {
 		//sets the path to iterate through
 
 		for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
-			if(!overwatchKilled) //if the unit wasn't killed by overwatch
+			if(!movementStopped) //if the unit wasn't killed by overwatch
 			{
 				Movement = currentPath.path [i];
 
@@ -166,16 +169,26 @@ public class ActionManager {
 						Debug.Log ("Invalid unit facing: ActionManager, move method");
 				//error catching and message
 
+				if(unit.position.x < 0.1f)
+				{
+					for(int y = 0; y < game.gameMap.otherAreas.Length; y++)
+					{
+						if(Mathf.Approximately (unit.position.x, (- 1 - game.gameMap.otherAreas[y].adjacentPosition.x)))
+						{
+							y = game.gameMap.otherAreas.Length + 1; //will leave for loop
+
+							moving = game.gameMap.otherAreas[y].adjacentPosition;
+							compassFacing = game.gameMap.otherAreas[y].relativePosition;
+						}
+					}
+				}
 				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
 				//moves the unit
 			}
 			else
-			{
-				overwatchKilled = true;
 				i = currentPath.path.Count;
-				//if the unit was killed in the middle of a movement sets the killed to true and causes movements to stop
-			}
-			update (Game.ActionType.Move); //update method for moce
+				//if the unit was killed in the middle of a movement causes movements to stop
+			update (Game.ActionType.Move); //update method for move
 		}
 		postAction (); //post action method
 	}
@@ -307,11 +320,11 @@ public class ActionManager {
 							destroyedUnits.Add (shootie);
 							sustainedFireChanged.Add (shooter, null);
 						if(overwatchShot){
-							overwatchKilled = true;
+							movementStopped = true;
 						}
-							//removes unit being shot and changes required variable
-						}
-						//sustained fire shots (kill on 5's)
+						//removes unit being shot and changes required variable
+				}
+				//sustained fire shots (kill on 5's)
 				} else {
 				//if not sustained fire
 					sustainedFireChanged.Add (shooter, shootie);
@@ -320,7 +333,7 @@ public class ActionManager {
 						destroyedUnits.Add (shootie);
 						sustainedFireChanged[shooter] = null;
 						if(overwatchShot){
-							overwatchKilled = true;
+							movementStopped = true;
 						}
 						//if criteria met kills unit
 					} else {
