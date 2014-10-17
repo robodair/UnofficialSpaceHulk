@@ -47,6 +47,9 @@ public class Map : MonoBehaviour {
 	//Ian Mallett 15.10.14
 	//Replaced the getMarines method with the getUnits method
 
+	//Ian Mallett 18.10.14
+	//Fixed float precision error in areAdjacent method.
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -118,8 +121,8 @@ public class Map : MonoBehaviour {
 		//Check for adjacency as squares
 		if (hasSquare(position1) && hasSquare(position2))
 		{
-			if (Mathf.Abs(position1.x - position2.x) <= 1
-			 &&	Mathf.Abs(position1.y - position2.y) <= 1)
+			if (Mathf.Abs(position1.x - position2.x) <= 1.01f
+			 &&	Mathf.Abs(position1.y - position2.y) <= 1.01f)
 			{
 				return true;
 			}
@@ -163,8 +166,8 @@ public class Map : MonoBehaviour {
 		if(areAdjacent(position1, position2))
 		{
 			//If they are diagonally adjacent
-			if(position1.x != position2.x
-			&& position1.y != position2.y)
+			if(!Mathf.Approximately (position1.x, position2.x) &&
+			   !Mathf.Approximately (position1.y, position2.y))
 			{
 				//Check whether the squares adjacent to both are unoccupied
 				//If either exists and is unoccupied the squares are linked

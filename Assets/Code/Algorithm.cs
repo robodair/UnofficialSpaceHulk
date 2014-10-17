@@ -584,7 +584,6 @@ public class Algorithm : MonoBehaviour {
 
 			rowNumber++;
 		}
-
 		return visibleSquares;
 	}
 
