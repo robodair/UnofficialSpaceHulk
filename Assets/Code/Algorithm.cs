@@ -425,6 +425,9 @@ public class Algorithm : MonoBehaviour {
 
 	public List<Vector2> findLoS(Unit unit)
 	{
+		Debug.Log ("LoS from " + unit.position);
+
+
 		//Find forwards and right
 		Vector2 unitForwards = ((Quaternion)game.facingDirection [unit.facing] * Vector2.up);
 		Vector2 unitLeft = ((Quaternion)game.facingDirection [unit.facing] * (-Vector2.right));
@@ -451,9 +454,12 @@ public class Algorithm : MonoBehaviour {
 				bool prevExists = false;
 				bool backLeftExists = false;
 
+
+				Debug.Log ("Previous Row:");
 				//Find the nearby squares in the previous row
 				for (int j = 0; j < previousRow.Count; j++)
 				{
+					Debug.Log (previousRow[j]);
 					if (previousRow[j] == position - unitForwards)
 					{
 						prevExists = true;
