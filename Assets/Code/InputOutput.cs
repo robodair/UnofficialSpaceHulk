@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 16-10-14.0
+ * Version 16-10-14.1
  */
 
 using UnityEngine;
@@ -300,22 +300,28 @@ public class InputOutput : MonoBehaviour {
 								int rand = Random.Range(1, 4);
 								switch (rand){
 									case 1: 																					// make the bullets miss above
+										if (tarUnit.unitType == Game.EntityType.Door)											// If the unit is a door, make the miss higher
+											bulEnd.y += 0.5f;
 										bulEnd.y += 1;
 										break;
 									case 2: 																					// make the bullets miss below
-										bulEnd.y -= 2;
+										bulEnd.y -= 1;
 										break;
 									case 3: 																					// make the bullets miss to the left
 										if (tarUnit.facing == Game.Facing.North || tarUnit.facing == Game.Facing.South)			
-											bulEnd.x += 1;
+											bulEnd.x += 0.6f;
+										else if (tarUnit.facing == Game.Facing.West || tarUnit.facing == Game.Facing.East)			
+											bulEnd.z += 0.6f;
 										else
-											bulEnd.x -=1;
+											bulEnd.y -= 1;
 										break;
 									case 4: 																					// make the bullets miss to the right
-										if (tarUnit.facing == Game.Facing.West || tarUnit.facing == Game.Facing.East)			
-											bulEnd.z += 1;
+										if (tarUnit.facing == Game.Facing.North || tarUnit.facing == Game.Facing.South)			
+											bulEnd.x -= 0.6f;
+										else if (tarUnit.facing == Game.Facing.West || tarUnit.facing == Game.Facing.East)			
+											bulEnd.z -= 0.6f;
 										else
-											bulEnd.z -=1;
+											bulEnd.y -= 1;
 										break; 
 								}
 							}
