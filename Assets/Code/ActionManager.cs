@@ -95,16 +95,16 @@ public class ActionManager {
 		updateLoS ();
 
 		makeActions (actionUpdate);//make an action array
+
 		
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			for (int t = 0; t < blips.Count; t++) {//and each blip
-				for (int u = 0; u < marines[i].currentLoS.Count; u++) {//and each square in sight
-					if(marines[i].currentLoS[u] == blips[t].position && !blipsRevealed.Contains(blips[t]))
-					{ //and the blip isnt already in the list but is within a marines LoS
-						blipsRevealed.Add (blips[t]);
-						movementStopped = true;
-						//stops any further movement
-					}
+			for (int t = 0; t < blips.Count; t++) //and each blip
+			{
+				if(marines[i].currentLoS.Contains(blips[t].position) && !blipsRevealed.Contains(blips[t]))
+				{ //and the blip isnt already in the list but is within a marines LoS
+					blipsRevealed.Add (blips[t]);
+					movementStopped = true;
+					//stops any further movement
 				}
 			}
 		}
@@ -169,19 +169,24 @@ public class ActionManager {
 						Debug.Log ("Invalid unit facing: ActionManager, move method");
 				//error catching and message
 
-				if(unit.position.x < 0f)
+				if(unit.position.x < 0.1f)
 				{
-					if (game.gameMap.otherAreas.Length > -1 - (int) unit.position.x)
+					for(int y = 0; y < game.gameMap.otherAreas.Length; y++)
 					{
-						moving = game.gameMap.otherAreas[-1 - (int)unit.position.x].adjacentPosition;
-						compassFacing = game.gameMap.otherAreas[-1 - (int)unit.position.x].relativePosition;
+						if(Mathf.Approximately (unit.position.x, (- 1 - game.gameMap.otherAreas[y].adjacentPosition.x)))
+						{
+							y = game.gameMap.otherAreas.Length + 1; //will leave for loop
+
+							moving = game.gameMap.otherAreas[y].adjacentPosition;
+							compassFacing = game.gameMap.otherAreas[y].relativePosition;
+						}
 					}
 				}
 				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
 				//moves the unit
 			}
 			else
-				break;
+				i = currentPath.path.Count;
 				//if the unit was killed in the middle of a movement causes movements to stop
 			update (Game.ActionType.Move); //update method for move
 		}
@@ -528,7 +533,7 @@ public class ActionManager {
 		//resets values
 	}
 
-	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14, modified by 20-10-14
+	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14
 	{
 		marines = game.gameMap.getUnits(Game.EntityType.SM);
 		for(int u = 0; u < marines.Count; u++)
@@ -566,8 +571,6 @@ public class ActionManager {
 		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
 		returnAction = new Action ();
 		//resets variables
-
-		postInvolReveal (game.gameMap.getOccupant (blipRevealed.position));
 	}
 
 	private void updateLoS () //created by Nick Lee 15-10-14
@@ -588,16 +591,8 @@ public class ActionManager {
 		//resets prevLoS and sets it again
 	}
 
-	private void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
+	private void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14
 	{
-		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			if(marines[i].currentLoS.Contains(centralGene.position) && marines[i].isOnOverwatch)
-			{
-				overwatchShot = true; //set overwatch shot to true
-				shot = true; //set shot equal to true
-				shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
-				overwatchShot = false; //set overwatch shot to false
-			}
-		}
+
 	}
 }
