@@ -818,11 +818,8 @@ public class InputOutput : MonoBehaviour {
 			switch (unit.unitType){
 					
 				case Game.EntityType.Blip:
-					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object above the floor object & pass it back to the Unit Class
-					int newCount; 
-					int.TryParse(depArea.model.GetComponentInChildren<Text>().text, out newCount);
-					newCount++;
-					depArea.model.GetComponentInChildren<Text>().text = newCount.ToString();
+					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object
+					depArea.model.GetComponentInChildren<Text>().text = depArea.units.Count;
 					break;
 				default:
 					Debug.LogError("There was not a valid unit to place into a deployment area.");
