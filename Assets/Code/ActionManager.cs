@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ActionManager {
 
 	//Created by Ian Mallett 1.9.14
-	//modified By Nick Lee 23.9.14
+	//modified By Nick Lee 20.10.14
 	public Unit target;
 	public Path path;
 
@@ -85,7 +85,7 @@ public class ActionManager {
 		//error message and catching
 	}
 
-	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 25-9-14
+	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 20-10-14
 	{
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
