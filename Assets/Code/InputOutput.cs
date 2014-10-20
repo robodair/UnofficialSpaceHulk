@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.0
+ * Version 21-10-14.1
  */
 
 using UnityEngine;
@@ -620,30 +620,7 @@ public class InputOutput : MonoBehaviour {
 			//if the square has a unit or door create that unit or door on it
 			if (square.isOccupied){
 
-				//Switch to place units
-				switch (square.occupant.unitType){
-				
-					case Game.EntityType.Blip:
-						unit = (GameObject) Instantiate(BlipPrefab, makePosition(square.position, unitElevation + 0.5f), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.Door)); //Create the blip object above the floor object
-						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
-						break;
-	
-					case Game.EntityType.Door:
-						doorPiece = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(square.position, unitElevation, square.door.facing, false), makeRotation(makeFacing(square.door.facing), Game.EntityType.Door)); //Create the closed door object above the floor object
-						square.door.gameObject = doorPiece; //Pass reference to the gameobject back to the square
-						square.occupant.gameObject = doorPiece; //Pass the reference to the occupant as well Added by Alisdair 26/9/14
-						break;
-				
-					case Game.EntityType.GS:
-						unit = (GameObject) Instantiate(GenestealerPrefab, makePosition(square.position, unitElevation), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.GS)); //Create the blip object above the floor object
-						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
-						break;
-
-					case Game.EntityType.SM:
-						unit = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(square.position, unitElevation), makeRotation(makeFacing(square.occupant.facing), Game.EntityType.SM)); //Create the blip object above the floor object
-						square.occupant.gameObject = unit; //Pass reference to the gameobject back to the square
-						break;
-				}
+				placeUnit (square.occupant);
 			}
 					
 			//if the square has a door and it's open create it
@@ -782,7 +759,7 @@ public class InputOutput : MonoBehaviour {
 
 		//Check to see if the unit is being placed in a deployment area
 		if (unit.position.x < 0){ // if the unit is being placed in a deployment area
-			DeploymentArea depArea = mapClass.otherAreas[-1-unit.position.x];
+			DeploymentArea depArea = mapClass.otherAreas[(int)(-1-unit.position.x)];
 			Vector2 adjPos = depArea.adjacentPosition; //get position of adjecent piece
 			
 			//Converting Vector2 to Vector3
@@ -818,7 +795,7 @@ public class InputOutput : MonoBehaviour {
 			switch (unit.unitType){
 					
 				case Game.EntityType.Blip:
-					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object
+					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing), Game.EntityType.Blip)); //Create the blip object
 					refreshBlipCounts();
 					break;
 				default:
@@ -829,23 +806,29 @@ public class InputOutput : MonoBehaviour {
 		else{ // If the unit is not in a deployment area, place as normal
 			//Instantiate the unit at the position and pass a reference back to the unit class
 			switch (unit.unitType){
-
+				
 				case Game.EntityType.Blip:
-				unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object above the floor object & pass it back to the Unit Class
+					unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, unitElevation + 0.5f), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the blip object above the floor object
 					break;
-			
+					
+				case Game.EntityType.Door:
+					unit.gameObject = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(unit.position, unitElevation, unit.facing, false), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the closed door object above the floor object
+					mapClass.getSquare(unit.position).door.gameObject = unit.gameObject; //Pass reference to the gameobject back to the square
+					break;
+					
 				case Game.EntityType.GS:
-					unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing), Game.EntityType.GS)); //Create the blip object above the floor objectunit.gameObject
+					unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.GS)); //Create the blip object above the floor object
 					break;
-			
+					
 				case Game.EntityType.SM:
-				unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor objectunit.gameObject
+					unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor object
 					break;
 				default:
 					Debug.LogError("There was not a valid unit to place");
 					break;
 			}
 		}
+
 		
 	}
 
@@ -1490,7 +1473,7 @@ public class InputOutput : MonoBehaviour {
 	void refreshBlipCounts()
 	{
 		foreach(DeploymentArea depArea in mapClass.otherAreas){
-			depArea.model.GetComponentInChildren<Text>().text = depArea.units.Count;
+			depArea.model.GetComponentInChildren<Text>().text = depArea.units.Count.ToString();
 		}
 	}
 
