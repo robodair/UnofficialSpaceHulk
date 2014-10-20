@@ -52,7 +52,6 @@ public class ActionManager {
 		this.unit = unit; //the unit using the action
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		makePrevLoS ();
-		//Hi this is a test
 	}
 
 	public void performAction() //Contents modified by Nick Lee 18-9-14
