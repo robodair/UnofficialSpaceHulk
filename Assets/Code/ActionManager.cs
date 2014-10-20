@@ -54,7 +54,7 @@ public class ActionManager {
 		makePrevLoS ();
 	}
 
-	public void performAction() //Contents modified by Nick Lee 18-9-14
+	public void performAction() //Contents modified by Nick Lee 20-10-14
 	{
 		if (unit.isOnOverwatch) {
 			unit.isOnOverwatch = false; //sets overwatch to false
@@ -69,9 +69,6 @@ public class ActionManager {
 		else if (actionUsed == Game.ActionType.Shoot) {
 			removeAP (unit, UnitData.getAPCost (actionUsed));
 			shootMethod(unit, target); //if action is shooting, requires target
-		}
-		else if (actionUsed == Game.ActionType.Reveal) {
-			revealMethod(); //if action is a voluntary reveal
 		}
 		else if (actionUsed == Game.ActionType.ToggleDoor) {
 			removeAP (unit, UnitData.getAPCost (actionUsed));
@@ -353,12 +350,6 @@ public class ActionManager {
 		Debug.Log ("dice two rolled: " + Dice[1]);
 		update (Game.ActionType.Shoot);
 		shot = false; //set shot to false
-		postAction ();
-	}
-
-	private void revealMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
-	{
-		update (Game.ActionType.Reveal);
 		postAction ();
 	}
 
