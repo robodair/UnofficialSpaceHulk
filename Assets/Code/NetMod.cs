@@ -4,6 +4,8 @@ using System.Net.NetworkInformation;
 using System.Threading;
 using System.Collections.Generic;
 using System;
+using System.Net;
+using System.Net.Sockets;
 //Created by Stephen on 13-8-14
 public class NetMod : MonoBehaviour {
 
@@ -27,7 +29,7 @@ public class NetMod : MonoBehaviour {
 		
 		
 		//Connection!
-/*		IPAddress IP = IPAddress.Parse("127.0.0.1");
+	IPAddress IP = IPAddress.Parse("127.0.0.1");
 		
 		if (IPAddress.TryParse(destIP, out IP))
 		{
@@ -38,16 +40,16 @@ public class NetMod : MonoBehaviour {
 			try
 			{
 				s.Connect(IP, 139);
-				Debug.log("it worked???");
+				Debug.Log("it worked???");
 
 			}
 			catch (Exception ex)
 			{
-				Debug.log(ex);
+				Debug.Log(ex);
 			}
 		}
 
-*/
+
 	}
 	public static bool PingHost(string nameOrAddress)
 	{
