@@ -116,6 +116,10 @@ public class Interactible : MonoBehaviour {
 	                inputHandlerController.moveTarget = gameObject;
 					inputHandlerController.moving ();
 				}
+				else if (gameController.gameState == Game.GameState.Reveal)
+				{
+
+				}
 				else
 				{
 					//Select the unit
@@ -155,6 +159,7 @@ public class Interactible : MonoBehaviour {
 		//Current Exceptions as of 14.9.14: 
 		//1. If the gameState is currently in AttackSelect, you cannot attack your own units, so will only be able to select enemy units and doors.
 		//2. If the gameState is currently in MoveSelect, you can only move onto a square, so will only be able to select a square.
+		//3. If the gameState is currently in Reveal, you can select squares for placement 20.10.14
 		if (gameController.gameState == Game.GameState.AttackSelection) //Exception 1
 		{
 			if (gameController.thisPlayer == Game.PlayerType.SM)
@@ -167,7 +172,8 @@ public class Interactible : MonoBehaviour {
 				    attemptedSelection == SelectionType.ClosedDoor)
 					return true;
 		}
-		else if (gameController.gameState == Game.GameState.MoveSelection) //Exception 2
+		else if (gameController.gameState == Game.GameState.MoveSelection ||//Exception 2
+		         gameController.gameState == Game.GameState.Reveal) //Exception 3
 		{
 			if (attemptedSelection == SelectionType.Square)
 				return true;

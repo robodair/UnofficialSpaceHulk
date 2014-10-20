@@ -12,6 +12,7 @@ public class InputHandler : MonoBehaviour {
 
 	public RevealManager revealManager;
 	Vector2 revealPosition;
+	List<Vector2> selectableRevealSquares;
 
 	public InputOutput ioController;
 	Vector2 moveTargetSquare;
@@ -222,11 +223,21 @@ public class InputHandler : MonoBehaviour {
 	public void revealing (Vector2 position, List<Vector2> selectableSquares)
 	{
 		revealPosition = position;
-
+		selectableRevealSquares = selectableSquares;
+		ioController.instantiateFacingSelection (revealPosition);
 	}
 
 	public void revealOrientationClicked(Game.Facing facing)
 	{
 		revealManager.place (revealPosition, facing);
+		if(revealManager.currentlyRevealing)
+		{
+			continueRevealing();
+		}
+	}
+
+	public void continueRevealing()
+	{
+
 	}
 }
