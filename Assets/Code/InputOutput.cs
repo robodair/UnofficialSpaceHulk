@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 16-10-14.5
+ * Version 21-10-14.0
  */
 
 using UnityEngine;
@@ -133,6 +133,7 @@ public class InputOutput : MonoBehaviour {
 					/// =======================================================================================
 					displayDice(action.diceRoll);
 				}
+
 				// Make the action
 				switch (action.actionType){
 
@@ -515,7 +516,7 @@ public class InputOutput : MonoBehaviour {
 						letActionsPlay = false;
 						finishAction(action.APCost);
 						GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.target.position, actionManagers[0], previousAction.completeLoS); 																												
-																																	// Call the involuntary reveal method
+						break;																											// Call the involuntary reveal method
 
 					default:
 						Debug.LogWarning("Game to show an action now");
@@ -694,6 +695,10 @@ public class InputOutput : MonoBehaviour {
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
 				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
 				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, -0.5f, zPos), depAreaFacing); //Create the game object in the scene
+				Vector3 position = depArea.model.transform.GetChild(0).transform.position;
+				Vector3 newPosition = new Vector3 (position.x, 1.6f, position.z);
+				depArea.model.transform.GetChild(0).transform.position = newPosition;
+
 			}
 
 
@@ -775,29 +780,76 @@ public class InputOutput : MonoBehaviour {
 	public void placeUnit(Unit unit){ //Added Gameobject Return 22/9/14 Alisdair
 		Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
 
+		//Check to see if the unit is being placed in a deployment area
+		if (unit.position.x < 0){ // if the unit is being placed in a deployment area
+			DeploymentArea depArea = mapClass.otherAreas[-1-unit.position.x];
+			Vector2 adjPos = depArea.adjacentPosition; //get position of adjecent piece
+			
+			//Converting Vector2 to Vector3
+			//Vector2 y = Vector3 z (North/South)
+			//Vector2 x = Vector3 x (East/West)
+			//Vector3 y is vertical (leave at constant value)
+			int xPos = (int) adjPos.x;
+			int zPos = (int) adjPos.y;
 
-	//Needs to check if the unit is in a deployment area and place it appropriately if this is the case
+			//determine the position of the deployment area based on the facing 
+			switch (depArea.relativePosition){
+					
+				case Game.Facing.North:
+					zPos--;
+					break;
+					
+				case Game.Facing.East:
+					xPos--;
+					break;
+					
+				case Game.Facing.South:
+					zPos++;
+					break;
+					
+				case Game.Facing.West:
+					xPos++;
+					break;
+				default:
+					Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
+					break;
+			}
 
-	//Otherwise the unit is on the map already, therefore place it as normal
-
-		//Instantiate the unit at the position and pass a reference back to the unit class
-		switch (unit.unitType){
-
-			case Game.EntityType.Blip:
-				unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor object & pass it back to the Unit Class
-				break;
-		
-			case Game.EntityType.GS:
-				unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
-				break;
-		
-			case Game.EntityType.SM:
-				unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, 1), makeFacing(unit.facing)); //Create the blip object above the floor objectunit.gameObject
-				break;
-			default:
-				Debug.LogError("There was not a valid unit to place");
-				break;
+			switch (unit.unitType){
+					
+				case Game.EntityType.Blip:
+					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object above the floor object & pass it back to the Unit Class
+					int newCount; 
+					int.TryParse(depArea.model.GetComponentInChildren<Text>().text, out newCount);
+					newCount++;
+					depArea.model.GetComponentInChildren<Text>().text = newCount.ToString();
+					break;
+				default:
+					Debug.LogError("There was not a valid unit to place into a deployment area.");
+					break;
+			}
 		}
+		else{ // If the unit is not in a deployment area, place as normal
+			//Instantiate the unit at the position and pass a reference back to the unit class
+			switch (unit.unitType){
+
+				case Game.EntityType.Blip:
+				unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object above the floor object & pass it back to the Unit Class
+					break;
+			
+				case Game.EntityType.GS:
+					unit.gameObject = (GameObject) Instantiate(GenestealerPrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing), Game.EntityType.GS)); //Create the blip object above the floor objectunit.gameObject
+					break;
+			
+				case Game.EntityType.SM:
+				unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, 1), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor objectunit.gameObject
+					break;
+				default:
+					Debug.LogError("There was not a valid unit to place");
+					break;
+			}
+		}
+		
 	}
 
 	/// <summary>
