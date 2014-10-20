@@ -95,7 +95,19 @@ public class ActionManager {
 		updateLoS ();
 
 		makeActions (actionUpdate);//make an action array
-		
+
+		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
+			for (int i = 0; i < marines.Count; i++) { //then for each marine
+				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
+				{
+					overwatchShot = true; //set overwatch shot to true
+					shot = true; //set shot equal to true
+					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+					overwatchShot = false; //set overwatch shot to false
+				}
+			}
+		}
+
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
 			for (int t = 0; t < blips.Count; t++) {//and each blip
 				for (int u = 0; u < marines[i].currentLoS.Count; u++) {//and each square in sight
@@ -110,18 +122,6 @@ public class ActionManager {
 		}
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip);
-		}
-
-		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
-			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
-				{
-					overwatchShot = true; //set overwatch shot to true
-					shot = true; //set shot equal to true
-					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
-					overwatchShot = false; //set overwatch shot to false
-				}
-			}
 		}
 
 		makePrevLoS ();
