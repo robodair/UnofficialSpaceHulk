@@ -21,11 +21,13 @@ public class NetMod : MonoBehaviour {
 	//Use port 33 for connection - Stephen
 	public void connect()
 	{
+		//Using Rory's machine as test for now 20-10-14 Stephen Rose
+		//PC Name is Lab38Highspec20
 		string destIP = "172.26.102.17";
 		
 		
 		//Connection!
-		IPAddress IP = IPAddress.Parse("127.0.0.1");
+/*		IPAddress IP = IPAddress.Parse("127.0.0.1");
 		
 		if (IPAddress.TryParse(destIP, out IP))
 		{
@@ -36,17 +38,16 @@ public class NetMod : MonoBehaviour {
 			try
 			{
 				s.Connect(IP, 139);
-				Console.WriteLine("it worked???");
-				Console.ReadLine();
+				Debug.log("it worked???");
+
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex);
-				Console.ReadLine();
+				Debug.log(ex);
 			}
 		}
 
-
+*/
 	}
 	public static bool PingHost(string nameOrAddress)
 	{
