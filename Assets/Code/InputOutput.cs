@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 16-10-14.1
+ * Version 16-10-14.2
  */
 
 using UnityEngine;
@@ -63,13 +63,22 @@ public class InputOutput : MonoBehaviour {
 	List<ShootPhase> shootPhaseList = new List<ShootPhase>(); // List to add the required phases of a shoot actions
 	public GameObject bulletPrefab, explosionPrefab; 	// Bullet and explosion gameobjects
 	bool isFirstLoopofAction = true; 	// Check to allow storage of a rotation to turn to
-	Quaternion beforeShooting;			// Quaternion of the unit before turning to face the target
+	Quaternion rotationBefore;			// Quaternion of the unit before turning to face the target
 	bool attackSuccessful = false;		// Bool for inclusion of unit death
 	public bool bulletsComplete = false; // Bool for finishing bullets moving phase
 	Quaternion aimRot = Quaternion.identity; // Initially setup the aim rotation.
 
-
-
+	// Variables for showing attack actions
+	enum AttackPhase{RotateTowards, MoveTowards, Flash, MoveBack, UnitDeath, RotateBack}; 	// Stages of a melee attack
+	List <AttackPhase> attackPhaseList = new List<AttackPhase>();							// The list to store the phases of the attack
+	Vector3 exeInitPos = new Vector3();														// The store of the original unit position
+	Vector3 exeUnitAttackPos = new Vector3();												// The position to move the unit to for the attack animation 
+	public static float FLASH_WAIT = 0.2f;															// The length in seconds of a flash on or off stage
+	public static int ALLOWED_NUM_FLASHES = 5;													// The number of flashes in a successful attack
+	int numFlashes;																			// The number of flashes already gone
+	float timeStore = 0;																	// Variable used for storing the time the flash has been active
+	Color preFlashColor;																	// Variable used for storing the color of the unit before flashing it for an attack
+	Renderer[] renderers;
 
 	// assign the step ammounts in the start method Alisdair 12-10-14
 	public void Start(){
@@ -96,6 +105,7 @@ public class InputOutput : MonoBehaviour {
 			Unit exeUnit = action.executor;
 			Vector3 exePos = action.executor.gameObject.transform.position;
 			Quaternion exeRot = action.executor.gameObject.transform.rotation;
+			exeInitPos = new Vector3(exePos.x, exePos.y, exePos.z);						// Store the initial position of the executor
 			//Debug.Log ("Unit Position: " + exePos);
 			//Debug.Log("Unit Rotation: " + exeRot);
 		
@@ -148,12 +158,13 @@ public class InputOutput : MonoBehaviour {
 					break;
 
 				///=============================
-				/// Overwatch Action
+				/// OVERWATCH ACTION
 				/// 
 				/// ++++++++++++++++++++
 				/// INCOMPLETE
 
 				case (Game.ActionType.Overwatch):
+					Debug.Log("IT'S OVERWATCH TIME!");
 					// determine the position the sprite
 					Vector3 spritePosition = exePos;
 					spritePosition.y += 1.3f;
@@ -179,34 +190,36 @@ public class InputOutput : MonoBehaviour {
 				///=============================
 
 				case (Game.ActionType.ToggleDoor):
-					//Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
-					Debug.Log("Exe pos:" + exePos);
+					// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
+					//Debug.Log("Exe pos:" + exePos);
 					Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
-					Debug.Log ("converted to a door pos in map: " + doorMapPosition);
+					//Debug.Log ("converted to a pos in map: " + doorMapPosition);
+					//Debug.LogError(action.executor.facing);
 					switch (action.executor.facing){
-					case (Game.Facing.North):
-						doorMapPosition.y++;
-						break;
+						case (Game.Facing.North):
+							doorMapPosition.y++;
+							break;
 
-					case (Game.Facing.East):
-						doorMapPosition.x--;
-						break;
+						case (Game.Facing.East):
+							doorMapPosition.x++;
+							break;
 
-					case (Game.Facing.South):
-						doorMapPosition.y--;
-						break;
+						case (Game.Facing.South):
+							doorMapPosition.y--;
+							break;
 
-					case (Game.Facing.West):
-						doorMapPosition.x++;
-						break;
+						case (Game.Facing.West):;
+							doorMapPosition.x--;
+							break;
 					}
-					Debug.Log ("Final Door Position: " + doorMapPosition);
-					Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+					//Debug.Log ("Final Door Position: " + doorMapPosition);
+					//Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
 
-						//Check if the position has a door, Get the door (unit), Toggle the door 
+						// Check if the position has a door, Get the door (unit), Toggle the door 
 					Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
 					Unit doorToToggle;
-					//Check that the door is there, then assign the variables for use in toggling
+					// Check that the door is there, then assign the variables for use in toggling
+					//Debug.Log ("DOES POSITION HAVE DOOR?: " + mapClass.hasDoor(doorMapPosition));
 					if (mapClass.hasDoor(doorMapPosition)){
 						doorToToggle = mapClass.getOccupant(doorMapPosition);
 						//target unit variables being assigned
@@ -233,20 +246,131 @@ public class InputOutput : MonoBehaviour {
 
 					break;
 
-				///===========================
+				///==================================================================
 				/// ATTACK ACTION - FOR MELEE
-				///===========================
-				/// INCOMPLETE
-				///++++++++++++++++++++++++++++
+				///==================================================================
+				/// Attack will only be functional for one-way attacks (GS attack SM)
+				///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 				case (Game.ActionType.Attack):
-					//Determine if the attack is GS > SM, SM > GS, or GS <> SM.
-					// run the "animation"  of the attack (as characters are not rigged for animation, display this with game objects moving into one another and then back into their original position. (also use change of mesh colours)
-						//gs to sm
-						//sm to gs
-						//sm & gs
+						//Determine if the attack is GS > SM, SM > GS, or GS <> SM.
+						// run the "animation"  of the attack (as characters are not rigged for animation, display this with game objects moving into one another and then back into their original position. (also use change of mesh colours)
+							//gs to sm
+							//sm to gs
+							//sm & gs
+					tarUnit = action.target;
+					renderers = action.target.gameObject.GetComponentsInChildren<Renderer>();									// Get all the renderer gameobjects that need to be faded
+					
+					if (isFirstLoopofAction){
+						rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
+						
+						float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
+						Debug.LogWarning("Offset rotation IS: " + offset);
+						
+						exeInitPos = new Vector3(exePos.x, exePos.y, exePos.z); 												// the initial position of the executor unit
+						exeUnitAttackPos = Vector3.MoveTowards(exePos, tarUnit.gameObject.transform.position, 0.5f); 			// Get the position the unit will be when the attack occurs
 
-					break;
+						
+						isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
+						attackPhaseList.Add(AttackPhase.RotateTowards); 														// Add the rotation phase
+						attackPhaseList.Add(AttackPhase.MoveTowards); 															// Add the moving toward phase
+						
+						if (action.destroyedUnits.Count > 0){ 																	// Determine if the attack was successful (for use when creating bullets)
+							attackSuccessful = true;
+							//Debug.LogWarning("Melee attack to be successful");
+							attackPhaseList.Add(AttackPhase.Flash);																// Add the flashing of the attacked unit
+							attackPhaseList.Add(AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
+						}
+						
+						attackPhaseList.Add(AttackPhase.MoveBack); 																// add the stage for moving back after the attack action
+						attackPhaseList.Add(AttackPhase.RotateBack);															// Rotate the unit back to it's original facing
+						
+					}
+
+					switch (attackPhaseList[0]){ 																				// Use a switch for actioning the phases
+							
+						case (AttackPhase.RotateTowards): 																		// Rotating the executor to face the target
+							Debug.LogWarning("Rotate Toward phase");
+							
+							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
+							
+							//if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
+							attackPhaseList.RemoveAt(0); 																		// Move to the next phase
+							//}
+							break;
+							
+						case (AttackPhase.MoveTowards): 																		// Moving the executor towards the aim position
+							action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, exeUnitAttackPos, stepMoveAmmount*Time.deltaTime);
+							
+							if (exePos == exeUnitAttackPos){
+								attackPhaseList.RemoveAt(0); 																	// Move to the next phase
+							}	
+							break;
+							
+						case (AttackPhase.Flash): 																				// Flash the target a colour to indicate that an attack is taking place
+							
+							if (action.target.gameObject.renderer.material.color != Color.yellow)								// Store the original color of the unit
+								preFlashColor = new Color (action.target.gameObject.renderer.material.color.r, action.target.gameObject.renderer.material.color.g, action.target.gameObject.renderer.material.color.b);
+
+							if (timeStore >= FLASH_WAIT){																		// If the timer is equal to the wait time, change the color and reset the timer
+								if (action.target.gameObject.renderer.material.color != Color.yellow)
+								{
+									action.target.gameObject.renderer.material.color = Color.yellow;
+								}
+
+								else 
+								{
+									action.target.gameObject.renderer.material.color = preFlashColor;
+									
+								}
+								timeStore = 0f;
+								numFlashes++;
+							}
+							if (numFlashes >= ALLOWED_NUM_FLASHES){																// If the allowed number of flashes has been reached, move to the next phase
+								attackPhaseList.RemoveAt(0);
+							}
+								timeStore += Time.deltaTime;
+							break;
+
+						case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
+							float alphaLevel = 255;
+							foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
+								Color color = rend.material.color;
+								color.a -= 0.02f;
+								alphaLevel = color.a;
+								rend.material.color = color;
+							}
+							
+							if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+								Destroy (action.target.gameObject);
+								attackPhaseList.RemoveAt(0); 																	// Move to the next phase
+							}
+							break;
+
+						case (AttackPhase.MoveBack):																			// Move the executor gameobject back to it's original position
+							action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, exeInitPos, stepMoveAmmount*Time.deltaTime);
+							
+							if (exePos == exeInitPos){
+								attackPhaseList.RemoveAt(0); 																		// Move to the next phase
+							}
+							break;
+							
+						case(AttackPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
+							Debug.LogWarning("RotateBack Phase");
+							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, rotationBefore, stepRotateAmmount*Time.deltaTime); 
+							// Rotate the Space marine back to the correct direction
+							
+							//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
+							updateCPAP(action.APCost);
+							attackPhaseList.RemoveAt(0);
+							showActionsList.RemoveAt(0);
+							attackSuccessful = false; 																		//Reset bools for use in next attack action
+							isFirstLoopofAction = true;
+							//}
+							
+							break;
+						}
+						break;
 
 				///============================================
 				/// SHOOT ACTION - Ranged Attack (SM shoots GS)
@@ -255,10 +379,12 @@ public class InputOutput : MonoBehaviour {
 					tarUnit = action.target;
 					
 					if (isFirstLoopofAction){
-						beforeShooting = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
+						rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 
 						float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
 						Debug.LogWarning("Offset rotation IS: " + offset);
+
+					renderers = action.target.gameObject.GetComponentsInChildren<Renderer>();									// Get all the renderer gameobjects that need to be faded
 
 						aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
 
@@ -269,7 +395,7 @@ public class InputOutput : MonoBehaviour {
 
 						if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
 							attackSuccessful = true;
-							//Debug.LogWarning("Shoot attack to be successful");
+							// Debug.LogWarning("Shoot attack to be successful");
 							shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
 						}
 
@@ -344,7 +470,6 @@ public class InputOutput : MonoBehaviour {
 
 						case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
 							float alphaLevel = 255;
-							Renderer[] renderers = action.target.gameObject.GetComponentsInChildren<Renderer>(); 				//Get all the renderer gameobjects that need to be faded
 							foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
 								Color color = rend.material.color;
 								color.a -= 0.02f;
@@ -361,10 +486,10 @@ public class InputOutput : MonoBehaviour {
 
 						case(ShootPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
 							Debug.LogWarning("RotateBack Phase");
-							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, beforeShooting, stepRotateAmmount*Time.deltaTime); 
+							//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, rotationBefore, stepRotateAmmount*Time.deltaTime); 
 																																// Rotate the Space marine back to the correct direction
 							
-							//if(exeRot.eulerAngles.y == beforeShooting.eulerAngles.y){ // If the rotation back has completed, end the action
+							//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
 								updateCPAP(action.APCost);
 								shootPhaseList.RemoveAt(0);
 								showActionsList.RemoveAt(0);
@@ -375,7 +500,6 @@ public class InputOutput : MonoBehaviour {
 							break;
 						}
 						break;
-
 
 				default:
 					Debug.LogWarning("Game to show an action now");
@@ -665,8 +789,13 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Removes the gameobject of the unit at the specified position
+	/// </summary>
+	/// <param name="position">Position of the object to remove.</param>
 	public void removeUnit(Vector2 position){
-		Debug.LogError("removeUnit method INCOMPLETE. Refer Alisdair.");
+		if (mapClass.getSquare(position).isOccupied)
+			Destroy(mapClass.getSquare(position).occupant.gameObject);
 	}
 
 	public void resetMap(){
@@ -898,7 +1027,7 @@ public class InputOutput : MonoBehaviour {
 
 			if (facing == Game.Facing.East || facing == Game.Facing.West){
 				newPosition = makePosition(position, elevation);
-			newPosition.x += offset;
+				newPosition.z -= offset;
 				return newPosition;
 			}
 
@@ -1204,5 +1333,4 @@ public class InputOutput : MonoBehaviour {
 
 		createBullet(startPos, endPos, explodes, waitSeconds, false); //Call the other method with preset variables
 	}
-	
 }
