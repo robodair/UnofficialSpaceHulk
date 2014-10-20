@@ -21,16 +21,72 @@ public class RevealManager : MonoBehaviour {
 	//Ian Mallett 6.10.14
 	//Added the actionManager parameter to the involuntaryReveal method.
 
+	//Ian Mallett 20.10.14
+	//Added functionality to the involuntaryReveal method
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;
 	public Vector2 centralPosition;
 	public List<Vector2> selectableSquares;
 	public Game gameController;
+	public InputHandler inputHandler;
 
 
 	public void involuntaryReveal(Vector2 blipPosition, ActionManager actionManager, Dictionary<Unit, List<Vector2>> prevLoS)
 	{
+		//Set the initial values
+		Unit blip = null;
+		if (gameController.gameMap.getSquare (blipPosition).isOccupied)
+		{
+			blip = gameController.gameMap.getSquare(blipPosition).occupant;
+		}
+
+		numberOfGS = blip.noOfGS;
+		numberOfGSToPlace = numberOfGS;
+		currentlyRevealing = true;
+		centralPosition = blipPosition;
+
+		selectableSquares = new List<Vector2> ();
+		//For each possible position
+		for (int i = -1; i <= 1; i++)
+		{
+			for (int j = -1; j <= 1; j++)
+			{
+				Vector2 testPosition = blipPosition + new Vector2(i, j);
+				bool isSelectable = true;
+
+				//If it's in the centre, it's automatically selectable.
+				if (i != 0 || j != 0)
+				{
+					//Test each position to be in line of sight (and not occupied)
+					foreach (Unit unit in prevLoS.Keys)
+					{
+						foreach (Vector2 position in prevLoS[unit])
+						{
+							if (position == testPosition && gameController.gameMap.hasSquare(testPosition) &&
+							    !gameController.gameMap.isOccupied (testPosition));
+							{
+								isSelectable = false;
+								break;
+							}
+						}
+
+						if (!isSelectable)
+						{
+							break;
+						}
+
+					}
+				}
+			}
+		}
+
+		//Show the reveal
+		gameController.ioModule.removeUnit (blipPosition);
+		gameController.gameMap.removeUnit (blipPosition);
+		inputHandler.revealing (blipPosition, selectableSquares);
+
 
 	}
 
