@@ -819,7 +819,7 @@ public class InputOutput : MonoBehaviour {
 					
 				case Game.EntityType.Blip:
 					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing)), Game.EntityType.Blip); //Create the blip object
-					depArea.model.GetComponentInChildren<Text>().text = depArea.units.Count;
+					refreshBlipCounts();
 					break;
 				default:
 					Debug.LogError("There was not a valid unit to place into a deployment area.");
@@ -1419,6 +1419,7 @@ public class InputOutput : MonoBehaviour {
 		showActionsList.RemoveAt(0);
 		attackSuccessful = false; 																		//Reset bools for use in next attack action
 		isFirstLoopofAction = true;
+		refreshBlipCounts();
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
 			gameClass.changeGameState(Game.GameState.Inactive);
@@ -1484,6 +1485,13 @@ public class InputOutput : MonoBehaviour {
 
 	public void continueActionSequence(){
 		letActionsPlay = true;
+	}
+
+	void refreshBlipCounts()
+	{
+		foreach(DeploymentArea depArea in mapClass.otherAreas){
+			depArea.model.GetComponentInChildren<Text>().text = depArea.units.Count;
+		}
 	}
 
 }
