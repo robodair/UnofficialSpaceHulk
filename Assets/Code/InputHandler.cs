@@ -212,8 +212,11 @@ public class InputHandler : MonoBehaviour {
 
 	public void overwatchClicked()
 	{
-		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Overwatch);
-		actionManager.performAction ();
+		if(!gameController.selectedUnit.isOnOverwatch)
+		{
+			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Overwatch);
+			actionManager.performAction ();
+		}
 	}
 
 	public void revealing (Vector2 position, List<Vector2> selectableSquares)
