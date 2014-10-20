@@ -56,9 +56,6 @@ public class ActionManager {
 
 	public void performAction() //Contents modified by Nick Lee 20-10-14
 	{
-		if (unit.isOnOverwatch) {
-			unit.isOnOverwatch = false; //sets overwatch to false
-		}
 		if (actionUsed == Game.ActionType.Move) {
 			moveMethod(); //if action is a movement
 		}
@@ -219,21 +216,18 @@ public class ActionManager {
 			//if units are facing each other
 			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
-				game.gameMap.removeUnit (defender.position);
-				destroyedUnits.Add (defender);
+				kill (defender);
 				//if attacker wins kill defender
 			}
 			if(defDie[defDie.Count - 1] > attDie[attDie.Count - 1])
 			{
-				game.gameMap.removeUnit (attacker.position);
-				destroyedUnits.Add (attacker);
+				kill (attacker);
 				//if defender wins kill attacker
 			}
 		} else { //if not facing each other
 			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
-				game.gameMap.removeUnit (defender.position);
-				destroyedUnits.Add (defender);
+				kill (defender);
 				//if attacker wins kill defender
 			}
 			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
@@ -307,10 +301,9 @@ public class ActionManager {
 				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
 					//checks for sustained fire
 					if (Dice[0] >= 5 || Dice[1] >= 5) {
-							//if kill criteria are met
-							game.gameMap.removeUnit (shootie.position);
-							destroyedUnits.Add (shootie);
-							sustainedFireChanged.Add (shooter, null);
+						//if kill criteria are met
+						kill (shootie);
+						voidSustainedFire(shooter);
 						if(overwatchShot){
 							movementStopped = true;
 						}
@@ -321,9 +314,8 @@ public class ActionManager {
 				//if not sustained fire
 					sustainedFireChanged.Add (shooter, shootie);
 					if (Dice[0] >= 6 || Dice[1] >= 6) {
-						game.gameMap.removeUnit (shootie.position);
-						destroyedUnits.Add (shootie);
-						sustainedFireChanged[shooter] = null;
+						kill (shootie);
+						voidSustainedFire(shooter);
 						if(overwatchShot){
 							movementStopped = true;
 						}
@@ -337,12 +329,9 @@ public class ActionManager {
 				}
 				if (overwatchShot && Dice[0] == Dice[1]) {
 					shooter.isJammed = true;
-					shooter.isOnOverwatch = false;
-					shooter.hasSustainedFire = false;
-					shooter.sustainedFireTarget = null;
-					if(shooter.hasSustainedFire)
-						sustainedFireChanged.Add (shooter, null);
 					unitJams = true;
+					voidOverwatch(shooter);
+					voidSustainedFire(shooter);
 					//changes sustained fire and jam variables if required during overwatch
 				}
 		}
@@ -402,77 +391,43 @@ public class ActionManager {
 	{
 		actionType = actionMade; //gets action made
 		executor = unit; //the unit executing the action
-		marines = game.gameMap.getUnits(Game.EntityType.SM);
-		for(int u = 0; u < marines.Count; u++)
-		{
-			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
-		}
+		finishLoS ();
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
 		if (overwatchShot)
 			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
-			if(executor.isOnOverwatch)
-				lostOverwatch.Add (executor);
+			voidOverwatch(executor);
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
 			APCost = UnitData.getMoveSet(executor.unitType)[Movement]; //APCost depends on type of movement
 			unitJams = false; //cant jam
 			destroyedUnits.Clear(); //nothing can be killed by movement
-			if(executor.sustainedFireTarget != null)
-				sustainedFireLost.Add (executor.sustainedFireTarget); //if unit has sustained fire loses it
-			else
-				sustainedFireLost.Clear(); //else set sustainedFirelost to null
+			voidSustainedFire(executor);
 			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
-			if(executor.isOnOverwatch)
-				lostOverwatch.Add (executor);
-			if(target.isOnOverwatch)
-				lostOverwatch.Add (target);
+			voidOverwatch(executor);
+			voidOverwatch(target);
 			executie = target; //target of the attack
 			movePosition = executor.position; //no position change
 			moveFacing = executor.facing; //no facing change
-			if(executor.hasSustainedFire == true)
-			{
-				executor.hasSustainedFire = false;
-				executor.sustainedFireTarget = null;
-				sustainedFireLost.Add (executor);
-				//if unit had sustained fire it loses it
-			}
-			if(target.hasSustainedFire == true)
-			{
-				executie.hasSustainedFire = false;
-				executie.sustainedFireTarget = null;
-				sustainedFireLost.Add (target);
-			}
+			voidSustainedFire(executor);
+			voidSustainedFire(target);
 			sustainedFireChanged.Clear (); //no gain in sustained fire possible
 		}
 		else if (actionType == Game.ActionType.Shoot) {
-			if(executor.isOnOverwatch)
-				lostOverwatch.Add (executor);
+			voidOverwatch(executor);
 			executie = target; //target set
 			movePosition = executor.position; //position unchanged
 			moveFacing = executor.facing; //facing unchanged
-			sustainedFireLost.Clear(); //sustained fire cannot be lost
-		}
-		else if (actionType == Game.ActionType.Reveal) {
-
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-			if (executor.hasSustainedFire) {
-				executor.sustainedFireTarget = null;
-				executor.hasSustainedFire = false;
-				sustainedFireLost.Add (executor);
-				sustainedFireChanged.Add (executor, null);
-			}
-			if (executor.isOnOverwatch) {
-				executor.isOnOverwatch = false;
-				lostOverwatch.Add (executor);
-			}
+			voidSustainedFire(executor);
+			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
 			executie = null; //no target unit
@@ -480,12 +435,6 @@ public class ActionManager {
 			moveFacing = executor.facing; //no change in facing
 			unitJams = false; //no jamming
 			destroyedUnits.Clear(); //nothing destroyed
-			if (executor.hasSustainedFire) {
-				executor.sustainedFireTarget = null;
-				executor.hasSustainedFire = false;
-				sustainedFireLost.Add (executor);
-				sustainedFireChanged.Add (executor, null);
-			}
 			dieRolled.Clear();
 		} else
 			Debug.Log ("Error with action type , ActionManager, makeActions");
@@ -508,24 +457,12 @@ public class ActionManager {
 		actions.Add (returnAction);
 		//creates a return Action and adds it to the list of actions
 		
-		movePosition = new Vector2(); 
-		destroyedUnits = new List<Unit> ();
-		sustainedFireLost = new List<Unit> ();
-		completeLoS = new Dictionary<Unit, List<Vector2>> ();
-		sustainedFireChanged = new Dictionary<Unit, Unit> ();
-		lostOverwatch = new List<Unit> ();
-		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
-		returnAction = new Action ();
-		//resets values
+		resetVariables ();
 	}
 
 	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
-		marines = game.gameMap.getUnits(Game.EntityType.SM);
-		for(int u = 0; u < marines.Count; u++)
-		{
-			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
-		}
+		finishLoS ();
 
 		returnAction.actionType = Game.ActionType.InvoluntaryReveal; //involuntary reveal
 		returnAction.executor = blipRevealed; //blip thats being revealed
@@ -548,17 +485,7 @@ public class ActionManager {
 		returnAction.diceRoll = dieRolled; //die rolls for reveal, thats stupid
 		actions.Add (returnAction);
 
-		movePosition = new Vector2(); 
-		destroyedUnits = new List<Unit> ();
-		sustainedFireLost = new List<Unit> ();
-		completeLoS = new Dictionary<Unit, List<Vector2>> ();
-		sustainedFireChanged = new Dictionary<Unit, Unit> ();
-		lostOverwatch = new List<Unit> ();
-		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
-		returnAction = new Action ();
-		//resets variables
-
-		postInvolReveal (game.gameMap.getOccupant (blipRevealed.position));
+		resetVariables ();
 	}
 
 	private void updateLoS () //created by Nick Lee 15-10-14
@@ -579,7 +506,7 @@ public class ActionManager {
 		//resets prevLoS and sets it again
 	}
 
-	private void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
+	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
 			if(marines[i].currentLoS.Contains(centralGene.position) && marines[i].isOnOverwatch)
@@ -590,5 +517,53 @@ public class ActionManager {
 				overwatchShot = false; //set overwatch shot to false
 			}
 		}
+	}
+
+	private void voidSustainedFire(Unit voided) //created by Nick Lee 21-10-14
+	{
+		if (voided.hasSustainedFire) {
+			voided.sustainedFireTarget = null;
+			voided.hasSustainedFire = false;
+			sustainedFireLost.Add (voided);
+			sustainedFireChanged.Add (voided, null);
+		}
+		else
+			sustainedFireLost.Clear();
+	}
+
+	private void voidOverwatch(Unit voided) //created by Nick Lee 21-10-14
+	{
+		if (voided.isOnOverwatch) {
+			voided.isOnOverwatch = false;
+			lostOverwatch.Add (voided);
+		}
+	}
+
+	private void resetVariables() //created by Nick Lee 21-10-14
+	{
+		movePosition = new Vector2(); 
+		destroyedUnits = new List<Unit> ();
+		sustainedFireLost = new List<Unit> ();
+		completeLoS = new Dictionary<Unit, List<Vector2>> ();
+		sustainedFireChanged = new Dictionary<Unit, Unit> ();
+		lostOverwatch = new List<Unit> ();
+		dieRolled = new Dictionary<Game.PlayerType, int[]> ();
+		returnAction = new Action ();
+		//resets variables
+	}
+
+	private void finishLoS() //created by Nick Lee 21-10-14
+	{
+		marines = game.gameMap.getUnits(Game.EntityType.SM);
+		for(int u = 0; u < marines.Count; u++)
+		{
+			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+		}
+	}
+
+	private void kill(Unit killed) //created by Nick Lee 21-10-14
+	{
+		game.gameMap.removeUnit (killed.position);
+		destroyedUnits.Add (killed);
 	}
 }
