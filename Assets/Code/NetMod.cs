@@ -21,6 +21,31 @@ public class NetMod : MonoBehaviour {
 	//Use port 33 for connection - Stephen
 	public void connect()
 	{
+		string destIP = "172.26.102.17";
+		
+		
+		//Connection!
+		IPAddress IP = IPAddress.Parse("127.0.0.1");
+		
+		if (IPAddress.TryParse(destIP, out IP))
+		{
+			Socket s = new Socket(AddressFamily.InterNetwork,
+			                      SocketType.Stream,
+			                      ProtocolType.Tcp);
+			
+			try
+			{
+				s.Connect(IP, 139);
+				Console.WriteLine("it worked???");
+				Console.ReadLine();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex);
+				Console.ReadLine();
+			}
+		}
+
 
 	}
 	public static bool PingHost(string nameOrAddress)
