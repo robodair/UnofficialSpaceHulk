@@ -23,6 +23,7 @@ public class RevealManager : MonoBehaviour {
 
 	//Ian Mallett 20.10.14
 	//Added functionality to the involuntaryReveal method
+	//Improved findSelectableSquares method
 
 	public bool currentlyRevealing;
 	public int numberOfGS;
@@ -47,40 +48,7 @@ public class RevealManager : MonoBehaviour {
 		currentlyRevealing = true;
 		centralPosition = blipPosition;
 
-		selectableSquares = new List<Vector2> ();
-		//For each possible position
-		for (int i = -1; i <= 1; i++)
-		{
-			for (int j = -1; j <= 1; j++)
-			{
-				Vector2 testPosition = blipPosition + new Vector2(i, j);
-				bool isSelectable = true;
-
-				//If it's in the centre, it's automatically selectable.
-				if (i != 0 || j != 0)
-				{
-					//Test each position to be in line of sight (and not occupied)
-					foreach (Unit unit in prevLoS.Keys)
-					{
-						foreach (Vector2 position in prevLoS[unit])
-						{
-							if (position == testPosition && gameController.gameMap.hasSquare(testPosition) &&
-							    !gameController.gameMap.isOccupied (testPosition));
-							{
-								isSelectable = false;
-								break;
-							}
-						}
-
-						if (!isSelectable)
-						{
-							break;
-						}
-
-					}
-				}
-			}
-		}
+		selectableSquares = findSelectableSquares (prevLoS);
 
 		//Show the reveal
 		gameController.ioModule.removeUnit (blipPosition);
@@ -142,6 +110,36 @@ public class RevealManager : MonoBehaviour {
 		return findSelectableSquares (currentLoS);
 	}
 
+	//Find all the squares that are selectable, given the blip is at the central position
+	//using the given LoS.
+	private List<Vector2> findSelectableSquares(Dictionary<Unit, List<Vector2>> completeLoS)
+	{
+		List<Vector2> currentLoS = new List<Vector2> ();
+
+		//For each square, add it to the list, provided it is new
+		foreach (Unit unit in completeLoS.Keys)
+		{
+			foreach (Vector2 position in completeLoS[unit])
+			{
+				//Check whether position is already in currentLoS
+				bool posExists = false;
+				foreach (Vector2 checkPos in currentLoS)
+				{
+					if (position == checkPos)
+					{
+						posExists = true;
+					}
+				}
+				if (!posExists)
+				{
+					currentLoS.Add (position);
+				}
+			}
+		}
+
+		return findSelectableSquares (currentLoS);
+	}
+
 	//Find all the squares that are selectable, given the blip is at the central position,
 	//and using the given line of sight.
 	private List<Vector2> findSelectableSquares(List<Vector2> givenLoS)
@@ -157,7 +155,17 @@ public class RevealManager : MonoBehaviour {
 			Vector2 checkingPos = startingPos + (i % 3) * Vector2.right + (i / 3) * Vector2.up;
 			if (gameController.gameMap.areLinked(centralPosition, checkingPos))
 			{
-				if (!givenLoS.Contains (checkingPos))
+				//Check whether givenLoS contains checkingPos
+				bool posExists = false;
+				foreach (Vector2 position in givenLoS)
+				{
+					if (position == checkingPos)
+					{
+						posExists = true;
+						break;
+					}
+				}
+				if (!posExists)
 				{
 					returnList.Add(checkingPos);
 				}
@@ -171,7 +179,16 @@ public class RevealManager : MonoBehaviour {
 	{
 		if (currentlyRevealing)
 		{
-			if (selectableSquares.Contains(position))
+			bool squareIsValid = false;
+			//Check whether the square is in selectableSquares
+			foreach (Vector2 square in selectableSquares)
+			{
+				if (square == position)
+				{
+					squareIsValid = true;
+				}
+			}
+			if (squareIsValid)
 			{
 				gameController.deploy (Game.EntityType.GS, position, facing);
 				numberOfGSToPlace--;
@@ -182,7 +199,7 @@ public class RevealManager : MonoBehaviour {
 		{
 			currentlyRevealing = false;
 
-			//Hide the reveal cues                                                       SEND ISSUE TO ALICE
+
 		}
 	}
 }
