@@ -1,7 +1,7 @@
 ﻿/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 16-10-14.2
+ * Version 16-10-14.4
  */
 
 using UnityEngine;
@@ -80,6 +80,9 @@ public class InputOutput : MonoBehaviour {
 	Color preFlashColor;																	// Variable used for storing the color of the unit before flashing it for an attack
 	Renderer[] renderers;
 
+	// Variables for dice
+	GameObject sMDie1, sMDie2, gSDie1, gSDie2, gSDie3;
+
 	// assign the step ammounts in the start method Alisdair 12-10-14
 	public void Start(){
 		stepMoveAmmount = stepAmmount;
@@ -118,6 +121,11 @@ public class InputOutput : MonoBehaviour {
 				/// =======================================================================================
 				removeOverwatch(action.lostOverwatch);
 				removeSusFire(action.sustainedFireLost);
+
+				/// =======================================================================================
+				/// Display the dice roll
+				/// =======================================================================================
+				displayDice(action.diceRoll);
 			}
 			// Make the action
 			switch (action.actionType){
@@ -126,6 +134,7 @@ public class InputOutput : MonoBehaviour {
 				/// MOVE ACTION
 				/// ============================
 				case (Game.ActionType.Move):
+					isFirstLoopofAction = false;
 					//Debug.Log("Update entered Move action sector of switch");
 				
 					// Create aim pos and rot
@@ -166,6 +175,7 @@ public class InputOutput : MonoBehaviour {
 				/// INCOMPLETE
 
 				case (Game.ActionType.Overwatch):
+					isFirstLoopofAction = false;
 					Debug.Log("IT'S OVERWATCH TIME!");
 					// determine the position the sprite
 					Vector3 spritePosition = exePos;
@@ -174,12 +184,7 @@ public class InputOutput : MonoBehaviour {
 					//instantiate the sprite at the position & give reference to the unit
 					action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 
-					//update the CP & AP displays
-					Debug.Log("UpdateCPAP case OVERWATCH with AP: " + action.APCost);
-					updateCPAP(action.APCost);
-
-					//remove the action
-					showActionsList.RemoveAt(0);
+					finishAction(action.APCost);
 
 					break;
 
@@ -188,6 +193,7 @@ public class InputOutput : MonoBehaviour {
 				///=============================
 
 				case (Game.ActionType.ToggleDoor):
+					isFirstLoopofAction = false;
 					// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
 					//Debug.Log("Exe pos:" + exePos);
 					Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
@@ -552,6 +558,12 @@ public class InputOutput : MonoBehaviour {
 		//Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
 
+		//assign the dice text elements
+		sMDie1 = GameObject.Find("SMDie1");
+		sMDie2 = GameObject.Find("SMDie2");
+		gSDie1 = GameObject.Find("GSDie1");
+		gSDie2 = GameObject.Find("GSDie2");
+		gSDie3 = GameObject.Find("GSDie3");
 
 		//Assign the method to call from the end turn button added 2-10-14 Alisdair
 		btnEndTurnGO = GameObject.Find ("BtnTurn");
@@ -1370,5 +1382,37 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Shows the die roll results.
+	/// </summary>
+	/// <param name="rolls">Dictionary of the playertype and one of the rolls rolled</param>
+	void displayDice(Dictionary<Game.PlayerType, int[]> rolls){
+		foreach(KeyValuePair<Game.PlayerType, int[]> entry in rolls){
+			if (entry.Key == Game.PlayerType.SM){
+				for (int i = 0; i < entry.Value.Length; i++){
+					if (i == 0){
+						sMDie1.GetComponent<Text>().text = entry.Value[i].ToString();
+					}
+					else{
+						sMDie2.GetComponent<Text>().text = entry.Value[i].ToString();
+					}
+				}
+
+			}
+			else {
+				for (int i = 0; i < entry.Value.Length; i++){
+					if (i == 0){
+						gSDie1.GetComponent<Text>().text = entry.Value[i].ToString();
+					}
+					else if (i == 1){
+						gSDie2.GetComponent<Text>().text = entry.Value[i].ToString();
+					}
+					else{
+						gSDie3.GetComponent<Text>().text = entry.Value[i].ToString();
+					}
+				}	
+			}
+		}
+	}
 
 }
