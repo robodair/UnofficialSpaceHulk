@@ -73,8 +73,8 @@ public class InputOutput : MonoBehaviour {
 	List <AttackPhase> attackPhaseList = new List<AttackPhase>();							// The list to store the phases of the attack
 	Vector3 exeInitPos = new Vector3();														// The store of the original unit position
 	Vector3 exeUnitAttackPos = new Vector3();												// The position to move the unit to for the attack animation 
-	public static float FLASH_WAIT = 0.2f;															// The length in seconds of a flash on or off stage
-	public static int ALLOWED_NUM_FLASHES = 5;													// The number of flashes in a successful attack
+	public static float FLASH_WAIT = 0.2f;													// The length in seconds of a flash on or off stage
+	public static int ALLOWED_NUM_FLASHES = 5;												// The number of flashes in a successful attack
 	int numFlashes;																			// The number of flashes already gone
 	float timeStore = 0;																	// Variable used for storing the time the flash has been active
 	Color preFlashColor;																	// Variable used for storing the color of the unit before flashing it for an attack
@@ -100,7 +100,7 @@ public class InputOutput : MonoBehaviour {
 			gameClass.changeGameState(Game.GameState.ShowAction);//Change the state to showaction state
 			Action action = showActionsList[0];
 			//Debug.Log ("The action is of type: " + action.actionType);
-
+			
 			// Executor pos and rot
 			Unit exeUnit = action.executor;
 			Vector3 exePos = action.executor.gameObject.transform.position;
@@ -108,11 +108,17 @@ public class InputOutput : MonoBehaviour {
 			exeInitPos = new Vector3(exePos.x, exePos.y, exePos.z);						// Store the initial position of the executor
 			//Debug.Log ("Unit Position: " + exePos);
 			//Debug.Log("Unit Rotation: " + exeRot);
-		
+			
 			// Target unit decleration
 			Unit tarUnit;
 
-
+			if (isFirstLoopofAction){
+				/// =======================================================================================
+				/// Remove Sprites from units that have lost properties such as overwatch or Sustained Fire
+				/// =======================================================================================
+				removeOverwatch(action.lostOverwatch);
+				removeSusFire(action.sustainedFireLost);
+			}
 			// Make the action
 			switch (action.actionType){
 
@@ -141,11 +147,7 @@ public class InputOutput : MonoBehaviour {
 					if (exePos == aimPos){
 						//Debug.Log("PositionEqual");
 						if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
-							//Debug.Log("Rotation Equal");
-							//Debug.Log("UpdateCPAP case MOVE with AP: " + action.APCost);
-							updateCPAP(action.APCost);
-							//Debug.Log("Removing Action Object move to position @: " + action.movePosition);
-							showActionsList.RemoveAt(0);
+							finishAction(action.APCost);
 						}
 						else{
 							//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
@@ -157,7 +159,7 @@ public class InputOutput : MonoBehaviour {
 
 					break;
 
-				///=============================
+				///==============================
 				/// OVERWATCH ACTION
 				/// 
 				/// ++++++++++++++++++++
@@ -167,14 +169,10 @@ public class InputOutput : MonoBehaviour {
 					Debug.Log("IT'S OVERWATCH TIME!");
 					// determine the position the sprite
 					Vector3 spritePosition = exePos;
-					spritePosition.y += 1.3f;
+					spritePosition.y += 1.5f;
 
 					//instantiate the sprite at the position & give reference to the unit
-					exeUnit.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
-
-					//Remove overwatch sprites for those units that have lost overwatch or sustained fire
-					removeOverwatch(action.lostOverwatch);
-					removeSusFire(action.sustainedFireLost);
+					action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 
 					//update the CP & AP displays
 					Debug.Log("UpdateCPAP case OVERWATCH with AP: " + action.APCost);
@@ -239,9 +237,7 @@ public class InputOutput : MonoBehaviour {
 						}
 
 						//Finish the action and update the AP
-						//Debug.Log("UpdateCPAP case TOGGLEDOOR with AP: " + action.APCost);
-						updateCPAP(action.APCost);
-						showActionsList.RemoveAt(0);
+						finishAction(action.APCost);
 					}
 
 					break;
@@ -249,7 +245,7 @@ public class InputOutput : MonoBehaviour {
 				///==================================================================
 				/// ATTACK ACTION - FOR MELEE
 				///==================================================================
-				/// Attack will only be functional for one-way attacks (GS attack SM)
+				/// Attack will only be functional for one-way attacks (e.g GS attack SM)
 				///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 				case (Game.ActionType.Attack):
@@ -342,6 +338,9 @@ public class InputOutput : MonoBehaviour {
 							}
 							
 							if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+								if(action.executor.sustainedFireTargetSprite != null){
+									Destroy (action.executor.sustainedFireTargetSprite);
+								}
 								Destroy (action.target.gameObject);
 								attackPhaseList.RemoveAt(0); 																	// Move to the next phase
 							}
@@ -361,11 +360,7 @@ public class InputOutput : MonoBehaviour {
 							// Rotate the Space marine back to the correct direction
 							
 							//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
-							updateCPAP(action.APCost);
-							attackPhaseList.RemoveAt(0);
-							showActionsList.RemoveAt(0);
-							attackSuccessful = false; 																		//Reset bools for use in next attack action
-							isFirstLoopofAction = true;
+							finishAction(action.APCost);
 							//}
 							
 							break;
@@ -478,6 +473,9 @@ public class InputOutput : MonoBehaviour {
 							}
 
 							if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+								if(action.executor.sustainedFireTargetSprite != null){
+									Destroy (action.executor.sustainedFireTargetSprite);
+								}		
 								Destroy (action.target.gameObject);
 						        shootPhaseList.RemoveAt(0); 																	// Move to the next phase
 							}
@@ -490,11 +488,7 @@ public class InputOutput : MonoBehaviour {
 																																// Rotate the Space marine back to the correct direction
 							
 							//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
-								updateCPAP(action.APCost);
-								shootPhaseList.RemoveAt(0);
-								showActionsList.RemoveAt(0);
-								attackSuccessful = false; 																		//Reset bools for use in next shoot action
-								isFirstLoopofAction = true;
+							finishAction(action.APCost);
 							//}
 					
 							break;
@@ -504,18 +498,6 @@ public class InputOutput : MonoBehaviour {
 				default:
 					Debug.LogWarning("Game to show an action now");
 					break;
-			}
-
-			///
-			/// AFTER EACH ACTION OBJECT?
-			/// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again) Alisdair 13-10-14
-			/// 
-			if (showActionsList.Count == 0){
-				gameClass.changeGameState(Game.GameState.Inactive);
-				if (gameClass.unitSelected){
-					gameClass.changeGameState(Game.GameState.InactiveSelected);
-					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
-				}
 			}
 		}
 	}
@@ -927,7 +909,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("Overwatch Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		inputHandlerController.overwatchClicked();
 	}
 
 	public void btnRevealClicked(){ //Added By Alisdair 14/9/14
@@ -1128,19 +1110,28 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
-	//Method to remove the overwatch sprites from all the units Alisdair 5-10-14
+	/// <summary>
+	/// Removes overwatch sprite from the units in the list. Alisdair 5-10-14
+	/// </summary>
+	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
+		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
 			if (unit.sustainedFireSprite)
 				Destroy(unit.overwatchSprite);
 		}
 	}
 
-	//Method to remove sustained fire sprites
+	/// <summary>
+	/// Removes the sustained fire sprites from the units in the list
+	/// </summary>
+	/// <param name="units">Units.</param>
 	void removeSusFire(List <Unit> units){
+		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
 		foreach (Unit unit in units){
 			if (unit.sustainedFireSprite)
 				Destroy(unit.sustainedFireSprite);
+				Destroy (unit.sustainedFireTargetSprite);
 		}
 	}
 
@@ -1333,4 +1324,51 @@ public class InputOutput : MonoBehaviour {
 
 		createBullet(startPos, endPos, explodes, waitSeconds, false); //Call the other method with preset variables
 	}
+
+	/// ==================================
+	/// Ending an action
+	/// ==================================
+
+	void finishAction(int apCost){
+		updateCPAP(apCost);
+		if (showActionsList[0].sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
+			showSusFire(showActionsList[0].sustainedFireChanged);
+		if (attackPhaseList.Count > 0)
+			attackPhaseList.RemoveAt(0);
+		if (shootPhaseList.Count > 0)
+			shootPhaseList.RemoveAt(0);
+		showActionsList.RemoveAt(0);
+		attackSuccessful = false; 																		//Reset bools for use in next attack action
+		isFirstLoopofAction = true;
+
+		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
+			gameClass.changeGameState(Game.GameState.Inactive);
+			if (gameClass.unitSelected){
+				gameClass.changeGameState(Game.GameState.InactiveSelected);
+				gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Shows the sustained fire sprites for all units
+	/// </summary>
+	/// <param name="sustainedFireChanged">Sustained fire changed unit discionary</param>
+	void showSusFire(Dictionary<Unit, Unit> sustainedFireChanged){
+		foreach(KeyValuePair<Unit, Unit> entry in sustainedFireChanged)
+		{
+			Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
+			spritePosition.y += 2f;
+			entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+
+			if (entry.Value != null){
+				spritePosition = entry.Value.gameObject.transform.position;
+				spritePosition.y += 2f;
+				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+			}
+
+		}
+	}
+
+
 }
