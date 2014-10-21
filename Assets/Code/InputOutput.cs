@@ -1029,24 +1029,52 @@ public class InputOutput : MonoBehaviour {
 	//- each button needs to call a method on the selection/input class to tell it what button has been clicked
 	// - the selection canvas that is the parent of the button then needs to be destroyed.
 	public void btnFaceNorth(){
-		inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
+		if(gameClass.gameState == Game.GameState.Reveal)
+		{
+			inputHandlerController.revealOrientationClicked(Game.Facing.North);
+		}
+		else
+		{
+			inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
+		}
 		Destroy(currentFacingSelectionCanvas);
 	}
 
 	public void btnFaceEast(){
-		inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
+		if(gameClass.gameState == Game.GameState.Reveal)
+		{
+			inputHandlerController.revealOrientationClicked(Game.Facing.East);
+		}
+		else
+		{
+			inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
+		}
 		Destroy(currentFacingSelectionCanvas);
 
 	}
 
 	public void btnFaceSouth(){
-		inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
+		if(gameClass.gameState == Game.GameState.Reveal)
+		{
+			inputHandlerController.revealOrientationClicked(Game.Facing.South);
+		}
+		else
+		{
+			inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
+		}
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
 
 	public void btnFaceWest(){
-		inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
+		if(gameClass.gameState == Game.GameState.Reveal)
+		{
+			inputHandlerController.revealOrientationClicked(Game.Facing.West);
+		}
+		else
+		{
+			inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
+		}
 		Destroy(currentFacingSelectionCanvas);
 		
 	}
