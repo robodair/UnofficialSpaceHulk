@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.3
+ * Version 21-10-14.4
  */
 
 using UnityEngine;
@@ -613,9 +613,8 @@ public class InputOutput : MonoBehaviour {
 			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (-0.5f), zPos), Quaternion.identity); //Create the game object in the scene
 			square.model = floorPiece; //Pass reference to the gameobject back to the square
 
-			//Added Alisdair 11/9/2014 Theses are for passing the unit reference back to the square (if needed)
+			//Added Alisdair 11/9/2014 This are for passing the unit reference back to the square (if needed)
 			GameObject doorPiece;
-			GameObject unit;
 
 			//Go on to create units or doors - 11/9/14 Alisdair
 			//if the square has a unit or door create that unit or door on it
@@ -702,7 +701,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
-		Debug.LogWarning("Unit selected");
+		//Debug.LogWarning("Unit selected");
 		//deselect any previously selected units (if there are any)
 		if (selectedUnit != null) {
 			deselect ();
@@ -731,7 +730,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
-		Debug.LogWarning("Unit deselected");
+		//Debug.LogWarning("Unit deselected");
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
 		//Must change this to a tint later, rather than a full material colour
 		if (selectedUnit != null) {
@@ -756,7 +755,7 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void placeUnit(Unit unit){ //Added Gameobject Return 22/9/14 Alisdair
-		Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
+		//Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
 
 		//Check to see if the unit is being placed in a deployment area
 		if (unit.position.x < 0){ // if the unit is being placed in a deployment area
@@ -1435,12 +1434,11 @@ public class InputOutput : MonoBehaviour {
 				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
 			}
 
-			if (entry.Value != null){
-				if(entry.Key.sustainedFireTargetSprite == null){
+			if (entry.Value != null){																		// Destroy the old sprite and create a new one (the piece may have changed position)
+				Destroy (entry.Key.sustainedFireTargetSprite);
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
-				}
 			}
 
 		}
