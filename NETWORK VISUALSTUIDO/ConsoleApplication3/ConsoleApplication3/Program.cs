@@ -23,7 +23,7 @@ namespace ConsoleApplication3
 
          public void Server()
             {
-              this.tcpListener = new TcpListener(IPAddress.Any, 3000);
+              this.tcpListener = new TcpListener(IPAddress.Any, 139);
               this.listenThread = new Thread(new ThreadStart(ListenForClients));
               this.listenThread.Start();
             }
