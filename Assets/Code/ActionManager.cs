@@ -378,13 +378,14 @@ public class ActionManager {
 
 	private void removeAP (Unit userUnit, int APUsed) //Created by Nick Lee 23-9-14, modified 6-10-14
 	{
-		if (userUnit.AP <= 0 && userUnit.unitType == Game.EntityType.SM) {
-			game.remainingCP--;
-			//removes CP used
-		} else{
-			userUnit.AP = userUnit.AP - APUsed;
-			//removes required amount of AP from units current AP count
-		}
+		for(int y = 0; y < APUsed; y++)
+			if (userUnit.AP <= 0 && userUnit.unitType == Game.EntityType.SM) {
+				game.remainingCP--;
+				//removes CP used
+			} else{
+				userUnit.AP--;
+				//removes required amount of AP from units current AP count
+			}
 	}
 
 	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 13-10-14
@@ -499,8 +500,8 @@ public class ActionManager {
 
 	private void makePrevLoS () //created by Nick Lee 15-10-14
 	{
-		prevLoS.Clear ();
 		prevLoS = new Dictionary<Unit, List<Vector2>> ();
+
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		for (int j = 0; j < marines.Count; j++)
 			prevLoS.Add (marines[j], game.algorithm.findLoS(marines[j]));
