@@ -88,6 +88,10 @@ public class Game : MonoBehaviour {
 	//Removed the check for correct game state for selecting a unit, as this 
 	//is checked elsewhere already.
 
+	//Ian Mallett 22.10.14
+	//Made the Overwatch button correctly unavailable if the selected unit
+	//is already on overwatch.
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -511,8 +515,12 @@ public class Game : MonoBehaviour {
 						break;
 
 					case ActionType.Overwatch:
-						//Always available if AP allows
-						return true;
+						//The unit must not be on Overwatch
+						if (!unit.isOnOverwatch)
+						{
+							return true;
+						}
+						break;
 
 					default:
 						//Otherwise the action isn't allowed
