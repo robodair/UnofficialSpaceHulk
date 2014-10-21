@@ -118,7 +118,17 @@ public class Interactible : MonoBehaviour {
 				}
 				else if (gameController.gameState == Game.GameState.Reveal)
 				{
-
+					if(inputHandlerController.allowRevealSelection)
+					{
+						foreach (Vector2 position in inputHandlerController.selectableRevealPositions)
+						{	
+							if(position == new Vector2(gameObject.transform.position.x, gameObject.transform.position.z))
+							{
+								inputHandlerController.revealPosition = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
+								inputHandlerController.continueRevealing();
+							}
+						}
+					}
 				}
 				else
 				{
