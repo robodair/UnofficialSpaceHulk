@@ -25,6 +25,11 @@ public class RevealManager : MonoBehaviour {
 	//Added functionality to the involuntaryReveal method
 	//Improved findSelectableSquares method
 
+	//Ian Mallett 22.10.14
+	//Completed functionality of the place method
+	//Made the manager change the game state to Reveal while revealing
+	//Added involuntary and actionManager variables to handle overwatch shots against revealing Genestealers
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;
@@ -32,23 +37,40 @@ public class RevealManager : MonoBehaviour {
 	public List<Vector2> selectableSquares;
 	public Game gameController;
 	public InputHandler inputHandler;
-
+	private bool involuntary;
+	private ActionManager actionManager;
 
 	public void involuntaryReveal(Vector2 blipPosition, ActionManager actionManager, Dictionary<Unit, List<Vector2>> prevLoS)
 	{
 		//Set the initial values
 		Unit blip = null;
-		if (gameController.gameMap.getSquare (blipPosition).isOccupied)
+		if (gameController.gameMap.isOccupied (blipPosition))
 		{
-			blip = gameController.gameMap.getSquare(blipPosition).occupant;
+			blip = gameController.gameMap.getOccupant(blipPosition);
 		}
-
+		
 		numberOfGS = blip.noOfGS;
 		numberOfGSToPlace = numberOfGS;
 		currentlyRevealing = true;
 		centralPosition = blipPosition;
+		involuntary = true;
+		gameController.changeGameState (Game.GameState.Reveal);
+		this.actionManager = actionManager;
+
+		//Reselect the unit to make the buttons unavailable
+		if (gameController.unitSelected)
+		{
+			gameController.selectUnit (gameController.selectedUnit.gameObject);
+		}
+
 
 		selectableSquares = findSelectableSquares (prevLoS);
+
+		//Override number of genestealers if not enough square
+		if (selectableSquares.Count < numberOfGSToPlace)
+		{
+			numberOfGSToPlace = selectableSquares.Count;
+		}
 
 		//Show the reveal
 		gameController.ioModule.removeUnit (blipPosition);
@@ -74,9 +96,6 @@ public class RevealManager : MonoBehaviour {
 						numberOfGS = blip.noOfGS;
 						numberOfGSToPlace = numberOfGS;
 						selectableSquares = findSelectableSquares ();
-
-						//Show the available squares to the player and place the
-						//first genestealer in the central square.                               SEND ISSUE TO ALISDAIR
 					}
 				}
 			}
@@ -144,41 +163,53 @@ public class RevealManager : MonoBehaviour {
 	//and using the given line of sight.
 	private List<Vector2> findSelectableSquares(List<Vector2> givenLoS)
 	{
-		//Find the bottom left corner of the 3x3 grid
-		Vector2 startingPos = centralPosition - Vector2.one;
-		List<Vector2> returnList = new List<Vector2>();
-
-		//Check each square in the 3x3 grid to be linked to the
-		//central square, and not visible.
-		for (int i = 0; i < 9 ; i++)
+		//Override if there is only one genestealer to place, the only
+		//selectable square is the central one.
+		if (numberOfGSToPlace != 1)
 		{
-			Vector2 checkingPos = startingPos + (i % 3) * Vector2.right + (i / 3) * Vector2.up;
-			if (gameController.gameMap.areLinked(centralPosition, checkingPos))
+			//Find the bottom left corner of the 3x3 grid
+			Vector2 startingPos = centralPosition - Vector2.one;
+			List<Vector2> returnList = new List<Vector2>();
+
+			//Check each square in the 3x3 grid to be linked to the
+			//central square, and not visible.
+			for (int i = 0; i < 9 ; i++)
 			{
-				//Check whether givenLoS contains checkingPos
-				bool posExists = false;
-				foreach (Vector2 position in givenLoS)
+				Vector2 checkingPos = startingPos + (i % 3) * Vector2.right + (i / 3) * Vector2.up;
+				if (gameController.gameMap.areLinked(centralPosition, checkingPos))
 				{
-					if (position == checkingPos)
+					//Check whether givenLoS contains checkingPos
+					bool posExists = false;
+					foreach (Vector2 position in givenLoS)
 					{
-						posExists = true;
-						break;
+						if (position == checkingPos)
+						{
+							posExists = true;
+							break;
+						}
+					}
+					if (!posExists)
+					{
+						returnList.Add(checkingPos);
 					}
 				}
-				if (!posExists)
-				{
-					returnList.Add(checkingPos);
-				}
 			}
-		}
 
-		return returnList;
+			return returnList;
+		}
+		else
+		{
+			List<Vector2> returnList = new List<Vector2>();
+			returnList.Add (centralPosition);
+			return returnList;
+		}
 	}
 
 	public void place(Vector2 position, Game.Facing facing)
 	{
 		if (currentlyRevealing)
 		{
+			//Place the genestealer
 			bool squareIsValid = false;
 			//Check whether the square is in selectableSquares
 			foreach (Vector2 square in selectableSquares)
@@ -195,11 +226,27 @@ public class RevealManager : MonoBehaviour {
 			}
 		}
 
+		//If there are no genestealers left
 		if (numberOfGSToPlace == 0)
 		{
+			//Finish the reveal, and continue the game
 			currentlyRevealing = false;
-
-
+			gameController.changeGameState (Game.GameState.Inactive);
+			if (gameController.unitSelected)
+			{
+				gameController.selectUnit (gameController.selectedUnit.gameObject);
+			}
+			//Check for overwatch shots
+			if (involuntary)
+			{
+				if (gameController.gameMap.isOccupied (centralPosition))
+				{
+					actionManager.postInvolReveal(gameController.gameMap.getOccupant (centralPosition));
+				}
+			}
+			involuntary = false;
+			//Unpause animations
+			gameController.ioModule.continueActionSequence();
 		}
 	}
 }
