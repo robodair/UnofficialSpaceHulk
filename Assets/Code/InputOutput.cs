@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.4
+ * Version 21-10-14.5
  */
 
 using UnityEngine;
@@ -516,7 +516,7 @@ public class InputOutput : MonoBehaviour {
 					case (Game.ActionType.InvoluntaryReveal):
 						letActionsPlay = false;
 						finishAction(action);
-						GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.target.position, actionManagers[0], previousAction.completeLoS); 																												
+						GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.executor.position, actionManagers[0], previousAction.prevLoS); 																												
 						break;																											// Call the involuntary reveal method
 
 					default:
