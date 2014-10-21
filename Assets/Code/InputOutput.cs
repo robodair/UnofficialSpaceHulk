@@ -424,7 +424,7 @@ public class InputOutput : MonoBehaviour {
 								Vector3 bulEnd = new Vector3(tarUnit.gameObject.transform.position.x, unitElevation + 0.8f, tarUnit.gameObject.transform.position.z);
 
 								if (!attackSuccessful){ 																			// If the attack is not successful make the bullets miss
-									Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
+									//Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
 									int rand = Random.Range(1, 4);
 									switch (rand){
 										case 1: 																					// make the bullets miss above
