@@ -9,6 +9,14 @@ using System.Net.Sockets;
 
 namespace ConsoleApplication3
 {
+    class Serversssssss
+    {
+        
+        static void Main(string[] args)
+        {
+
+        }
+    }
     class Program
     {
         
@@ -16,8 +24,8 @@ namespace ConsoleApplication3
          private Thread listenThread;
         public void Main(string[] args)
         {
+
             Server();
-        
         }
         
 
