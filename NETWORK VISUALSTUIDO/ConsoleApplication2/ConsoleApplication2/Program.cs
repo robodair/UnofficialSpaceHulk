@@ -38,7 +38,7 @@ namespace NetworkTesting
 
             TcpClient client = new TcpClient();
 
-            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("172.26.102.17"), 139);
+            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000);
 
             client.Connect(serverEndPoint);
 
