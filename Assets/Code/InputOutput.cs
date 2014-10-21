@@ -1,7 +1,7 @@
-﻿/* 
+/* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.1
+ * Version 21-10-14.2
  */
 
 using UnityEngine;
@@ -78,7 +78,7 @@ public class InputOutput : MonoBehaviour {
 	int numFlashes;																			// The number of flashes already gone
 	float timeStore = 0;																	// Variable used for storing the time the flash has been active
 	Color preFlashColor;																	// Variable used for storing the color of the unit before flashing it for an attack
-	Renderer[] renderers;
+	List<Renderer> renderers = new List<Renderer>();
 
 	// Variables for dice
 	GameObject sMDie1, sMDie2, gSDie1, gSDie2, gSDie3;
@@ -121,16 +121,7 @@ public class InputOutput : MonoBehaviour {
 				// Target unit decleration
 				Unit tarUnit;
 
-				if (isFirstLoopofAction){
-					/// =======================================================================================
-					/// Remove Sprites from units that have lost properties such as overwatch or Sustained Fire
-					/// =======================================================================================
-					removeOverwatch(action.lostOverwatch);
-					removeSusFire(action.sustainedFireLost);
-
-					/// =======================================================================================
-					/// Display the dice roll
-					/// =======================================================================================
+				if (isFirstLoopofAction){													// Display the dice roll on the first loop of the action
 					displayDice(action.diceRoll);
 				}
 
@@ -163,7 +154,7 @@ public class InputOutput : MonoBehaviour {
 						if (exePos == aimPos){
 							//Debug.Log("PositionEqual");
 							if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
-								finishAction(action.APCost);
+								finishAction(action);
 							}
 							else{
 								//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
@@ -191,7 +182,7 @@ public class InputOutput : MonoBehaviour {
 						//instantiate the sprite at the position & give reference to the unit
 						action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 
-						finishAction(action.APCost);
+						finishAction(action);
 
 						break;
 
@@ -250,7 +241,7 @@ public class InputOutput : MonoBehaviour {
 							}
 
 							//Finish the action and update the AP
-							finishAction(action.APCost);
+							finishAction(action);
 						}
 
 						break;
@@ -268,7 +259,9 @@ public class InputOutput : MonoBehaviour {
 								//sm to gs
 								//sm & gs
 						tarUnit = action.target;
-						renderers = action.target.gameObject.GetComponentsInChildren<Renderer>();									// Get all the renderer gameobjects that need to be faded
+						foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
+							renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
+						}
 						
 						if (isFirstLoopofAction){
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
@@ -373,7 +366,7 @@ public class InputOutput : MonoBehaviour {
 								// Rotate the Space marine back to the correct direction
 								
 								//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
-								finishAction(action.APCost);
+								finishAction(action);
 								//}
 								
 								break;
@@ -392,8 +385,9 @@ public class InputOutput : MonoBehaviour {
 							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
 							Debug.LogWarning("Offset rotation IS: " + offset);
 
-						renderers = action.target.gameObject.GetComponentsInChildren<Renderer>();									// Get all the renderer gameobjects that need to be faded
-
+						foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
+							renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
+						}
 							aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
 
 							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
@@ -478,6 +472,13 @@ public class InputOutput : MonoBehaviour {
 
 							case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
 								float alphaLevel = 255;
+								
+								if(action.executor.sustainedFireSprite != null)														// Add the renderers of the sustained fire sprites to be faded if they exist
+									renderers.AddRange(action.executor.sustainedFireSprite.GetComponentsInChildren<Renderer>());
+								if (action.executor.sustainedFireTargetSprite != null)
+									renderers.AddRange(action.executor.sustainedFireTargetSprite.GetComponentsInChildren<Renderer>());
+
+								
 								foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
 									Color color = rend.material.color;
 									color.a -= 0.02f;
@@ -501,7 +502,7 @@ public class InputOutput : MonoBehaviour {
 																																	// Rotate the Space marine back to the correct direction
 								
 								//if(exeRot.eulerAngles.y == rotationBefore.eulerAngles.y){ // If the rotation back has completed, end the action
-								finishAction(action.APCost);
+								finishAction(action);
 								//}
 						
 								break;
@@ -514,7 +515,7 @@ public class InputOutput : MonoBehaviour {
 
 					case (Game.ActionType.InvoluntaryReveal):
 						letActionsPlay = false;
-						finishAction(action.APCost);
+						finishAction(action);
 						GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.target.position, actionManagers[0], previousAction.completeLoS); 																												
 						break;																											// Call the involuntary reveal method
 
@@ -1390,9 +1391,9 @@ public class InputOutput : MonoBehaviour {
 	/// Ending an action
 	/// ==================================
 
-	void finishAction(int apCost){
+	void finishAction(Action action){
 		previousAction = showActionsList[0];
-		updateCPAP(apCost);
+		updateCPAP(action.APCost);
 		if (showActionsList[0].sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
 			showSusFire(showActionsList[0].sustainedFireChanged);
 		if (attackPhaseList.Count > 0)
@@ -1403,6 +1404,12 @@ public class InputOutput : MonoBehaviour {
 		attackSuccessful = false; 																		//Reset bools for use in next attack action
 		isFirstLoopofAction = true;
 		refreshBlipCounts();
+		Debug.LogWarning("Units with susFire changed: " + action.sustainedFireChanged.Count);
+		showSusFire(action.sustainedFireChanged);
+		Debug.LogWarning("Units which LOST susFire: " + action.sustainedFireLost.Count);
+		removeSusFire(action.sustainedFireLost);
+		removeOverwatch(action.lostOverwatch);
+
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
 			gameClass.changeGameState(Game.GameState.Inactive);
@@ -1420,14 +1427,19 @@ public class InputOutput : MonoBehaviour {
 	void showSusFire(Dictionary<Unit, Unit> sustainedFireChanged){
 		foreach(KeyValuePair<Unit, Unit> entry in sustainedFireChanged)
 		{
-			Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
-			spritePosition.y += 2f;
-			entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+			//Make a new sprite only if there is not already one in existance
+			if (entry.Key.sustainedFireSprite == null){
+				Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
+				spritePosition.y += 2f;
+				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+			}
 
 			if (entry.Value != null){
-				spritePosition = entry.Value.gameObject.transform.position;
+				if(entry.Key.sustainedFireTargetSprite == null){
+				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+				}
 			}
 
 		}
