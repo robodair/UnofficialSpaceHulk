@@ -81,15 +81,12 @@ public class ActionManager {
 
 	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 20-10-14
 	{
-		marines = game.gameMap.getUnits (Game.EntityType.SM);
-		//makes a list of all marine units
-		blips = game.gameMap.getUnits (Game.EntityType.Blip);
-		//makes a list of all blip units
-
 		updateLoS ();
 
 		makeActions (actionUpdate);//make an action array
 
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		//makes a list of all marine units
 		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
@@ -102,6 +99,10 @@ public class ActionManager {
 			}
 		}
 
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		//makes a list of all marine units
+		blips = game.gameMap.getUnits (Game.EntityType.Blip);
+		//makes a list of all blip units
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
 			for (int t = 0; t < blips.Count; t++) {//and each blip
 				for (int u = 0; u < marines[i].currentLoS.Count; u++) {//and each square in sight
@@ -224,6 +225,7 @@ public class ActionManager {
 				kill (attacker);
 				//if defender wins kill attacker
 			}
+			update (Game.ActionType.Attack); //runs update for attack method
 		} else { //if not facing each other
 			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
@@ -265,11 +267,11 @@ public class ActionManager {
 						//if issue dont change anything
 					}
 				}
+				update (Game.ActionType.Attack); //runs update for attack method
 				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
 				//creates path involving the units movement
 				attackMove = true; //sets attack move to true
 				moveMethod ();//makes a move
-				update (Game.ActionType.Attack); //runs update for attack method
 			}
 		}
 
@@ -279,16 +281,18 @@ public class ActionManager {
 
 	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 21-10-14
 	{
+		executor = shooter;
+		executie = shootie;
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
 			Dice.Add (diceRoll ());
 		}
-		dieRolled.Add (game.playerTurn, Dice.ToArray());
+		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray());
 		//rolls 2 die
 
 		if (!shooter.isJammed) {
 			//makes sure they are not jammed
-				if (shooter.hasSustainedFire && shooter.sustainedFireTarget == shootie) {
+				if (shooter.sustainedFireTarget == shootie) {
 					//checks for sustained fire
 					if (Dice[0] >= 5 || Dice[1] >= 5) {
 						//if kill criteria are met
@@ -379,7 +383,6 @@ public class ActionManager {
 	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 13-10-14
 	{
 		actionType = actionMade; //gets action made
-		executor = unit; //the unit executing the action
 		finishLoS ();
 		//gets the updated LoS for all marines
 		APCost = UnitData.getAPCost(actionType); //gets the AP cost of the action
@@ -387,6 +390,7 @@ public class ActionManager {
 			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
+			executor = unit;
 			voidOverwatch(executor);
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
@@ -399,6 +403,7 @@ public class ActionManager {
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
+			executor = unit;
 			voidOverwatch(executor);
 			voidOverwatch(target);
 			executie = target; //target of the attack
@@ -410,15 +415,16 @@ public class ActionManager {
 		}
 		else if (actionType == Game.ActionType.Shoot) {
 			voidOverwatch(executor);
-			executie = target; //target set
 			movePosition = executor.position; //position unchanged
 			moveFacing = executor.facing; //facing unchanged
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
+			executor = unit;
 			voidSustainedFire(executor);
 			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
+			executor = unit;
 			executie = null; //no target unit
 			movePosition = executor.position; //no change movement
 			moveFacing = executor.facing; //no change in facing
@@ -552,5 +558,12 @@ public class ActionManager {
 	{
 		game.gameMap.removeUnit (killed.position);
 		destroyedUnits.Add (killed);
+
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		for (int i = 0; i < marines.Count; i++) 
+		{ //then for each marine
+			if(marines[i].sustainedFireTarget == killed)
+				voidSustainedFire(marines[i]);
+		}
 	}
 }
