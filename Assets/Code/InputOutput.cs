@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.2
+ * Version 21-10-14.3
  */
 
 using UnityEngine;
@@ -1409,6 +1409,7 @@ public class InputOutput : MonoBehaviour {
 		Debug.LogWarning("Units which LOST susFire: " + action.sustainedFireLost.Count);
 		removeSusFire(action.sustainedFireLost);
 		removeOverwatch(action.lostOverwatch);
+		renderers.Clear();
 
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
