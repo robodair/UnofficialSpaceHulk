@@ -272,22 +272,12 @@ public class ActionManager {
 				update (Game.ActionType.Attack); //runs update for attack method
 			}
 		}
-		if(attacker.unitType == Game.EntityType.GS)
-		{
-			Debug.Log ("attackers dice rolled: " + attDie[0] + ", " + attDie[1] + ", " + attDie[2]);
-			Debug.Log ("defenders dice rolled: " + defDie[0]);
-		}
-		//for debugging processes gets die rolls
-		if(attacker.unitType == Game.EntityType.SM)
-		{
-			Debug.Log ("defenders dice rolled: " + defDie[0] + ", " + defDie[1] + ", " + defDie[2]);
-			Debug.Log ("attackers dice rolled: " + attDie[0]);
-		}
+
 		//for debugging processes gets die rolls
 		postAction (); //runs postaction
 	}
 
-	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 13-10-14
+	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 21-10-14
 	{
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
@@ -312,7 +302,6 @@ public class ActionManager {
 				//sustained fire shots (kill on 5's)
 				} else {
 				//if not sustained fire
-					sustainedFireChanged.Add (shooter, shootie);
 					if (Dice[0] >= 6 || Dice[1] >= 6) {
 						kill (shootie);
 						voidSustainedFire(shooter);
@@ -323,6 +312,7 @@ public class ActionManager {
 					} else {
 						shooter.sustainedFireTarget = target;
 						shooter.hasSustainedFire = true;
+						sustainedFireChanged.Add (shooter, shootie);
 						//if not killed changes sustained fire
 					}
 					//non-sustained fire shots (kill on 6's)
@@ -335,8 +325,6 @@ public class ActionManager {
 					//changes sustained fire and jam variables if required during overwatch
 				}
 		}
-		Debug.Log ("dice one rolled: " + Dice[0]);
-		Debug.Log ("dice two rolled: " + Dice[1]);
 		update (Game.ActionType.Shoot);
 		shot = false; //set shot to false
 		postAction ();
@@ -348,6 +336,7 @@ public class ActionManager {
 		moving = (Vector2)game.moveTransform[Movement][0]; //gets the object from the dictionary and converts to a vector2
 		moving = game.facingDirection[unit.facing] * moving;
 		moving = unit.position + moving; //gets final position
+
 		if (game.gameMap.hasDoor (moving)) {
 			if (game.gameMap.isDoorOpen (moving))
 				game.gameMap.setDoorState (moving, false); //sets door state to closed
@@ -527,8 +516,6 @@ public class ActionManager {
 			sustainedFireLost.Add (voided);
 			sustainedFireChanged.Add (voided, null);
 		}
-		else
-			sustainedFireLost.Clear();
 	}
 
 	private void voidOverwatch(Unit voided) //created by Nick Lee 21-10-14
