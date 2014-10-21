@@ -82,18 +82,19 @@ public class ActionManager {
 	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 20-10-14
 	{
 		updateLoS ();
-
+		
 		makeActions (actionUpdate);//make an action array
 
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
-		if (unit.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
+		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
 				{
 					overwatchShot = true; //set overwatch shot to true
 					shot = true; //set shot equal to true
 					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+					shot = false;
 					overwatchShot = false; //set overwatch shot to false
 				}
 			}
@@ -125,6 +126,8 @@ public class ActionManager {
 	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
+		actions.Clear ();
+		actions = new List<Action> ();
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
@@ -173,12 +176,15 @@ public class ActionManager {
 					}
 				}
 				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
+				update (Game.ActionType.Move); //update method for move
 				//moves the unit
 			}
 			else
+			{
+				movementStopped = false;
 				break;
+			}
 				//if the unit was killed in the middle of a movement causes movements to stop
-			update (Game.ActionType.Move); //update method for move
 		}
 		postAction (); //post action method
 	}
@@ -292,45 +298,46 @@ public class ActionManager {
 
 		if (!shooter.isJammed) {
 			//makes sure they are not jammed
-				if (shooter.sustainedFireTarget == shootie) {
-					//checks for sustained fire
-					if (Dice[0] >= 5 || Dice[1] >= 5) {
-						//if kill criteria are met
-						kill (shootie);
-						voidSustainedFire(shooter);
-						if(overwatchShot){
-							movementStopped = true;
-						}
-						//removes unit being shot and changes required variable
-				}
-				//sustained fire shots (kill on 5's)
-				} else {
-				//if not sustained fire
-					if (Dice[0] >= 6 || Dice[1] >= 6) {
-						kill (shootie);
-						voidSustainedFire(shooter);
-						if(overwatchShot){
-							movementStopped = true;
-						}
-						//if criteria met kills unit
-					} else {
-						shooter.sustainedFireTarget = target;
-						shooter.hasSustainedFire = true;
-						sustainedFireChanged.Add (shooter, shootie);
-						//if not killed changes sustained fire
-					}
-					//non-sustained fire shots (kill on 6's)
-				}
-				if (overwatchShot && Dice[0] == Dice[1]) {
-					shooter.isJammed = true;
-					unitJams = true;
-					voidOverwatch(shooter);
+			if (shooter.sustainedFireTarget == shootie) {
+				//checks for sustained fire
+				if (Dice[0] >= 5 || Dice[1] >= 5) {
+					//if kill criteria are met
+					kill (shootie);
 					voidSustainedFire(shooter);
-					//changes sustained fire and jam variables if required during overwatch
+					if(overwatchShot){
+						movementStopped = true;
+					}
+					//removes unit being shot and changes required variable
+			}
+			//sustained fire shots (kill on 5's)
+			} else {
+			//if not sustained fire
+				if (Dice[0] >= 6 || Dice[1] >= 6) {
+					kill (shootie);
+					voidSustainedFire(shooter);
+					if(overwatchShot){
+						movementStopped = true;
+					}
+					//if criteria met kills unit
+				} else {
+					shooter.sustainedFireTarget = target;
+					shooter.hasSustainedFire = true;
+					sustainedFireChanged.Add (shooter, shootie);
+					//if not killed changes sustained fire
 				}
+				//non-sustained fire shots (kill on 6's)
+			}
+			if (overwatchShot && Dice[0] == Dice[1]) {
+				shooter.isJammed = true;
+				unitJams = true;
+				voidOverwatch(shooter);
+				voidSustainedFire(shooter);
+				//changes sustained fire and jam variables if required during overwatch
+			}
+			if (!overwatchShot)
+				voidOverwatch(shooter);
 		}
 		update (Game.ActionType.Shoot);
-		shot = false; //set shot to false
 		postAction ();
 	}
 
@@ -414,7 +421,6 @@ public class ActionManager {
 			sustainedFireChanged.Clear (); //no gain in sustained fire possible
 		}
 		else if (actionType == Game.ActionType.Shoot) {
-			voidOverwatch(executor);
 			movePosition = executor.position; //position unchanged
 			moveFacing = executor.facing; //facing unchanged
 		}
