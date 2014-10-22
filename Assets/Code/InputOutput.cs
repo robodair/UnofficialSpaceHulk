@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.0
+ * Version 23-10-14.1
  */
 
 using UnityEngine;
@@ -1511,4 +1511,13 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Forces the display of action and command points.
+	/// </summary>
+	/// <param name="actionPoints">Action points.</param>
+	/// <param name="commandPoints">Command points.</param>
+	public void forceDisplayAPCP(int actionPoints, int commandPoints){
+		unitAPText.GetComponent<Text>().text = "Unit Action Points: " + actionPoints;
+		playerCPText.GetComponent<Text>().text = "Player Command Points: " + commandPoints;
+	}
 }
