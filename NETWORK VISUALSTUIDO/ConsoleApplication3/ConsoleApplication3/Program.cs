@@ -14,36 +14,40 @@ namespace ConsoleApplication3
         
         static void Main(string[] args)
         {
-
+            Server s = new Server();
         }
     }
-    class Program
+    class Server
     {
         
          private TcpListener tcpListener;
          private Thread listenThread;
-        public void Main(string[] args)
-        {
+               
 
-            Server();
-        }
-        
-
-         public void Server()
+         public Server()
             {
               this.tcpListener = new TcpListener(IPAddress.Any, 139);
               this.listenThread = new Thread(new ThreadStart(ListenForClients));
               this.listenThread.Start();
+              Console.WriteLine("started");
             }
 
         private void ListenForClients()
             {
               this.tcpListener.Start();
+              bool started = true;
 
-              while (true)
+              while (started == true)
               {
-                //blocks until a client has connected to the server
-                TcpClient client = this.tcpListener.AcceptTcpClient();
+
+
+                  Console.Write("Waiting for a connection... ");
+
+                  // Perform a blocking call to accept requests. 
+                  // You could also user server.AcceptSocket() here.
+                  TcpClient client = this.tcpListener.AcceptTcpClient();
+                  Console.WriteLine("Connected!");
+               
 
                 //create a thread to handle communication 
                 //with connected client

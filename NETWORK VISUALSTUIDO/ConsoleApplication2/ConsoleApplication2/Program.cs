@@ -34,7 +34,7 @@ namespace NetworkTesting
 
 
 
-
+            
 
             TcpClient client = new TcpClient();
 
@@ -54,7 +54,7 @@ namespace NetworkTesting
             /*
 
 
-            string destIP = "172.26.102.17";
+            string destIP = "172.26.184.65";
 
 
             //Connection!
