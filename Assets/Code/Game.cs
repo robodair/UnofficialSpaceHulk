@@ -194,7 +194,7 @@ public class Game : MonoBehaviour {
 		//Added 14/9/2014 by Alisdair
 		ioModule.instantiateUI ();
 		setTurn (PlayerType.SM);
-
+		ioModule.forceDisplayAPCP (0, remainingCP);
 		//Set the initial data
 		resetLoS();
 		
