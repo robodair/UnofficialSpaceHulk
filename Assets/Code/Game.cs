@@ -93,6 +93,9 @@ public class Game : MonoBehaviour {
 	//is already on overwatch.
 	//Made setTurn method unjam all Space Marines
 
+	//Ian Mallett 23.10.14
+	//Made the setTurn method made all Space Marines lose Overwatch
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -190,6 +193,7 @@ public class Game : MonoBehaviour {
 		ioModule.generateMap ();
 		//Added 14/9/2014 by Alisdair
 		ioModule.instantiateUI ();
+		setTurn (PlayerType.SM);
 
 		//Set the initial data
 		resetLoS();
@@ -197,6 +201,7 @@ public class Game : MonoBehaviour {
 		//Triggers
 		SMEscaped = 0;
 		escapePosition = new Vector2(17, 7);
+
 	}
 
 	//Checks the triggers. If an event occurs, it changes the data
@@ -301,6 +306,7 @@ public class Game : MonoBehaviour {
 			foreach (Unit spaceMarine in gameMap.getUnits (EntityType.SM))
 			{
 				spaceMarine.isJammed = false;
+				spaceMarine.isOnOverwatch = false;
 			}
 		}
 
