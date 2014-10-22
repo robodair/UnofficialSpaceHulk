@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.1
+ * Version 23-10-14.2
  */
 
 using UnityEngine;
@@ -87,6 +87,9 @@ public class InputOutput : MonoBehaviour {
 	Action previousAction;
 	List<ActionManager> actionManagers = new List<ActionManager>();
 	bool letActionsPlay = true;
+
+	// Gameobject for the end game titles
+	public GameObject endGameUI;
 
 	// assign the step ammounts in the start method Alisdair 12-10-14
 	public void Start(){
@@ -1416,6 +1419,7 @@ public class InputOutput : MonoBehaviour {
 	/// ==================================
 
 	void finishAction(Action action){
+		
 		previousAction = showActionsList[0];
 		updateCPAP(action.APCost);
 		if (showActionsList[0].sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
@@ -1440,6 +1444,19 @@ public class InputOutput : MonoBehaviour {
 				gameClass.changeGameState(Game.GameState.InactiveSelected);
 				gameClass.selectUnit(gameClass.selectedUnit.gameObject);
 			}
+		}
+
+		if(action.gameOver){																				// Check if the game has ended
+			Destroy (GameObject.Find("UICanvasV2"));															// Remove the UI
+			         foreach( Unit unit in action.triggerRemoved){
+				Destroy (unit.gameObject);																	// Destroy the gameobjects that are to be removed
+			}
+			
+			Instantiate(endGameUI);
+			if (action.winner == gameClass.thisPlayer)
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
+			else
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
 		}
 	}
 
