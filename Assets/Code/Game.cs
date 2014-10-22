@@ -91,6 +91,7 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 22.10.14
 	//Made the Overwatch button correctly unavailable if the selected unit
 	//is already on overwatch.
+	//Made setTurn method unjam all Space Marines
 
 
 	/* Game Class
@@ -198,25 +199,33 @@ public class Game : MonoBehaviour {
 		escapePosition = new Vector2(17, 7);
 	}
 
-	public void checkTriggers()
+	//Checks the triggers. If an event occurs, it changes the data
+	//in the lastAction variable to be appropriate.
+	public void checkTriggers(Action lastAction)
 	{
+		List<Unit> removedUnits = new List<Unit> ();
 		if (gameMap.isOccupied (escapePosition))
 		{
 			Unit unit = gameMap.getOccupant (escapePosition);
 			if (unit.unitType == EntityType.SM)
 			{
-				ioModule.removeUnit(escapePosition);
+				removedUnits.Add (unit);
 				gameMap.removeUnit(escapePosition);
 				SMEscaped++;
 			}
 		}
+		lastAction.triggerRemoved = removedUnits;
 		
 		if (SMEscaped == 2)
 		{
+			lastAction.gameOver = true;
+			lastAction.winner = PlayerType.SM;
 			Debug.Log ("YOU WIN! Have a cookie.");
 		}
 		else if (gameMap.getUnits(EntityType.SM).Count == 0)
 		{
+			lastAction.gameOver = true;
+			lastAction.winner = PlayerType.GS;
 			Debug.Log ("The genestealers won");
 		}
 	}
@@ -287,6 +296,11 @@ public class Game : MonoBehaviour {
 				changeGameState(GameState.NetworkWait);
 
 				//Update the display
+			}
+			//Unjam all the Space Marines
+			foreach (Unit spaceMarine in gameMap.getUnits (EntityType.SM))
+			{
+				spaceMarine.isJammed = false;
 			}
 		}
 

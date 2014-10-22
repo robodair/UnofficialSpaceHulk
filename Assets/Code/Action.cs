@@ -26,6 +26,8 @@ public class Action {
 	//Ian Mallett 4.10.14
 	//Improved documentation
 
+	//Ian Mallett 22.10.14
+	//Added triggerRemoved, gameOver, and winner variables
 
 	/* This class represents an individual action. A single movement, a unit being set to
 	 * overwatch, or a unit shooting at the opponent. Note that any variable that is irrelevant
@@ -84,4 +86,13 @@ public class Action {
 	//of dice for each player, otherwise, there would generally be only one set of
 	//dice.
 	public Dictionary<Game.PlayerType, int[]> diceRoll;
+
+	//The list of units removed by a trigger
+	public List<Unit> triggerRemoved;
+
+	//Whether this action causes the game to be over
+	public bool gameOver;
+
+	//If the game is over, this variable is the winning player
+	public Game.PlayerType winner;
 }
