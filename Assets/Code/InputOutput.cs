@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 21-10-14.5
+ * Version 23-10-14.0
  */
 
 using UnityEngine;
@@ -145,10 +145,6 @@ public class InputOutput : MonoBehaviour {
 						action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount*Time.deltaTime);
 						action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime);
 
-						// Remove overwatch sprites for those units that have lost overwatch or sustained fire
-						removeOverwatch(action.lostOverwatch);
-						removeSusFire(action.sustainedFireLost);
-
 						// Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
 						// also update the unit AP and CP fields
 						if (exePos == aimPos){
@@ -174,13 +170,14 @@ public class InputOutput : MonoBehaviour {
 
 					case (Game.ActionType.Overwatch):
 						isFirstLoopofAction = false;
-						Debug.Log("IT'S OVERWATCH TIME!");
 						// determine the position the sprite
 						Vector3 spritePosition = exePos;
 						spritePosition.y += 1.5f;
 
-						//instantiate the sprite at the position & give reference to the unit
-						action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
+						//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
+						if (action.executor.overwatchSprite == null){
+							action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
+						}
 
 						finishAction(action);
 
@@ -397,7 +394,7 @@ public class InputOutput : MonoBehaviour {
 
 							if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
 								attackSuccessful = true;
-								// Debug.LogWarning("Shoot attack to be successful");
+								//Debug.LogWarning("Shoot attack to be successful");
 								shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
 							}
 
@@ -1204,9 +1201,9 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
-		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
+		//Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
-			if (unit.sustainedFireSprite)
+			if (unit.overwatchSprite)
 				Destroy(unit.overwatchSprite);
 		}
 	}
@@ -1216,7 +1213,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeSusFire(List <Unit> units){
-		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
+		//Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
 		foreach (Unit unit in units){
 			if (unit.sustainedFireSprite)
 				Destroy(unit.sustainedFireSprite);
@@ -1431,9 +1428,7 @@ public class InputOutput : MonoBehaviour {
 		attackSuccessful = false; 																		//Reset bools for use in next attack action
 		isFirstLoopofAction = true;
 		refreshBlipCounts();
-		Debug.LogWarning("Units with susFire changed: " + action.sustainedFireChanged.Count);
 		showSusFire(action.sustainedFireChanged);
-		Debug.LogWarning("Units which LOST susFire: " + action.sustainedFireLost.Count);
 		removeSusFire(action.sustainedFireLost);
 		removeOverwatch(action.lostOverwatch);
 		renderers.Clear();
