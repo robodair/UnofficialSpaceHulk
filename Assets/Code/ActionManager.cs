@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ActionManager {
 
 	//Created by Ian Mallett 1.9.14
-	//modified By Nick Lee 20.10.14
+	//modified By Nick Lee 23.10.14
 	public Unit target;
 	public Path path;
 
@@ -117,17 +117,19 @@ public class ActionManager {
 			}
 		}
 		foreach (Unit blip in blipsRevealed) {
-			InvoluntaryReveal (blip);
+			InvoluntaryReveal (blip); //runs the involuntary reveal for every blip revealed
 		}
 
-		makePrevLoS ();
+		makePrevLoS (); //makes the previous line of sight
 	}
 
-	private void postAction()//Created by Nick Lee 18-9-14, modified 25-9-14
+	private void postAction()//Created by Nick Lee 18-9-14, modified 23-10-14
 	{
 		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
+		game.checkTriggers (actions[actions.Count]); //checks the game for winning triggers
 		actions.Clear ();
 		actions = new List<Action> ();
+		//makes a new version of the actions list
 	}
 
 	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
@@ -528,6 +530,7 @@ public class ActionManager {
 			voided.hasSustainedFire = false;
 			sustainedFireLost.Add (voided);
 			sustainedFireChanged.Add (voided, null);
+			//makes the units sustained fire null and makes sure to record change for action list
 		}
 	}
 
@@ -536,6 +539,7 @@ public class ActionManager {
 		if (voided.isOnOverwatch) {
 			voided.isOnOverwatch = false;
 			lostOverwatch.Add (voided);
+			//sets units overwatch to false and gets ready to give to action list
 		}
 	}
 
@@ -558,6 +562,7 @@ public class ActionManager {
 		for(int u = 0; u < marines.Count; u++)
 		{
 			completeLoS.Add (marines[u], game.algorithm.findLoS(marines[u]));
+			//adds all marines line of sight to actions
 		}
 	}
 
@@ -565,12 +570,14 @@ public class ActionManager {
 	{
 		game.gameMap.removeUnit (killed.position);
 		destroyedUnits.Add (killed);
+		//removes the unit
 
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		for (int i = 0; i < marines.Count; i++) 
 		{ //then for each marine
 			if(marines[i].sustainedFireTarget == killed)
 				voidSustainedFire(marines[i]);
+			//removes sustained fire from the target for any marines that had sustained fire on it
 		}
 	}
 }
