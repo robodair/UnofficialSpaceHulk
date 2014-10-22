@@ -126,7 +126,7 @@ public class ActionManager {
 	private void postAction()//Created by Nick Lee 18-9-14, modified 23-10-14
 	{
 		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
-		game.checkTriggers (actions[actions.Count]); //checks the game for winning triggers
+		game.checkTriggers (actions[actions.Count - 1]); //checks the game for winning triggers
 		actions.Clear ();
 		actions = new List<Action> ();
 		//makes a new version of the actions list
