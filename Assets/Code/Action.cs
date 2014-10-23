@@ -95,4 +95,11 @@ public class Action {
 
 	//If the game is over, this variable is the winning player
 	public Game.PlayerType winner;
+
+
+	public Action()
+	{
+		triggerRemoved = new List<Unit> ();
+		gameOver = false;
+	}
 }
