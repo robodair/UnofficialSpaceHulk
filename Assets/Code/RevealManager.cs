@@ -176,7 +176,11 @@ public class RevealManager : MonoBehaviour {
 			for (int i = 0; i < 9 ; i++)
 			{
 				Vector2 checkingPos = startingPos + (i % 3) * Vector2.right + (i / 3) * Vector2.up;
-				if (gameController.gameMap.areLinked(centralPosition, checkingPos))
+				//Only add the square if the square exists and is not occupied. Override this
+				//if the position is the position of the blip.
+				if (gameController.gameMap.hasSquare(checkingPos) &&
+				    (!gameController.gameMap.isOccupied(checkingPos) ||
+				    checkingPos == centralPosition))
 				{
 					//Check whether givenLoS contains checkingPos
 					bool posExists = false;
