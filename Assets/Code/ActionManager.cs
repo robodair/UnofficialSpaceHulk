@@ -25,7 +25,6 @@ public class ActionManager {
 	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
 	private bool movementStopped = false; //Created by Nick Lee 7-10-14
-	private List<int> dieRolls = new List<int> (); //Created by Nick Lee 7-10-14
 
 	//modified by Nick Lee 13-10-14
 	private Game.ActionType actionType;
@@ -126,8 +125,8 @@ public class ActionManager {
 	private void postAction()//Created by Nick Lee 18-9-14, modified 23-10-14
 	{
 		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
-		game.checkTriggers (actions[actions.Count - 1]); //checks the game for winning triggers
-		actions.Clear ();
+		if(actions.Count < 0)
+			game.checkTriggers (actions[actions.Count - 1]); //checks the game for winning triggers
 		actions = new List<Action> ();
 		//makes a new version of the actions list
 	}
@@ -199,22 +198,22 @@ public class ActionManager {
 
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
 			attDie.Add (diceRoll ());
-			dieRolled.Add (game.playerTurn, dieRolls.ToArray());
 			//gets the dice rolled by the attacker and their values and adds them to an array with the unit
 		}
+		dieRolled.Add (game.playerTurn, attDie.ToArray());
 		attDie.Sort (); //sorts the attackers dice
 
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
 			defDie.Add (diceRoll ());
 			//rolls a new dice and adds to the list
-			if(game.playerTurn == Game.PlayerType.GS)
-				dieRolled.Add (Game.PlayerType.SM, dieRolls.ToArray());
-			else if(game.playerTurn == Game.PlayerType.SM)
-				dieRolled.Add (Game.PlayerType.GS, dieRolls.ToArray());
-			else
-				Debug.Log ("error in determining player action melee, actionManager attackMethod");
-			//adds the unit type in term of player type and adds to dierolled dictionary
 		}
+		if(game.playerTurn == Game.PlayerType.GS)
+			dieRolled.Add (Game.PlayerType.SM, defDie.ToArray());
+		else if(game.playerTurn == Game.PlayerType.SM)
+			dieRolled.Add (Game.PlayerType.GS, defDie.ToArray());
+		else
+			Debug.Log ("error in determining player action melee, actionManager attackMethod");
+		//adds the unit type in term of player type and adds to dierolled dictionary
 		defDie.Sort (); //sorts the defenders dice
 
 		defender.isOnOverwatch = false; //sets defenders overwatch to false
@@ -374,7 +373,6 @@ public class ActionManager {
 	{
 		int die = Random.Range (1, 7);
 		//creates the die int
-		dieRolls.Add (die);
 		return die; //returns the die value
 	}
 
