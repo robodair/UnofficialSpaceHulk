@@ -158,16 +158,24 @@ public class InputHandler : MonoBehaviour {
 	//Once the facing selection has been done, creates an ActionManager to handle the movement
 	public void orientationClicked (Game.Facing facing)
 	{
+		Debug.Log("pineapple");
+
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Move);
+		Debug.Log("pineapple");
 
 		actionManager.path = gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
 		                                                       moveTargetSquare, facing, 
 		                                                       UnitData.getMoveSet (gameController.selectedUnit.unitType));
+		Debug.Log("pineapple");
+
 		actionManager.performAction();
-		
+		Debug.Log("pineapple");
+
 		gameController.changeGameState(Game.GameState.Inactive);
-		
+		Debug.Log("pineapple");
+
 		facingInProgress = false;
+		Debug.Log("pineapple");
 	}
 
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
@@ -175,11 +183,14 @@ public class InputHandler : MonoBehaviour {
 	{
 		gameController.changeGameState(Game.GameState.AttackSelection);
 		gameController.selectUnit (gameController.selectedUnit.gameObject);
-	}
-
-	public void attacking()
-	{
-		//do things for melee attacks
+		Unit potentialTarget = mapController.getOccupant(gameController.selectedUnit.position + 
+		                                                 ((Vector2)(gameController.facingDirection[gameController.selectedUnit.facing]*Vector2.up)));
+		if (potentialTarget != null)
+		{
+			ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Attack);
+			actionManager.target = potentialTarget;
+			actionManager.performAction();
+		}
 	}
 
 	public void shooting()
@@ -225,18 +236,37 @@ public class InputHandler : MonoBehaviour {
 	{
 		revealPosition = position;
 		selectableRevealPositions = selectableSquares;
+		showSelectableRevealSquares ();
 		ioController.instantiateFacingSelection (revealPosition);
 	}
 
 	public void revealOrientationClicked(Game.Facing facing)
 	{
+		hideSelectableRevealSquares ();
 		revealManager.place (revealPosition, facing);
 		allowRevealSelection = true;
 	}
 
 	public void continueRevealing()
 	{
+		showSelectableRevealSquares ();
 		ioController.instantiateFacingSelection (revealPosition);
 		allowRevealSelection = false;
+	}
+
+	public void showSelectableRevealSquares()
+	{
+		foreach (Vector2 position in selectableRevealPositions)
+		{
+	        mapController.getSquare(position).model.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
+		}
+	}
+
+	public void hideSelectableRevealSquares()
+	{
+		foreach (Vector2 position in selectableRevealPositions)
+		{
+			mapController.getSquare(position).model.renderer.material.color = Color.white;
+		}
 	}
 }

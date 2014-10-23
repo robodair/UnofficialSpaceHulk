@@ -107,7 +107,9 @@ public class Interactible : MonoBehaviour {
 					inputHandlerController.attackTarget = gameObject;//Sets the target for the attack
 
 					if (gameController.thisPlayer == Game.PlayerType.GS)//Genestealer player can attack, not shoot
-						inputHandlerController.attacking();
+					{
+					//	inputHandlerController.attacking();
+					}
 					else
 						inputHandlerController.shooting();//Space Marine player can shoot, not attack
 				}
