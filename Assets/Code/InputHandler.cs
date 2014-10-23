@@ -243,19 +243,25 @@ public class InputHandler : MonoBehaviour {
 		revealPosition = position;
 		selectableRevealPositions = selectableSquares;
 		showSelectableRevealSquares ();
+		mapController.getSquare (revealPosition).model.renderer.material.color = Color.cyan;
 		ioController.instantiateFacingSelection (revealPosition);
 	}
 
 	public void revealOrientationClicked(Game.Facing facing)
 	{
 		hideSelectableRevealSquares ();
+		mapController.getSquare (revealPosition).model.renderer.material.color = Color.white;
 		revealManager.place (revealPosition, facing);
 		allowRevealSelection = true;
+		if (revealManager.currentlyRevealing)
+		{
+			showSelectableRevealSquares ();
+		}
 	}
 
 	public void continueRevealing()
 	{
-		showSelectableRevealSquares ();
+		mapController.getSquare (revealPosition).model.renderer.material.color = Color.cyan;
 		ioController.instantiateFacingSelection (revealPosition);
 		allowRevealSelection = false;
 	}

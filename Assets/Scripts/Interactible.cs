@@ -15,6 +15,10 @@ public class Interactible : MonoBehaviour {
 	public enum SelectionType{Background, SM, GS, Blip, OpenDoor, ClosedDoor, Square, DeploymentZone};
 	public SelectionType attemptedSelection;
 
+	float red;
+	float blue;
+	float green;
+
 	InputHandler inputHandlerController; //Added 18/9/14
 	InputOutput ioController;
 
@@ -39,16 +43,19 @@ public class Interactible : MonoBehaviour {
 		{
 			if (attemptedSelection == SelectionType.Square)
 			{
-				if(gameController.unitSelected)
+				if(gameController.gameState != Game.GameState.Reveal)
 				{
-					if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
-				                                                        	gameObject.transform.position.z)))
-						gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
+					if(gameController.unitSelected)
+					{
+						if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
+					                                                        	gameObject.transform.position.z)))
+							gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
+						else
+							gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+					}
 					else
 						gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 				}
-				else
-					gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 			}
 		}
 		else if(gameController.thisPlayer == Game.PlayerType.SM)
@@ -83,13 +90,24 @@ public class Interactible : MonoBehaviour {
 		//RB 8.10.14 Redone to support highlighting of all available squares in movement
 		if (attemptedSelection == SelectionType.Square)
 		{
-			if(gameObject.renderer.material.color == Color.blue)
-				gameObject.renderer.material.color = Color.green;
-			if (!inputHandlerController.coloursSet)
-				gameObject.renderer.material.color = Color.white;
-			else if (gameObject.renderer.material.color != Color.green)
+			red = gameObject.renderer.material.color.r;
+			green = gameObject.renderer.material.color.g;
+			blue = gameObject.renderer.material.color.b;
+			Debug.LogWarning(red + ", " + green+ ", " + blue);
+			if(gameController.gameState != Game.GameState.Reveal)
 			{
-				gameObject.renderer.material.color = Color.white;
+				if(gameObject.renderer.material.color == Color.blue)
+					gameObject.renderer.material.color = Color.green;
+				if (!inputHandlerController.coloursSet)
+					gameObject.renderer.material.color = Color.white;
+				else if (gameObject.renderer.material.color != Color.green)
+				{
+					gameObject.renderer.material.color = Color.white;
+				}
+			}
+			else if(Mathf.Approximately(red, 0.68f) && Mathf.Approximately(green, 0.51f) && Mathf.Approximately(blue, 0.69f))
+	        {
+				gameObject.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
 			}
 		}
 	}
