@@ -984,7 +984,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		inputHandlerController.attack ();
+		inputHandlerController.shoot ();
 	}
 
 	public void btnToggleDoorClicked(){ //Added By Alisdair 14/9/14

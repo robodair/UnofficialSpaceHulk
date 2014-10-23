@@ -181,7 +181,7 @@ public class InputHandler : MonoBehaviour {
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
 	public void attack()
 	{
-		gameController.changeGameState(Game.GameState.AttackSelection);
+		//gameController.changeGameState(Game.GameState.AttackSelection);
 		gameController.selectUnit (gameController.selectedUnit.gameObject);
 		Unit potentialTarget = mapController.getOccupant(gameController.selectedUnit.position + 
 		                                                 ((Vector2)(gameController.facingDirection[gameController.selectedUnit.facing]*Vector2.up)));
@@ -191,6 +191,12 @@ public class InputHandler : MonoBehaviour {
 			actionManager.target = potentialTarget;
 			actionManager.performAction();
 		}
+	}
+
+	public void shoot()
+	{
+		gameController.changeGameState(Game.GameState.AttackSelection);
+		gameController.selectUnit (gameController.selectedUnit.gameObject);
 	}
 
 	public void shooting()
