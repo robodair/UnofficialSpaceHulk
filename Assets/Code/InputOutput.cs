@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.2
+ * Version 23-10-14.3
  */
 
 using UnityEngine;
@@ -1446,18 +1446,24 @@ public class InputOutput : MonoBehaviour {
 			}
 		}
 
-		if(action.gameOver){																				// Check if the game has ended
-			Destroy (GameObject.Find("UICanvasV2"));															// Remove the UI
-			         foreach( Unit unit in action.triggerRemoved){
-				Destroy (unit.gameObject);																	// Destroy the gameobjects that are to be removed
+		if(action.gameOver){																			// Check if the game has ended
+			Destroy (GameObject.Find("UICanvasV2"));													// Remove the UI
+			foreach( Unit unit in action.triggerRemoved){
+				Destroy (unit.gameObject);																// Destroy the gameobjects that are to be removed
 			}
 			
-			Instantiate(endGameUI);
+			Instantiate(endGameUI);																		// Show the End Game UI components
 			if (action.winner == gameClass.thisPlayer)
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
 			else
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
 		}
+		else {																							// Even if the game has not ended, remove the units that have been removed by the trigger
+			foreach( Unit unit in action.triggerRemoved){
+				Destroy (unit.gameObject);																// Destroy the gameobjects that are to be removed
+			}
+		}
+
 	}
 
 	/// <summary>
