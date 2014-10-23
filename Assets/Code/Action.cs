@@ -29,6 +29,9 @@ public class Action {
 	//Ian Mallett 22.10.14
 	//Added triggerRemoved, gameOver, and winner variables
 
+	//Ian Mallett 23.10.14
+	//Added a constructor to prevent null reference errors when checking trigger values
+
 	/* This class represents an individual action. A single movement, a unit being set to
 	 * overwatch, or a unit shooting at the opponent. Note that any variable that is irrelevant
 	 * to the action will be null.

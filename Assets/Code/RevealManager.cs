@@ -30,6 +30,10 @@ public class RevealManager : MonoBehaviour {
 	//Made the manager change the game state to Reveal while revealing
 	//Added involuntary and actionManager variables to handle overwatch shots against revealing Genestealers
 
+	//Ian Mallett 23.10.14
+	//Made placing a Genestealer remove the square from the selectable squares
+	//Added checks whether the placing square was occupied
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;

@@ -95,6 +95,8 @@ public class Game : MonoBehaviour {
 
 	//Ian Mallett 23.10.14
 	//Made the setTurn method made all Space Marines lose Overwatch
+	//Gave a random value to CP at the beginning of the game, and made
+	//it correctly display as such
 
 
 	/* Game Class
@@ -436,7 +438,6 @@ public class Game : MonoBehaviour {
 		}
 		//Get the unit and get its set of actions
 		Unit unit = gameMap.getUnit(model);
-
 		if (unit != null)
 		{
 			//Change the gameState

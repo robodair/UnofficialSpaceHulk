@@ -38,6 +38,10 @@ public class Algorithm : MonoBehaviour {
 	//Ian Mallett 7.10.14
 	//Added support for creating paths out of a 
 
+	//Ian Mallett 23.10.14
+	//Added AI methods and created Genestealer AI
+	//with sub-optimal movement and attacking.
+
 	public Game game;
 	public Map map;
 
@@ -86,14 +90,15 @@ public class Algorithm : MonoBehaviour {
 	                    Vector2 targetSquare, Game.Facing targetFacing,
 	                    Dictionary<Game.MoveType, int> moveSet)
 	{
-		return getPath (initialSquare, initialFacing, targetSquare, targetFacing, moveSet, false);
+		return getPath (initialSquare, initialFacing, targetSquare, targetFacing, moveSet, false, false, false);
 	}
 
 
 
 	private Path getPath(Vector2 initialSquare, Game.Facing initialFacing,
 						 Vector2 targetSquare, Game.Facing targetFacing,
-						 Dictionary<Game.MoveType, int> moveSet, bool ignoreOccupants)
+						 Dictionary<Game.MoveType, int> moveSet, bool ignoreDoors,
+	                     bool ignoreGenestealers, bool ignoreSpaceMarines)
 	{
 		//Create the set of visited positions
 		List<Path> completedPositions = new List<Path>();
@@ -196,8 +201,14 @@ public class Algorithm : MonoBehaviour {
 						{
 							if (map.hasSquare (newPath.finalSquare))
 							{
-								if (ignoreOccupants || !map.isOccupied(newPath.finalSquare) ||
-								    newPath.finalSquare == initialSquare)
+								if (!map.isOccupied(newPath.finalSquare) ||
+								    newPath.finalSquare == initialSquare ||
+								    (ignoreDoors && map.isOccupied (newPath.finalSquare) &&
+								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.Door) ||
+								    (ignoreGenestealers && map.isOccupied (newPath.finalSquare) &&
+								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.GS) ||
+								    (ignoreSpaceMarines && map.isOccupied (newPath.finalSquare) &&
+								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.SM))
 								{
 									if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
 									{
@@ -591,6 +602,313 @@ public class Algorithm : MonoBehaviour {
 	public void AITurn()
 	{
 		Debug.Log ("MY TURN!");
+		placeBlips ();
+		revealBlips();
+		continueAI ();
 		game.setTurn (Game.PlayerType.SM);
+	}
+
+	private void placeBlips()
+	{
+
+	}
+
+	private void revealBlips()
+	{
+
+	}
+
+	public void continueAI()
+	{
+		//Find the next unit
+		Unit activeUnit = nextUnit (Game.EntityType.GS);
+		if (activeUnit == null)
+		{
+			activeUnit = nextUnit (Game.EntityType.Blip);
+		}
+		//If no next unit, end turn
+		if (activeUnit == null)
+		{
+			game.setTurn (Game.PlayerType.SM);
+		}
+		else
+		{
+			bool actionPerformed = false;
+			//If it can attack, attack
+			if (canAttack(activeUnit))
+			{
+				actionPerformed = attackForward (activeUnit);
+			}
+			//If it can reach a Space Marine avoiding Genestealers, do so
+			else if (canReachSM(activeUnit))
+			{
+				//Attempt to go to a position cardinally adjacent to the nearest SM. If this is impossible
+				//(which it shouldn't ever be), use the path to the target.
+				Path path = goToCardinal (activeUnit, nearestSM(activeUnit, true, false, true).position, true, false, true);
+				if (path != null)
+				{
+					actionPerformed = nextAction(activeUnit, path);
+				}
+				else
+				{
+					path = findNearestSM(activeUnit, true, false, true);
+					if (path != null)
+					{
+						actionPerformed = nextAction(activeUnit, path);
+					}
+					else
+					{
+						Debug.LogError (activeUnit.name + " \"canReachSM\", but no path was found");
+					}
+				}
+			}
+			//Attempt to move as close to a Space Marine as possible
+			else
+			{
+				//Attempt to go to a position cardinally adjacent to the nearest SM. If this is impossible,
+				//use the path to the target.
+				Path path = goToCardinal (activeUnit, nearestSM (activeUnit, true, true, true).position , true, true, true);
+				if (path != null)
+				{
+					actionPerformed = nextAction (activeUnit, path);
+				}
+				else
+				{
+					path = findNearestSM(activeUnit, true, false, true);
+					if (path != null)
+					{
+						actionPerformed = nextAction (activeUnit, path);
+					}
+				}
+			}
+
+			//If no action was performed, remove the unit from the available units and retry
+			if (!actionPerformed)
+			{
+				activeUnit.AP = 0;
+				continueAI ();
+			}
+		}
+	}
+
+	private Unit nextUnit(Game.EntityType unitType)
+	{
+		List<Unit> availableUnits = new List<Unit> ();
+
+		//Check for Genestealers who have already performed an action,
+		//and make a list of all genestealers with maximum ap
+		foreach (Unit unit in map.getUnits (unitType))
+		{
+			if (unit.AP < UnitData.getMaxAP (unitType) &&
+			    unit.AP != 0)
+			{
+				//Return any unit with less than Maximum AP
+				return unit;
+			}
+			else if (unit.AP == UnitData.getMaxAP(unitType))
+			{
+				availableUnits.Add (unit);
+			}
+		}
+
+		int shortestPath = 0;
+		Unit nearestUnit = null;
+		//Find the available Unit closest to a Space Marine
+		foreach (Unit unit in availableUnits)
+		{
+			int distance = distanceToSM(unit);
+			// If the Unit can't get to any Space Marines
+			if (distance == 0)
+			{
+				unit.AP = 0;
+			}
+			else if ((shortestPath == 0 ||
+					  distance < shortestPath))
+			{
+				shortestPath = distance;
+				nearestUnit = unit;
+			}
+		}
+
+		if (nearestUnit != null)
+		{
+			return nearestUnit;
+		}
+
+		return null;
+	}
+
+	//Perform the next action along the path. Returns whether an action was taken
+	private bool nextAction(Unit executor, Path travelPath)
+	{
+		//Find the path to the next square in the travelPath
+		Path nextPos = addMovement (new Path (executor.position, executor.facing),
+		                               travelPath.path [0],
+		                               UnitData.getMoveSet (executor.unitType));
+		//If the target square isn't occupied, or the movement is turning on the spot
+		if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
+		{
+			return move(executor, nextPos);
+		}
+		else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
+		{
+			Path toDoor = goToCardinal (executor, nextPos.finalSquare, false, false, false);
+			if (toDoor != null)
+			{
+				if (toDoor.path.Count == 0)
+				{
+					return openDoor(executor);
+				}
+				else
+				{
+					return nextAction (executor, toDoor);
+				}
+			}
+			else
+			{
+				executor.AP = 0;
+			}
+		}
+		
+		return false;
+	}
+
+	private int distanceToSM(Unit unit)
+	{
+		Path toSM = findNearestSM (unit, true, true, true, Game.EntityType.Blip);
+		if (toSM != null)
+		{
+			return toSM.APCost;
+		}
+		return 0;
+	}
+
+	private Unit nearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
+	{
+		Path toSM = findNearestSM (unit, true, true, true, Game.EntityType.Blip);
+		if (toSM != null)
+		{
+			if (map.isOccupied (toSM.finalSquare))
+			{
+				return map.getOccupant (toSM.finalSquare);
+			}
+		}
+		return null;
+	}
+
+	private Path findNearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
+	{
+		return findNearestSM (unit, ignoreDoors, ignoreGS, ignoreSM, unit.unitType);
+	}
+
+	private Path findNearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM, Game.EntityType moveSet)
+	{
+		Path shortestPath = null;
+		//Check each Space Marine to be the closest to the unit
+		foreach(Unit SM in map.getUnits (Game.EntityType.SM))
+		{
+			Path newPath = getPath (unit.position, unit.facing, SM.position, unit.facing,
+			                        UnitData.getMoveSet (moveSet),
+			                        ignoreDoors, ignoreGS, ignoreSM);
+
+			if (shortestPath != null)
+			{
+				if (shortestPath.APCost > newPath.APCost)
+				{
+					shortestPath = newPath;
+				}
+			}
+			else
+			{
+				shortestPath = newPath;
+			}
+		}
+
+		return shortestPath;
+	}
+
+	private bool canAttack(Unit unit)
+	{
+		Unit potentialTarget = map.getOccupant (unit.position + (Vector2)(game.facingDirection [unit.facing] * Vector2.up));
+		if (potentialTarget != null)
+		{
+			return (potentialTarget.unitType == Game.EntityType.SM);
+		}
+		return false;
+	}
+
+	private bool attackForward(Unit unit)
+	{
+		Unit potentialTarget = map.getOccupant (unit.position + (Vector2)(game.facingDirection [unit.facing] * Vector2.up));
+		if (potentialTarget != null)
+		{
+			ActionManager attack = new ActionManager(unit, Game.ActionType.Attack);
+			attack.target = potentialTarget;
+			attack.performAction ();
+			return true;
+		}
+		else
+		{
+			Debug.LogError (unit.name + " tried to attack forward, but there was no target");
+			return false;
+		}
+	}
+
+	private bool move(Unit unit, Path path)
+	{
+		ActionManager move = new ActionManager (unit, Game.ActionType.Move);
+		move.path = path;
+		move.performAction ();
+		return true;
+	}
+
+	private bool openDoor(Unit unit)
+	{
+		if (map.hasDoor (unit.position + (Vector2)(game.facingDirection[unit.facing]*Vector2.up)))
+		{
+			ActionManager openDoor = new ActionManager(unit, Game.ActionType.ToggleDoor);
+			openDoor.performAction();
+			return true;
+		}
+		return false;
+	}
+
+	private bool canReachSM(Unit unit)
+	{
+		Path testPath = findNearestSM(unit, true, false, true);
+		if (testPath != null)
+		{
+			return testPath.APCost <= unit.AP;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	//Method to find the shortest path to a position next to the
+	//target position, facing towards it
+	private Path goToCardinal(Unit unit, Vector2 targetPosition, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
+	{
+		Path shortestPath = null;
+		for (int i = 0; i < 4; i++)
+		{
+			Vector2 testPosition = targetPosition + (Vector2)(game.facingDirection[(Game.Facing)i]*Vector2.up);
+			Path testPath = getPath (unit.position, unit.facing, testPosition, (Game.Facing)((i + 2)%4), UnitData.getMoveSet (unit.unitType),
+			                         ignoreDoors, ignoreGS, ignoreSM);
+			if (testPath != null)
+			{
+				if (shortestPath == null)
+				{
+					shortestPath = testPath;
+				}
+				else if (testPath.APCost < shortestPath.APCost)
+				{
+					shortestPath = testPath;
+				}
+			}
+		}
+
+		return shortestPath;
 	}
 }
