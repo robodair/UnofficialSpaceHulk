@@ -212,11 +212,13 @@ public class RevealManager : MonoBehaviour {
 			//Place the genestealer
 			bool squareIsValid = false;
 			//Check whether the square is in selectableSquares
-			foreach (Vector2 square in selectableSquares)
+			for (int i = 0; i < selectableSquares.Count; i++)
 			{
-				if (square == position)
+				if (selectableSquares[i] == position)
 				{
 					squareIsValid = true;
+					selectableSquares.RemoveAt(i);
+					break;
 				}
 			}
 			if (squareIsValid)
