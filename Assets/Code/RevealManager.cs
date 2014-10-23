@@ -39,6 +39,7 @@ public class RevealManager : MonoBehaviour {
 	public InputHandler inputHandler;
 	private bool involuntary;
 	private ActionManager actionManager;
+	private bool blipActed;
 
 	public void involuntaryReveal(Vector2 blipPosition, ActionManager actionManager, Dictionary<Unit, List<Vector2>> prevLoS)
 	{
@@ -54,6 +55,7 @@ public class RevealManager : MonoBehaviour {
 		currentlyRevealing = true;
 		centralPosition = blipPosition;
 		involuntary = true;
+		blipActed = blip.AP < UnitData.getMaxAP (Game.EntityType.Blip);
 		gameController.changeGameState (Game.GameState.Reveal);
 		this.actionManager = actionManager;
 
@@ -228,6 +230,10 @@ public class RevealManager : MonoBehaviour {
 			if (squareIsValid)
 			{
 				gameController.deploy (Game.EntityType.GS, position, facing);
+				if (blipActed)
+				{
+					gameController.gameMap.getOccupant (position).AP = 0;
+				}
 				numberOfGSToPlace--;
 			}
 		}
