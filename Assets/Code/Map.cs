@@ -50,6 +50,11 @@ public class Map : MonoBehaviour {
 	//Ian Mallett 18.10.14
 	//Fixed float precision error in areAdjacent method.
 
+	//Ian Mallett 24.10.14
+	//Fixed a bug where the areLinked method did not deal with
+	//deployment areas correctly
+
+
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
 	 * It stores the map as an array of Square objects which are editable
@@ -167,23 +172,38 @@ public class Map : MonoBehaviour {
 		{
 			//If they are diagonally adjacent
 			if(!Mathf.Approximately (position1.x, position2.x) &&
-			   !Mathf.Approximately (position1.y, position2.y))
+			    !Mathf.Approximately (position1.y, position2.y))
 			{
-				//Check whether the squares adjacent to both are unoccupied
-				//If either exists and is unoccupied the squares are linked
-				Square adjSquare1 = getSquare(new Vector2(position1.x, position2.y));
-				if (adjSquare1 != null)
+				//If both are real squares
+				if (position1.x >= -0.1f && position2.x >= -0.1f)
 				{
-					if (!adjSquare1.isOccupied)
+					//Check whether the squares adjacent to both are unoccupied
+					//If either exists and is unoccupied the squares are linked
+					Square adjSquare1 = getSquare(new Vector2(position1.x, position2.y));
+					if (adjSquare1 != null)
 					{
-						return true;
+						if (!adjSquare1.isOccupied)
+						{
+							return true;
+						}
+					}
+
+					Square adjSquare2 = getSquare(new Vector2(position2.x, position1.y));
+					if (adjSquare2 != null)
+					{
+						if (!adjSquare2.isOccupied)
+						{
+							return true;
+						}
 					}
 				}
-
-				Square adjSquare2 = getSquare(new Vector2(position2.x, position1.y));
-				if (adjSquare2 != null)
+				//If one is a deployment area
+				else
 				{
-					if (!adjSquare2.isOccupied)
+					if ((position1.x < 0 &&
+					     otherAreas[-1 - (int)position1.x].adjacentPosition == position2) ||
+					    (position2.x < 0 &&
+					 	 otherAreas[-1 - (int)position2.x].adjacentPosition == position1))
 					{
 						return true;
 					}

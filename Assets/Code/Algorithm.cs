@@ -42,6 +42,9 @@ public class Algorithm : MonoBehaviour {
 	//Added AI methods and created Genestealer AI
 	//with sub-optimal movement and attacking.
 
+	//Ian Mallett 24.10.14
+	//Added functionality to the placeBlips method
+
 	public Game game;
 	public Map map;
 
@@ -55,12 +58,12 @@ public class Algorithm : MonoBehaviour {
 		moveOrder = new List<Game.MoveType> ();
 
 		moveOrder.Add (Game.MoveType.Forward);
+		moveOrder.Add (Game.MoveType.TurnRight);
+		moveOrder.Add (Game.MoveType.TurnLeft);
 		moveOrder.Add (Game.MoveType.FrontRight);
 		moveOrder.Add (Game.MoveType.FrontLeft);
 		moveOrder.Add (Game.MoveType.Back);
 		moveOrder.Add (Game.MoveType.TurnBack);
-		moveOrder.Add (Game.MoveType.TurnRight);
-		moveOrder.Add (Game.MoveType.TurnLeft);
 		moveOrder.Add (Game.MoveType.BackLeft);
 		moveOrder.Add (Game.MoveType.BackRight);
 		moveOrder.Add (Game.MoveType.ForwardTurnRight);
@@ -134,7 +137,6 @@ public class Algorithm : MonoBehaviour {
 				}
 			}
 
-
 			//End if the shortest path is not shorter than the bestPath
 			if (bestPath != null)
 			{
@@ -194,6 +196,7 @@ public class Algorithm : MonoBehaviour {
 								}
 							}
 						}
+
 
 						//If the destination doesn't already exist, the unit is allowed to move to
 						//the target position, add the new path to the current positions
@@ -599,6 +602,11 @@ public class Algorithm : MonoBehaviour {
 		return visibleSquares;
 	}
 
+	private bool isInVision(Vector2 position)
+	{
+		return false;
+	}
+
 	public void AITurn()
 	{
 		Debug.Log ("MY TURN!");
@@ -610,7 +618,60 @@ public class Algorithm : MonoBehaviour {
 
 	private void placeBlips()
 	{
+		List<int> deploymentAreaIndexes = new List<int>();
+		for (int i = 0; i < map.otherAreas.Length; i++)
+		{
+			deploymentAreaIndexes.Add (-1);
+			int nearestEntrance = 0;
+			for (int j = 0; j < map.otherAreas.Length; j++)
+			{
+				DeploymentArea area = map.otherAreas[j];
+				if (!isInVision(area.adjacentPosition) &&
+				    !map.isOccupied(area.adjacentPosition) &&
+				    !deploymentAreaIndexes.Contains (j))
+				{
+					//If the position is the nearest so far, make it the current nearest
+					if (nearestEntrance == 0 ||
+					    distanceToSM(new Vector2(-1 - j, 0)) < nearestEntrance)
+					{
+						nearestEntrance = distanceToSM(new Vector2(-1 - j, 0));
+						deploymentAreaIndexes[i] = j;
+					}
+				}
+			}
+		}
 
+		while (deploymentAreaIndexes.Contains (-1))
+		{
+			deploymentAreaIndexes.Remove (-1);
+		}
+
+
+		if (deploymentAreaIndexes.Count == 0 &&
+		    map.otherAreas.Length > 0)
+		{
+			deploymentAreaIndexes.Add (0);
+		}
+
+		if (deploymentAreaIndexes.Count > 0)
+		{
+			for (int i = 0; i < game.blipsPerTurn; i++)
+			{
+				int noOfGSVar = Random.Range(0, 11);
+				if (noOfGSVar < 4)
+				{
+					game.deployBlip(deploymentAreaIndexes[i % deploymentAreaIndexes.Count], 1);
+				}
+				else if (noOfGSVar < 7)
+				{
+					game.deployBlip(deploymentAreaIndexes[i % deploymentAreaIndexes.Count], 2);
+				}
+				else
+				{
+					game.deployBlip(deploymentAreaIndexes[i % deploymentAreaIndexes.Count], 3);
+				}
+			}
+		}
 	}
 
 	private void revealBlips()
@@ -716,7 +777,7 @@ public class Algorithm : MonoBehaviour {
 		//Find the available Unit closest to a Space Marine
 		foreach (Unit unit in availableUnits)
 		{
-			int distance = distanceToSM(unit);
+			int distance = distanceToSM(unit.position);
 			// If the Unit can't get to any Space Marines
 			if (distance == 0)
 			{
@@ -741,14 +802,28 @@ public class Algorithm : MonoBehaviour {
 	//Perform the next action along the path. Returns whether an action was taken
 	private bool nextAction(Unit executor, Path travelPath)
 	{
-		//Find the path to the next square in the travelPath
+		Path usePath = null;
+		//Find the first occupant along the travel path, and make the unit
+		//move towards next to that position
+		Unit blockage = firstOccupant(executor, travelPath);
+		if (blockage != null)
+		{
+			usePath = goToCardinal (executor, blockage.position, false, false, false);
+		}
+		//If already next to the position
+		if (usePath == null || usePath.path.Count == 0)
+		{
+			usePath = travelPath;
+		}
+
+		//Find the path to the next square in the usePath
 		Path nextPos = addMovement (new Path (executor.position, executor.facing),
-		                               travelPath.path [0],
+		                               usePath.path [0],
 		                               UnitData.getMoveSet (executor.unitType));
 		//If the target square isn't occupied, or the movement is turning on the spot
 		if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
 		{
-			return move(executor, nextPos);
+			return move (executor, nextPos);
 		}
 		else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
 		{
@@ -773,9 +848,18 @@ public class Algorithm : MonoBehaviour {
 		return false;
 	}
 
-	private int distanceToSM(Unit unit)
+	private int distanceToSM(Vector2 position)
 	{
-		Path toSM = findNearestSM (unit, true, true, true, Game.EntityType.Blip);
+		Game.Facing facing = Game.Facing.North;
+		//If it starts in a deployment area
+		if (position.x < 0)
+		{
+			if (map.otherAreas.Length > -1 - (int)position.x)
+			{
+				facing = map.otherAreas[-1 - (int)position.x].relativePosition;
+			}
+		}
+		Path toSM = findNearestSM (position, facing, true, true, true, Game.EntityType.Blip);
 		if (toSM != null)
 		{
 			return toSM.APCost;
@@ -785,7 +869,7 @@ public class Algorithm : MonoBehaviour {
 
 	private Unit nearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
 	{
-		Path toSM = findNearestSM (unit, true, true, true, Game.EntityType.Blip);
+		Path toSM = findNearestSM (unit.position, unit.facing, true, true, true, Game.EntityType.Blip);
 		if (toSM != null)
 		{
 			if (map.isOccupied (toSM.finalSquare))
@@ -798,16 +882,16 @@ public class Algorithm : MonoBehaviour {
 
 	private Path findNearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
 	{
-		return findNearestSM (unit, ignoreDoors, ignoreGS, ignoreSM, unit.unitType);
+		return findNearestSM (unit.position, unit.facing, ignoreDoors, ignoreGS, ignoreSM, unit.unitType);
 	}
 
-	private Path findNearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM, Game.EntityType moveSet)
+	private Path findNearestSM(Vector2 position, Game.Facing facing, bool ignoreDoors, bool ignoreGS, bool ignoreSM, Game.EntityType moveSet)
 	{
 		Path shortestPath = null;
 		//Check each Space Marine to be the closest to the unit
 		foreach(Unit SM in map.getUnits (Game.EntityType.SM))
 		{
-			Path newPath = getPath (unit.position, unit.facing, SM.position, unit.facing,
+			Path newPath = getPath (position, facing, SM.position, facing,
 			                        UnitData.getMoveSet (moveSet),
 			                        ignoreDoors, ignoreGS, ignoreSM);
 
@@ -910,5 +994,20 @@ public class Algorithm : MonoBehaviour {
 		}
 
 		return shortestPath;
+	}
+
+	private Unit firstOccupant(Unit unit, Path path)
+	{
+		Path testPath = new Path (path.initialSquare, path.initialFacing);
+		for (int i = 0; i < path.path.Count; i++)
+		{
+			testPath = addMovement(testPath, path.path[i], UnitData.getMoveSet (unit.unitType));
+			if (map.isOccupied (testPath.finalSquare) &&
+			    testPath.finalSquare != testPath.initialSquare)
+			{
+				return map.getOccupant (testPath.finalSquare);
+			}
+		}
+		return null;
 	}
 }
