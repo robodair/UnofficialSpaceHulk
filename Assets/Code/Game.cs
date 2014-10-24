@@ -313,6 +313,8 @@ public class Game : MonoBehaviour {
 				spaceMarine.isJammed = false;
 				spaceMarine.isOnOverwatch = false;
 			}
+			ioModule.removeJam();
+			ioModule.removeOverwatch();
 		}
 
 		
