@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.6
+ * Version 24-10-14.7
  */
 
 using UnityEngine;
@@ -36,6 +36,7 @@ public class InputOutput : MonoBehaviour {
 	Button btnEndTurn;
 
 	// Color store for selecton/deselection added Alisdair 3-10-2014
+	Unit selectedUnit;
 	Color preSelectionColor;
 
 	// Other action showing declerations Alisdair 4-10-14 
@@ -48,9 +49,10 @@ public class InputOutput : MonoBehaviour {
 	// Float for the elevation of all new units
 	public float unitElevation;
 
-	// Declerations for hint objects Alisdair 5-10-14 
+	// Declerations for hint objects Alisdair 
 	public GameObject overwatchSprite;
 	public GameObject sustainedFireSprite;
+	public GameObject jammedUnitSprite;
 
 	// variables for tracking AP and CP
 	int currentAP;
@@ -464,7 +466,11 @@ public class InputOutput : MonoBehaviour {
 								createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
 								createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
 								createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
-						
+
+								if(action.unitJams){																				// If the unit jammed in this action, display the jammed sprite
+									showJam(action.executor);
+								}
+
 								shootPhaseList.RemoveAt(0); 																		// Move to the next phase
 								break;
 
@@ -709,14 +715,14 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
-		//Debug.LogWarning("Unit selected");
-		//deselect any previously selected units (if there are any)
-		if (gameClass.selectedUnit != null) {
-			deselect ();
-		}
+		//Debug.LogWarning("Unit selected")
+		selectedUnit = unit;
+
+		// store color of the unit
+		preSelectionColor = selectedUnit.gameObject.renderer.material.color;
+
 		//colour the selectedUnit unit
-		preSelectionColor = gameClass.selectedUnit.gameObject.renderer.material.color;
-		gameClass.selectedUnit.gameObject.renderer.material.color = Color.cyan;
+		selectedUnit.gameObject.renderer.material.color = Color.cyan;
 
 		//update the GUI actionst 
 		updateGUIActions(actions);
@@ -740,14 +746,14 @@ public class InputOutput : MonoBehaviour {
 		 */
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
 		//Must change this to a tint later, rather than a full material colour?
-		if (gameClass.selectedUnit != null) {
+		if (selectedUnit != null) {
 			// Hide the sustained fire sprites for the unit
 			if(susFireOnlyOnSelection){
-				removeSusFire(gameClass.selectedUnit);
+				removeSusFire(selectedUnit);
 			}
-			gameClass.selectedUnit.gameObject.renderer.material.color = preSelectionColor;
+			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
 
-			gameClass.selectedUnit = null;
+			selectedUnit = null;
 
 			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
@@ -1225,6 +1231,15 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Removes overwatch sprite from all units.
+	/// </summary>
+	public void removeOverwatch(){
+		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("overWacthSprite")){
+			Destroy(obj);
+		}
+	}
+
+	/// <summary>
 	/// Removes the sustained fire sprites from the units in the list
 	/// </summary>
 	/// <param name="units">Units.</param>
@@ -1539,6 +1554,38 @@ public class InputOutput : MonoBehaviour {
 			unit.sustainedFireTargetSprite.gameObject.SetActive(true);
 		}
 
+	}
+
+	/// <summary>
+	/// Shows the sprite for a jammed unit.
+	/// </summary>
+	/// <param name="unit">Unit.</param>
+	void showJam(Unit unit){
+		//Make a new sprite only if there is not already one in existance
+		if (unit.jammedUnitSprite == null){
+			Vector3 spritePosition = unit.gameObject.transform.position;								// Create the sprites in the correct locations
+			spritePosition.y += 2.5f;
+			unit.jammedUnitSprite = (GameObject) Instantiate(jammedUnitSprite, spritePosition, Quaternion.identity);
+		}
+	}
+
+	/// <summary>
+	/// Removes the jam sprite from a specified unit.
+	/// </summary>
+	/// <param name="unit">Unit.</param>
+	void removeJam(Unit unit){
+		if(unit.jammedUnitSprite != null){
+			Destroy (unit.jammedUnitSprite);
+		}
+		else{
+			Debug.LogError("A unit did not have a Jam sprite to remove");
+		}
+	}
+
+	public void removeJam(){
+		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("jammedSprite")){
+			Destroy(obj);
+		}
 	}
 
 	/// <summary>

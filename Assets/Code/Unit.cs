@@ -45,6 +45,7 @@ public class Unit {
 	public GameObject overwatchSprite;
 	public GameObject sustainedFireSprite;
 	public GameObject sustainedFireTargetSprite;
+	public GameObject jammedUnitSprite;
 
 	public Unit(string name, Game.EntityType unitType,
 	            Vector2 position, Game.Facing facing)
