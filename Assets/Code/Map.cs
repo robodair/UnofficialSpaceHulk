@@ -499,7 +499,7 @@ public class Map : MonoBehaviour {
 				if (square.isOccupied)
 				{
 					//If the door is closed, it is removed
-					if (!square.doorIsOpen)
+					if (!square.doorIsOpen && square.hasDoor)
 					{
 						returnUnit = square.occupant;
 						square.occupant = null;
