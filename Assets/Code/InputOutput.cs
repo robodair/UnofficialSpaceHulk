@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.4
+ * Version 23-10-14.5
  */
 
 using UnityEngine;
@@ -16,7 +16,7 @@ public class InputOutput : MonoBehaviour {
 	public Map mapClass; //Added 11/9/2014 Alisdair
 	public Game gameClass; //Added 11/9/2014 Alisdair 
 
-	GameObject selectedUnit; //Added by Alisdair 11/9/14
+	Unit selectedUnit; //Added by Alisdair 11/9/14
 
 	// UI and Button References added 14/9/14 by Alisdair
 	public GameObject UICanvas;
@@ -88,6 +88,9 @@ public class InputOutput : MonoBehaviour {
 
 	// Gameobject for the end game titles
 	public GameObject endGameUI;
+
+	// Boolean for whether or not to show sustained fire always, or only when unit selected Alisdair 24-10-14
+	public bool susFireOnlyOnSelection;
 
 	// assign the step ammounts in the start method Alisdair 12-10-14
 	public void Start(){
@@ -715,13 +718,13 @@ public class InputOutput : MonoBehaviour {
 		}
 
 		//assign the variable to the new unit
-		selectedUnit = unit.gameObject;
+		selectedUnit = unit;
 
 
 
 		//colour the selectedUnit unit
-		preSelectionColor = selectedUnit.renderer.material.color;
-		selectedUnit.renderer.material.color = Color.cyan;
+		preSelectionColor = selectedUnit.gameObject.renderer.material.color;
+		selectedUnit.gameObject.renderer.material.color = Color.cyan;
 
 		//update the GUI actionst 
 		updateGUIActions(actions);
@@ -731,17 +734,28 @@ public class InputOutput : MonoBehaviour {
 		currentCP = gameClass.remainingCP;
 		//Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
 		updateCPAP(0);
+
+
+		// Show the sustained fire sprites if the unit has any
+		if(susFireOnlyOnSelection){
+			showSusFire(unit);
+		}
 	}
 
 	public void deselect(){ //Filled by Alisdair 11/9/2014
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
-		//Debug.LogWarning("Unit deselected");
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
-		//Must change this to a tint later, rather than a full material colour
+		//Must change this to a tint later, rather than a full material colour?
+		Debug.Log ("Deselecting, selected unit:" + selectedUnit);
 		if (selectedUnit != null) {
-			selectedUnit.renderer.material.color = preSelectionColor;
+			// Hide the sustained fire sprites for the unit
+			if(susFireOnlyOnSelection){
+				Debug.Log ("Removing sustained fire sprites");
+				removeSusFire(selectedUnit);
+			}
+			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
 
 			selectedUnit = null;
 
@@ -754,6 +768,8 @@ public class InputOutput : MonoBehaviour {
 		else {
 			Debug.LogWarning ("There is not a unit selected.");
 		}
+
+
 
 	}
 
@@ -1231,6 +1247,14 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	void removeSusFire(Unit unit){
+		Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
+		if (unit.hasSustainedFire){
+			unit.sustainedFireSprite.gameObject.SetActive(false);
+			unit.sustainedFireTargetSprite.gameObject.SetActive(false);
+		}
+	}
+
 	//Method to update the displayed CP and AP
 	void updateCPAP(int aPUsed){
 		//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
@@ -1429,8 +1453,8 @@ public class InputOutput : MonoBehaviour {
 		
 		previousAction = showActionsList[0];
 		updateCPAP(action.APCost);
-		if (showActionsList[0].sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
-			showSusFire(showActionsList[0].sustainedFireChanged);
+		if (action.sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
+			showSusFire(action.sustainedFireChanged);
 		if (attackPhaseList.Count > 0)
 			attackPhaseList.RemoveAt(0);
 		if (shootPhaseList.Count > 0)
@@ -1439,7 +1463,6 @@ public class InputOutput : MonoBehaviour {
 		attackSuccessful = false; 																		//Reset bools for use in next attack action
 		isFirstLoopofAction = true;
 		refreshBlipCounts();
-		showSusFire(action.sustainedFireChanged);
 		removeSusFire(action.sustainedFireLost);
 		removeOverwatch(action.lostOverwatch);
 		renderers.Clear();
@@ -1498,6 +1521,9 @@ public class InputOutput : MonoBehaviour {
 				Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+				if(susFireOnlyOnSelection){
+					entry.Key.sustainedFireSprite.SetActive(false);
+				}
 			}
 
 			if (entry.Value != null){																		// Destroy the old sprite and create a new one (the piece may have changed position)
@@ -1505,9 +1531,24 @@ public class InputOutput : MonoBehaviour {
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+				if(susFireOnlyOnSelection){
+					entry.Key.sustainedFireTargetSprite.SetActive(false);
+				}
 			}
 
 		}
+	}
+
+	/// <summary>
+	/// Shows the sus fire sustained fire sprites for a specific unit
+	/// </summary>
+	/// <param name="unit">Unit.</param>
+	void showSusFire(Unit unit){
+		if (unit.hasSustainedFire){
+			unit.sustainedFireSprite.gameObject.SetActive(true);
+			unit.sustainedFireTargetSprite.gameObject.SetActive(true);
+		}
+
 	}
 
 	/// <summary>
