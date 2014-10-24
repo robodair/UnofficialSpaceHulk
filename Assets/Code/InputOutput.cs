@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.2
+ * Version 23-10-14.3
  */
 
 using UnityEngine;
@@ -69,15 +69,12 @@ public class InputOutput : MonoBehaviour {
 	Quaternion aimRot = Quaternion.identity; // Initially setup the aim rotation.
 
 	// Variables for showing attack actions
-	enum AttackPhase{RotateTowards, MoveTowards, Flash, MoveBack, UnitDeath, RotateBack}; 	// Stages of a melee attack
+	enum AttackPhase{RotateTowards, MoveTowards,  MoveBack, UnitDeath, RotateBack}; 	// Stages of a melee attack
 	List <AttackPhase> attackPhaseList = new List<AttackPhase>();							// The list to store the phases of the attack
 	Vector3 exeInitPos = new Vector3();														// The store of the original unit position
 	Vector3 exeUnitAttackPos = new Vector3();												// The position to move the unit to for the attack animation 
 	public static float FLASH_WAIT = 0.2f;													// The length in seconds of a flash on or off stage
 	public static int ALLOWED_NUM_FLASHES = 5;												// The number of flashes in a successful attack
-	int numFlashes;																			// The number of flashes already gone
-	float timeStore = 0;																	// Variable used for storing the time the flash has been active
-	Color preFlashColor;																	// Variable used for storing the color of the unit before flashing it for an attack
 	List<Renderer> renderers = new List<Renderer>();
 
 	// Variables for dice
@@ -283,7 +280,6 @@ public class InputOutput : MonoBehaviour {
 							if (action.destroyedUnits.Count > 0){ 																	// Determine if the attack was successful (for use when creating bullets)
 								attackSuccessful = true;
 								//Debug.LogWarning("Melee attack to be successful");
-								attackPhaseList.Add(AttackPhase.Flash);																// Add the flashing of the attacked unit
 								attackPhaseList.Add(AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
 							}
 							
@@ -310,31 +306,6 @@ public class InputOutput : MonoBehaviour {
 								if (exePos == exeUnitAttackPos){
 									attackPhaseList.RemoveAt(0); 																	// Move to the next phase
 								}	
-								break;
-								
-							case (AttackPhase.Flash): 																				// Flash the target a colour to indicate that an attack is taking place
-								
-								if (action.target.gameObject.renderer.material.color != Color.yellow)								// Store the original color of the unit
-									preFlashColor = new Color (action.target.gameObject.renderer.material.color.r, action.target.gameObject.renderer.material.color.g, action.target.gameObject.renderer.material.color.b);
-
-								if (timeStore >= FLASH_WAIT){																		// If the timer is equal to the wait time, change the color and reset the timer
-									if (action.target.gameObject.renderer.material.color != Color.yellow)
-									{
-										action.target.gameObject.renderer.material.color = Color.yellow;
-									}
-
-									else 
-									{
-										action.target.gameObject.renderer.material.color = preFlashColor;
-										
-									}
-									timeStore = 0f;
-									numFlashes++;
-								}
-								if (numFlashes >= ALLOWED_NUM_FLASHES){																// If the allowed number of flashes has been reached, move to the next phase
-									attackPhaseList.RemoveAt(0);
-								}
-									timeStore += Time.deltaTime;
 								break;
 
 							case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
