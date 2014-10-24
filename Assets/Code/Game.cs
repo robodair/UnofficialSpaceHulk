@@ -98,6 +98,9 @@ public class Game : MonoBehaviour {
 	//Gave a random value to CP at the beginning of the game, and made
 	//it correctly display as such
 
+	//Ian Mallett 24.10.14
+	//Made the deployBlip method work in any gameState
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -409,23 +412,16 @@ public class Game : MonoBehaviour {
 	//parameter is the index of the deploymentArea in the map.
 	public void deployBlip(int deploymentArea, int gsInBlip)
 	{
-		if (gameState == GameState.DeploymentPhase)
+		if (gameMap.otherAreas.Length > deploymentArea)
 		{
-			if (gameMap.otherAreas.Length > deploymentArea)
-			{
-				DeploymentArea targetArea = gameMap.otherAreas[deploymentArea];
-				Unit blip = new Unit("Blip", EntityType.Blip, new Vector2(-1 - deploymentArea, 0), targetArea.relativePosition);
-				gameMap.placeUnit (blip);
-				ioModule.placeUnit (blip);
-			}
-			else
-			{
-				Debug.LogError("No such deploymentArea for \"deployBlip\" method");
-			}
+			DeploymentArea targetArea = gameMap.otherAreas[deploymentArea];
+			Unit blip = new Unit("Blip", EntityType.Blip, new Vector2(-1 - deploymentArea, 0), targetArea.relativePosition);
+			gameMap.placeUnit (blip);
+			ioModule.placeUnit (blip);
 		}
 		else
 		{
-			Debug.LogError("\"deployBlip\" method called in an invalid GameState");
+			Debug.LogError("No such deploymentArea for \"deployBlip\" method");
 		}
 	}
 
