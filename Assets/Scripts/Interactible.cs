@@ -93,7 +93,6 @@ public class Interactible : MonoBehaviour {
 			red = gameObject.renderer.material.color.r;
 			green = gameObject.renderer.material.color.g;
 			blue = gameObject.renderer.material.color.b;
-			Debug.LogWarning(red + ", " + green+ ", " + blue);
 			if(gameController.gameState != Game.GameState.Reveal)
 			{
 				if(gameObject.renderer.material.color == Color.blue)

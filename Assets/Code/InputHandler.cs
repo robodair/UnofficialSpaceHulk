@@ -158,24 +158,15 @@ public class InputHandler : MonoBehaviour {
 	//Once the facing selection has been done, creates an ActionManager to handle the movement
 	public void orientationClicked (Game.Facing facing)
 	{
-		Debug.Log("pineapple");
-
 		ActionManager actionManager = new ActionManager (gameController.selectedUnit, Game.ActionType.Move);
-		Debug.Log("pineapple");
 
 		actionManager.path = gameController.algorithm.getPath (gameController.selectedUnit.position, gameController.selectedUnit.facing, 
 		                                                       moveTargetSquare, facing, 
 		                                                       UnitData.getMoveSet (gameController.selectedUnit.unitType));
-		Debug.Log("pineapple");
-
 		actionManager.performAction();
-		Debug.Log("pineapple");
 
 		gameController.changeGameState(Game.GameState.Inactive);
-		Debug.Log("pineapple");
-
 		facingInProgress = false;
-		Debug.Log("pineapple");
 	}
 
 	//Sets the GameState to AttackSelection, enabling user to start inputting the attack command
