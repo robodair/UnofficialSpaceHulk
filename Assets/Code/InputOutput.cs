@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.3
+ * Version 23-10-14.0
  */
 
 using UnityEngine;
@@ -107,9 +107,11 @@ public class InputOutput : MonoBehaviour {
 					// complete the action and remove the action object from the list
 					// else, leave the action to be iterated again in the next frame
 
-			if(showActionsList.Count != 0){
+			if(showActionsList.Count > 0){
 				//Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
-				gameClass.changeGameState(Game.GameState.ShowAction);//Change the state to showaction state
+				if {gameClass.gameState != Game.GameState.ShowAction){
+					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
+					}
 				Action action = showActionsList[0];
 				//Debug.Log ("The action is of type: " + action.actionType);
 				
@@ -1439,11 +1441,20 @@ public class InputOutput : MonoBehaviour {
 
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
-			gameClass.changeGameState(Game.GameState.Inactive);
-			if (gameClass.unitSelected){
-				gameClass.changeGameState(Game.GameState.InactiveSelected);
-				gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+			if(gameClass.thisPlayer == gameClass.playerTurn){ 											// If it is the active player turn, change back to inactive after showing the sequence
+
+				if (gameClass.unitSelected){
+					gameClass.changeGameState(Game.GameState.InactiveSelected);							
+					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+				}
+				else{
+					gameClass.changeGameState(Game.GameState.Inactive);
+				}
 			}
+			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
+				gameClass.changeGameState(Game.GameState.NetworkWait)
+			}
+
 		}
 
 		if(action.gameOver){																			// Check if the game has ended
@@ -1463,6 +1474,7 @@ public class InputOutput : MonoBehaviour {
 				Destroy (unit.gameObject);																// Destroy the gameobjects that are to be removed
 			}
 		}
+	
 
 	}
 
