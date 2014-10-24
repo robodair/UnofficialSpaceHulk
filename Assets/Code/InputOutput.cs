@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.1
+ * Version 23-10-14.2
  */
 
 using UnityEngine;
@@ -109,7 +109,7 @@ public class InputOutput : MonoBehaviour {
 
 			if(showActionsList.Count > 0){
 				//Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
-				if {gameClass.gameState != Game.GameState.ShowAction){
+				if (gameClass.gameState != Game.GameState.ShowAction){
 					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
 					}
 				Action action = showActionsList[0];
@@ -127,6 +127,7 @@ public class InputOutput : MonoBehaviour {
 				Unit tarUnit;
 
 				if (isFirstLoopofAction){													// Display the dice roll on the first loop of the action
+					resetDice();															// Clear the dice first in case the action doesn't have dice to display
 					displayDice(action.diceRoll);
 				}
 
@@ -585,6 +586,9 @@ public class InputOutput : MonoBehaviour {
 		gSDie1 = GameObject.Find("GSDie1");
 		gSDie2 = GameObject.Find("GSDie2");
 		gSDie3 = GameObject.Find("GSDie3");
+		//Set the dice to show X
+		resetDice();
+		
 
 		//Assign the method to call from the end turn button added 2-10-14 Alisdair
 		btnEndTurnGO = GameObject.Find ("BtnTurn");
@@ -1452,7 +1456,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
-				gameClass.changeGameState(Game.GameState.NetworkWait)
+				gameClass.changeGameState(Game.GameState.NetworkWait);
 				if (!gameClass.gameIsMultiplayer){ 														//If the game is not multiplayer, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
 				}
@@ -1536,6 +1540,19 @@ public class InputOutput : MonoBehaviour {
 				}	
 			}
 		}
+	}
+
+	/// <summary>
+	/// Resets the dice roll showing to X's
+	/// </summary>
+	void resetDice(){
+			//SM die
+			sMDie1.GetComponent<Text>().text = "X";
+			sMDie2.GetComponent<Text>().text = "X";
+			//GS die
+			gSDie1.GetComponent<Text>().text = "X";
+			gSDie2.GetComponent<Text>().text = "X";
+			gSDie3.GetComponent<Text>().text = "X";
 	}
 
 	public void continueActionSequence(){
