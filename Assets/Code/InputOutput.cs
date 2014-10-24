@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 24-10-14.7
+ * Version 25-10-14.0
  */
 
 using UnityEngine;
@@ -183,6 +183,7 @@ public class InputOutput : MonoBehaviour {
 
 						//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
 						if (action.executor.overwatchSprite == null){
+						Debug.LogWarning("Creating a new Overwatch Sprite!");
 							action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 						}
 
@@ -267,13 +268,13 @@ public class InputOutput : MonoBehaviour {
 						if (isFirstLoopofAction){
 							renderers.Clear();
 							foreach(Unit un in action.destroyedUnits){
-								Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
+								//Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
 								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());										// Get all the renderer gameobject components that need to be faded
 							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
 							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, action.target.gameObject);
-							Debug.LogWarning("Offset rotation IS: " + offset);
+							//Debug.LogWarning("Offset rotation IS: " + offset);
 							exeUnitAttackPos = Vector3.MoveTowards(exePos, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
 							
 							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
@@ -697,7 +698,7 @@ public class InputOutput : MonoBehaviour {
 
 	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
-		Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
 		updateGUIActions(); //Disable the GUI Actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
@@ -705,7 +706,7 @@ public class InputOutput : MonoBehaviour {
 	//REcieve the array of actions to perform & an ActionManager that calculated the lead up to an involuntary reveal
 	//This is for dealing with Overwatch Alisdair 11-10-14
 	public void showActionSequence(Action[] actions, ActionManager actionManager){
-		Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
 		actionManagers.Add(actionManager);
 		updateGUIActions(); //Disable the GUI actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
@@ -716,14 +717,19 @@ public class InputOutput : MonoBehaviour {
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
 		//Debug.LogWarning("Unit selected")
+		deselect ();
 		selectedUnit = unit;
 
 		// store color of the unit
-		preSelectionColor = selectedUnit.gameObject.renderer.material.color;
+		//Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
+		//Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
+		preSelectionColor = new Color(selectedUnit.gameObject.renderer.material.color.r, selectedUnit.gameObject.renderer.material.color.g, selectedUnit.gameObject.renderer.material.color.b, selectedUnit.gameObject.renderer.material.color.a);
 
 		//colour the selectedUnit unit
+		selectedUnit.gameObject.renderer.material.color = new Color ();
 		selectedUnit.gameObject.renderer.material.color = Color.cyan;
-
+		//Debug.Log ("Changed color: " + selectedUnit.gameObject.renderer.material.color);
+		//Debug.Log ("Pre color recheck: " + preSelectionColor);
 		//update the GUI actionst 
 		updateGUIActions(actions);
 
@@ -744,14 +750,17 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
-		//set the render colour on the selected object back to nothing (if there is a selected unit)
-		//Must change this to a tint later, rather than a full material colour?
+		//set the render colour on the selected object back to what it was before selection
 		if (selectedUnit != null) {
 			// Hide the sustained fire sprites for the unit
 			if(susFireOnlyOnSelection){
 				removeSusFire(selectedUnit);
 			}
+			//Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
+			//Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
+			//Debug.Log ("Color To be: " + preSelectionColor);
 			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
+			//Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
 
 			selectedUnit = null;
 
@@ -1223,9 +1232,9 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
-		//Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
+		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
-			if (unit.overwatchSprite)
+			if (unit.overwatchSprite != null)
 				Destroy(unit.overwatchSprite);
 		}
 	}
@@ -1234,7 +1243,7 @@ public class InputOutput : MonoBehaviour {
 	/// Removes overwatch sprite from all units.
 	/// </summary>
 	public void removeOverwatch(){
-		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("overWacthSprite")){
+		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("overWatchSprite")){
 			Destroy(obj);
 		}
 	}
@@ -1253,7 +1262,7 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	void removeSusFire(Unit unit){
-		Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
+		//Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
 		if (unit.hasSustainedFire){
 			unit.sustainedFireSprite.gameObject.SetActive(false);
 			unit.sustainedFireTargetSprite.gameObject.SetActive(false);
@@ -1474,9 +1483,9 @@ public class InputOutput : MonoBehaviour {
 
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
-			Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
+			//Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
 			if(gameClass.thisPlayer == gameClass.playerTurn){ 											// If it is the active player turn, change back to inactive after showing the sequence
-				Debug.Log ("IT WAS THE CLIENT'S TURN");
+				//Debug.Log ("IT WAS THE CLIENT'S TURN");
 				if (gameClass.unitSelected){
 					gameClass.changeGameState(Game.GameState.InactiveSelected);							
 					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
@@ -1487,14 +1496,14 @@ public class InputOutput : MonoBehaviour {
 			}
 
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
-				Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
+				//Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
 				gameClass.changeGameState(Game.GameState.NetworkWait);
 				if (!gameClass.gameIsMultiplayer){ 														//If the game is not multiplayer, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
-						Debug.Log ("CONTINUED AI");
+						//Debug.Log ("CONTINUED AI");
 				}
 				else{
-					Debug.Log ("DID NOT CONTINUE AI");
+					//Debug.Log ("DID NOT CONTINUE AI");
 				}
 			}
 
