@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 24-10-14.7
+ * Version 25-10-14.0
  */
 
 using UnityEngine;
@@ -716,14 +716,19 @@ public class InputOutput : MonoBehaviour {
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
 		//Debug.LogWarning("Unit selected")
+		deselect ();
 		selectedUnit = unit;
 
 		// store color of the unit
-		preSelectionColor = selectedUnit.gameObject.renderer.material.color;
+		//Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
+		//Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
+		preSelectionColor = new Color(selectedUnit.gameObject.renderer.material.color.r, selectedUnit.gameObject.renderer.material.color.g, selectedUnit.gameObject.renderer.material.color.b, selectedUnit.gameObject.renderer.material.color.a);
 
 		//colour the selectedUnit unit
+		selectedUnit.gameObject.renderer.material.color = new Color ();
 		selectedUnit.gameObject.renderer.material.color = Color.cyan;
-
+		//Debug.Log ("Changed color: " + selectedUnit.gameObject.renderer.material.color);
+		//Debug.Log ("Pre color recheck: " + preSelectionColor);
 		//update the GUI actionst 
 		updateGUIActions(actions);
 
@@ -744,14 +749,17 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
-		//set the render colour on the selected object back to nothing (if there is a selected unit)
-		//Must change this to a tint later, rather than a full material colour?
+		//set the render colour on the selected object back to what it was before selection
 		if (selectedUnit != null) {
 			// Hide the sustained fire sprites for the unit
 			if(susFireOnlyOnSelection){
 				removeSusFire(selectedUnit);
 			}
+			//Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
+			//Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
+			//Debug.Log ("Color To be: " + preSelectionColor);
 			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
+			//Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
 
 			selectedUnit = null;
 
