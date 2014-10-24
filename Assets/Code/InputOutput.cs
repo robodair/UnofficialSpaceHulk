@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.5
+ * Version 23-10-14.6
  */
 
 using UnityEngine;
@@ -15,8 +15,6 @@ public class InputOutput : MonoBehaviour {
 	public GameObject SpaceMarinePrefab, GenestealerPrefab, BlipPrefab, OpenDoorPrefab, ClosedDoorPrefab, BlipDeploymentPiecePrefab; //Added 11/9/2014 Alisdair
 	public Map mapClass; //Added 11/9/2014 Alisdair
 	public Game gameClass; //Added 11/9/2014 Alisdair 
-
-	Unit selectedUnit; //Added by Alisdair 11/9/14
 
 	// UI and Button References added 14/9/14 by Alisdair
 	public GameObject UICanvas;
@@ -713,18 +711,12 @@ public class InputOutput : MonoBehaviour {
 		 */
 		//Debug.LogWarning("Unit selected");
 		//deselect any previously selected units (if there are any)
-		if (selectedUnit != null) {
+		if (gameClass.selectedUnit != null) {
 			deselect ();
 		}
-
-		//assign the variable to the new unit
-		selectedUnit = unit;
-
-
-
 		//colour the selectedUnit unit
-		preSelectionColor = selectedUnit.gameObject.renderer.material.color;
-		selectedUnit.gameObject.renderer.material.color = Color.cyan;
+		preSelectionColor = gameClass.selectedUnit.gameObject.renderer.material.color;
+		gameClass.selectedUnit.gameObject.renderer.material.color = Color.cyan;
 
 		//update the GUI actionst 
 		updateGUIActions(actions);
@@ -748,16 +740,14 @@ public class InputOutput : MonoBehaviour {
 		 */
 		//set the render colour on the selected object back to nothing (if there is a selected unit)
 		//Must change this to a tint later, rather than a full material colour?
-		Debug.Log ("Deselecting, selected unit:" + selectedUnit);
-		if (selectedUnit != null) {
+		if (gameClass.selectedUnit != null) {
 			// Hide the sustained fire sprites for the unit
 			if(susFireOnlyOnSelection){
-				Debug.Log ("Removing sustained fire sprites");
-				removeSusFire(selectedUnit);
+				removeSusFire(gameClass.selectedUnit);
 			}
-			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
+			gameClass.selectedUnit.gameObject.renderer.material.color = preSelectionColor;
 
-			selectedUnit = null;
+			gameClass.selectedUnit = null;
 
 			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
@@ -1616,5 +1606,19 @@ public class InputOutput : MonoBehaviour {
 	public void forceDisplayAPCP(int actionPoints, int commandPoints){
 		unitAPText.GetComponent<Text>().text = "Unit Action Points: " + actionPoints;
 		playerCPText.GetComponent<Text>().text = "Player Command Points: " + commandPoints;
+	}
+
+	/// <summary>
+	/// Hot toggle method for the modes of displaying sustained fire
+	/// </summary>
+	/// <param name="active">If set to <c>true</c> then sustained fire sprites are only shown on selection</param>
+	void susFireOnlyOnSelectedUnit(bool active){
+		susFireOnlyOnSelection = active;
+		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("susFireSprite")){			// deactivate all sustained fire gameobjects
+			obj.SetActive(false);
+		}
+		if (gameClass.selectedUnit != null){																// reselect the currently selected unit if there is one
+			gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+		}
 	}
 }
