@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 23-10-14.3
+ * Version 23-10-14.4
  */
 
 using UnityEngine;
@@ -76,6 +76,7 @@ public class InputOutput : MonoBehaviour {
 	public static float FLASH_WAIT = 0.2f;													// The length in seconds of a flash on or off stage
 	public static int ALLOWED_NUM_FLASHES = 5;												// The number of flashes in a successful attack
 	List<Renderer> renderers = new List<Renderer>();
+	bool exeKilled = false;
 
 	// Variables for dice
 	GameObject sMDie1, sMDie2, gSDie1, gSDie2, gSDie3;
@@ -116,7 +117,7 @@ public class InputOutput : MonoBehaviour {
 				Unit exeUnit = action.executor;
 				Vector3 exePos = action.executor.gameObject.transform.position;
 				Quaternion exeRot = action.executor.gameObject.transform.rotation;
-				exeInitPos = new Vector3(exePos.x, exePos.y, exePos.z);						// Store the initial position of the executor
+				exeInitPos = makePosition(action.executor.position, unitElevation);				// Store the original position of the executor
 				//Debug.Log ("Unit Position: " + exePos);
 				//Debug.Log("Unit Rotation: " + exeRot);
 				
@@ -258,34 +259,45 @@ public class InputOutput : MonoBehaviour {
 								//gs to sm
 								//sm to gs
 								//sm & gs
-						tarUnit = action.target;
-						foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
-							renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
-						}
+						
 						
 						if (isFirstLoopofAction){
+							renderers.Clear();
+							foreach(Unit un in action.destroyedUnits){
+								Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
+								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());										// Get all the renderer gameobject components that need to be faded
+							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
-							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
+							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, action.target.gameObject);
 							Debug.LogWarning("Offset rotation IS: " + offset);
-							
-							exeInitPos = new Vector3(exePos.x, exePos.y, exePos.z); 												// the initial position of the executor unit
-							exeUnitAttackPos = Vector3.MoveTowards(exePos, tarUnit.gameObject.transform.position, 0.5f); 			// Get the position the unit will be when the attack occurs
-
+							exeUnitAttackPos = Vector3.MoveTowards(exePos, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
 							
 							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
 							attackPhaseList.Add(AttackPhase.RotateTowards); 														// Add the rotation phase
 							attackPhaseList.Add(AttackPhase.MoveTowards); 															// Add the moving toward phase
 							
+							bool addEndPhases = true;																				// Bool set to determine if the end phases are needed or not
 							if (action.destroyedUnits.Count > 0){ 																	// Determine if the attack was successful (for use when creating bullets)
 								attackSuccessful = true;
 								//Debug.LogWarning("Melee attack to be successful");
 								attackPhaseList.Add(AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
+								//Check to see if the executor is the one that dies (if it is, do not add the move back and rotate back phases
+								exeKilled = false;
+								foreach(Unit unit in action.destroyedUnits){
+									if (unit == action.executor){
+										addEndPhases = false;
+										exeKilled = true;
+										break;
+									}
+								}
+								
+
 							}
-							
-							attackPhaseList.Add(AttackPhase.MoveBack); 																// add the stage for moving back after the attack action
-							attackPhaseList.Add(AttackPhase.RotateBack);															// Rotate the unit back to it's original facing
-							
+							if(addEndPhases){
+								attackPhaseList.Add(AttackPhase.MoveBack); 																// add the stage for moving back after the attack action
+								attackPhaseList.Add(AttackPhase.RotateBack);															// Rotate the unit back to it's original facing;
+							}
 						}
 
 						switch (attackPhaseList[0]){ 																				// Use a switch for actioning the phases
@@ -309,21 +321,40 @@ public class InputOutput : MonoBehaviour {
 								break;
 
 							case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
-								float alphaLevel = 255;
+								Color color = Color.clear;
 								foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-									Color color = rend.material.color;
-									color.a -= 0.02f;
-									alphaLevel = color.a;
-									rend.material.color = color;
-								}
-								
-								if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
-									if(action.executor.sustainedFireTargetSprite != null){
-										Destroy (action.executor.sustainedFireTargetSprite);
+										color = rend.material.color;
+										color.a -= 0.02f;
+										rend.material.color = color;
 									}
-									Destroy (action.target.gameObject);
-									attackPhaseList.RemoveAt(0); 																	// Move to the next phase
-								}
+									
+									if (color.a <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+										if (action.executor.sustainedFireSprite != null){
+												Destroy (action.executor.sustainedFireSprite);
+										}
+										if (action.executor.sustainedFireTargetSprite != null){
+												Destroy (action.executor.sustainedFireTargetSprite);
+										}
+										if (action.executor.overwatchSprite != null){
+												Destroy (action.executor.overwatchSprite);
+										}
+										if (action.target.sustainedFireSprite != null){
+												Destroy (action.target.sustainedFireSprite);
+										}
+										if (action.target.sustainedFireTargetSprite != null){
+												Destroy (action.target.sustainedFireTargetSprite);
+										}
+										if (action.target.overwatchSprite != null){
+												Destroy (action.target.overwatchSprite);
+										}
+										foreach(Unit unit in action.destroyedUnits){
+											Destroy (unit.gameObject);
+										}
+										attackPhaseList.RemoveAt(0); 																	// Move to the next phase
+										if(exeKilled){
+											finishAction(action);
+										}
+									}
 								break;
 
 							case (AttackPhase.MoveBack):																			// Move the executor gameobject back to it's original position
@@ -335,7 +366,6 @@ public class InputOutput : MonoBehaviour {
 								break;
 								
 							case(AttackPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
-								Debug.LogWarning("RotateBack Phase");
 								//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, rotationBefore, stepRotateAmmount*Time.deltaTime); 
 								// Rotate the Space marine back to the correct direction
 								
