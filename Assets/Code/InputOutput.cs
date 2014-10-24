@@ -1474,8 +1474,9 @@ public class InputOutput : MonoBehaviour {
 
 
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
+			Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
 			if(gameClass.thisPlayer == gameClass.playerTurn){ 											// If it is the active player turn, change back to inactive after showing the sequence
-
+				Debug.Log ("IT WAS THE CLIENT'S TURN");
 				if (gameClass.unitSelected){
 					gameClass.changeGameState(Game.GameState.InactiveSelected);							
 					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
@@ -1484,10 +1485,16 @@ public class InputOutput : MonoBehaviour {
 					gameClass.changeGameState(Game.GameState.Inactive);
 				}
 			}
+
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
+				Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
 				gameClass.changeGameState(Game.GameState.NetworkWait);
 				if (!gameClass.gameIsMultiplayer){ 														//If the game is not multiplayer, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
+						Debug.Log ("CONTINUED AI");
+				}
+				else{
+					Debug.Log ("DID NOT CONTINUE AI");
 				}
 			}
 
