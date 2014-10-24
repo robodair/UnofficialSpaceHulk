@@ -526,10 +526,15 @@ public class Game : MonoBehaviour {
 						return true;
 
 					case ActionType.ToggleDoor:
-						//There must be a door directly in front
+						//There must be a door directly in front, and if it is open, the square can't be occupied
 						if (gameMap.hasDoor(unit.position + ((Vector2)(facingDirection[unit.facing]*Vector2.up))))
 					    {
-							return true;
+							if ((gameMap.isDoorOpen(unit.position + ((Vector2)(facingDirection[unit.facing]*Vector2.up))) &&
+						    	 !gameMap.isOccupied(unit.position + ((Vector2)(facingDirection[unit.facing]*Vector2.up)))) ||
+						    	!gameMap.isDoorOpen(unit.position + ((Vector2)(facingDirection[unit.facing]*Vector2.up))))
+							{
+								return true;
+							}
 						}
 						break;
 
