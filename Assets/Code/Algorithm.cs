@@ -613,7 +613,6 @@ public class Algorithm : MonoBehaviour {
 		placeBlips ();
 		revealBlips();
 		continueAI ();
-		game.setTurn (Game.PlayerType.SM);
 	}
 
 	private void placeBlips()
@@ -691,6 +690,8 @@ public class Algorithm : MonoBehaviour {
 		if (activeUnit == null)
 		{
 			game.setTurn (Game.PlayerType.SM);
+			
+			Debug.Log (game.playerTurn);
 		}
 		else
 		{
