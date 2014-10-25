@@ -263,6 +263,11 @@ public class RevealManager : MonoBehaviour {
 			involuntary = false;
 			//Unpause animations
 			gameController.ioModule.continueActionSequence();
+			if (gameController.playerTurn != gameController.thisPlayer &&
+			    !gameController.gameIsMultiplayer)
+			{
+				gameController.algorithm.continueAI ();
+			}
 		}
 	}
 }

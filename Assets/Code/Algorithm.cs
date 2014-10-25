@@ -948,33 +948,35 @@ public class Algorithm : MonoBehaviour {
 		Path nextPos = addMovement (new Path (executor.position, executor.facing),
 		                               usePath.path [0],
 		                               UnitData.getMoveSet (executor.unitType));
-		//If it is a blip, it cannot move into LoS
-		if (executor.unitType != Game.EntityType.Blip ||
-		    !isInVision (nextPos.finalSquare))
+
+		//If the target square isn't occupied, or the movement is turning on the spot
+		if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
 		{
-			//If the target square isn't occupied, or the movement is turning on the spot
-			if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
+			//If it is a blip, it cannot move into LoS
+			if (executor.unitType != Game.EntityType.Blip ||
+			    !isInVision (nextPos.finalSquare))
 			{
 				return move (executor, nextPos);
+				
 			}
-			else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
+		}
+		else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
+		{
+			Path toDoor = goToCardinal (executor, nextPos.finalSquare, false, false, false);
+			if (toDoor != null)
 			{
-				Path toDoor = goToCardinal (executor, nextPos.finalSquare, false, false, false);
-				if (toDoor != null)
+				if (toDoor.path.Count == 0)
 				{
-					if (toDoor.path.Count == 0)
-					{
-						return openDoor(executor);
-					}
-					else
-					{
-						return nextAction (executor, toDoor);
-					}
+					return openDoor(executor);
 				}
 				else
 				{
-					executor.AP = 0;
+					return nextAction (executor, toDoor);
 				}
+			}
+			else
+			{
+				executor.AP = 0;
 			}
 		}
 		
