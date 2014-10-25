@@ -51,11 +51,30 @@ public static class UnitData{
 			BlipMovements.Add (Game.MoveType.Forward, 1);
 			BlipMovements.Add (Game.MoveType.Left, 1);
 			BlipMovements.Add (Game.MoveType.Right, 1);
-			BlipMovements.Add (Game.MoveType.Back, 2);
+			BlipMovements.Add (Game.MoveType.Back, 1);
 			BlipMovements.Add (Game.MoveType.FrontRight, 1);
 			BlipMovements.Add (Game.MoveType.FrontLeft, 1);
-			BlipMovements.Add (Game.MoveType.BackRight, 2);
-			BlipMovements.Add (Game.MoveType.BackLeft, 2);
+			BlipMovements.Add (Game.MoveType.BackRight, 1);
+			BlipMovements.Add (Game.MoveType.BackLeft, 1);
+			BlipMovements.Add (Game.MoveType.TurnRight, 0);
+			BlipMovements.Add (Game.MoveType.TurnLeft, 0);
+			BlipMovements.Add (Game.MoveType.TurnBack, 0);
+			BlipMovements.Add (Game.MoveType.ForwardTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.ForwardTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.FrontRightTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.FrontRightTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.FrontLeftTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.FrontLeftTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.RightTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.RightTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.LeftTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.LeftTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.BackTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.BackTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.BackRightTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.BackLeftTurnRight, 1);
+			BlipMovements.Add (Game.MoveType.BackLeftTurnLeft, 1);
+			BlipMovements.Add (Game.MoveType.BackRightTurnRight, 1);
 			return BlipMovements;
 			//returns Blip movements if unit is a blip
 		}
