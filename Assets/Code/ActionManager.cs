@@ -56,7 +56,7 @@ public class ActionManager {
 	public void performAction() //Contents modified by Nick Lee 20-10-14
 	{
 		if (actionUsed == Game.ActionType.Move) {
-			moveMethod(); //if action is a movement
+			moveMethod(unit); //if action is a movement
 		}
 		else if (actionUsed == Game.ActionType.Attack) {
 			removeAP (unit, UnitData.getAPCost (actionUsed));
@@ -78,11 +78,11 @@ public class ActionManager {
 		//error message and catching
 	}
 
-	private void update(Game.ActionType actionUpdate)//Created by Nick Lee 16-9-14, modified 20-10-14
+	private void update(Game.ActionType actionUpdate, Unit exe)//Created by Nick Lee 16-9-14, modified 20-10-14
 	{
 		updateLoS ();
 		
-		makeActions (actionUpdate);//make an action array
+		makeActions (actionUpdate, exe);//make an action array
 
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
@@ -131,7 +131,7 @@ public class ActionManager {
 		//makes a new version of the actions list
 	}
 
-	private void moveMethod()//Created by Nick Lee 16-9-14, modified 9-10-14
+	private void moveMethod(Unit mover)//Created by Nick Lee 16-9-14, modified 9-10-14
 	{
 		Path currentPath; //makes a path variable
 		if (!attackMove) {
@@ -149,12 +149,12 @@ public class ActionManager {
 			{
 				Movement = currentPath.path [i];
 
-				removeAP (unit, UnitData.getMoveSet (unit.unitType) [Movement]);//removes required AP from unit
+				removeAP (mover, UnitData.getMoveSet (mover.unitType) [Movement]);//removes required AP from unit
 				moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
-				moving = game.facingDirection [unit.facing] * moving;
-				moving = unit.position + moving; //gets final position
+				moving = game.facingDirection [mover.facing] * moving;
+				moving = mover.position + moving; //gets final position
 
-				Quaternion direction = game.facingDirection [unit.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
+				Quaternion direction = game.facingDirection [mover.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
 				//gets the quaternion from the current facing and the required movement
 				if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
 						compassFacing = Game.Facing.North;	//changes facing to north
@@ -168,16 +168,16 @@ public class ActionManager {
 						Debug.Log ("Invalid unit facing: ActionManager, move method");
 				//error catching and message
 
-				if(unit.position.x < 0f)
+				if(mover.position.x < 0f)
 				{
-					if (game.gameMap.otherAreas.Length > -1 - (int) unit.position.x)
+					if (game.gameMap.otherAreas.Length > -1 - (int) mover.position.x)
 					{
-						moving = game.gameMap.otherAreas[-1 - (int)unit.position.x].adjacentPosition;
-						compassFacing = game.gameMap.otherAreas[-1 - (int)unit.position.x].relativePosition;
+						moving = game.gameMap.otherAreas[-1 - (int)mover.position.x].adjacentPosition;
+						compassFacing = game.gameMap.otherAreas[-1 - (int)mover.position.x].relativePosition;
 					}
 				}
-				game.gameMap.shiftUnit (unit.position, moving, compassFacing);
-				update (Game.ActionType.Move); //update method for move
+				game.gameMap.shiftUnit (mover.position, moving, compassFacing);
+				update (Game.ActionType.Move, mover); //update method for move
 				//moves the unit
 			}
 			else
@@ -190,7 +190,7 @@ public class ActionManager {
 		postAction (); //post action method
 	}
 
-	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-9-14
+	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-10-14
 	{ 
 		Game.Facing defFacing; //defenders facing
 		List<int> defDie = new List<int> (); //defenders dice rolls
@@ -232,7 +232,7 @@ public class ActionManager {
 				kill (attacker);
 				//if defender wins kill attacker
 			}
-			update (Game.ActionType.Attack); //runs update for attack method
+			update (Game.ActionType.Attack, attacker); //runs update for attack method
 			postAction (); //runs postaction
 		} else { //if not facing each other
 			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
@@ -275,12 +275,12 @@ public class ActionManager {
 						//if issue dont change anything
 					}
 				}
-				update (Game.ActionType.Attack); //runs update for attack method
+				update (Game.ActionType.Attack, attacker); //runs update for attack method
 				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
 				//creates path involving the units movement
 				attackMove = true; //sets attack move to true
 				postAction (); //runs postaction
-				moveMethod ();//makes a move
+				moveMethod (defender);//makes a move
 			}
 		}
 	}
@@ -337,7 +337,7 @@ public class ActionManager {
 			if (!overwatchShot)
 				voidOverwatch(shooter);
 		}
-		update (Game.ActionType.Shoot);
+		update (Game.ActionType.Shoot, shooter);
 		postAction ();
 	}
 
@@ -357,14 +357,14 @@ public class ActionManager {
 		else
 			Debug.Log ("no door in front of unit, actionManager, toggledoor");
 		//error catching and message
-		update(Game.ActionType.ToggleDoor);
+		update(Game.ActionType.ToggleDoor, unit);
 		postAction ();
 	}
 
 	private void overwatchMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
 		unit.isOnOverwatch = true; //sets overwatch to true
-		update (Game.ActionType.Overwatch);
+		update (Game.ActionType.Overwatch, unit);
 		postAction ();
 	}
 
@@ -387,7 +387,7 @@ public class ActionManager {
 			}
 	}
 
-	private void makeActions(Game.ActionType actionMade) //Created by Nick Lee 23-9-14, modified 13-10-14
+	private void makeActions(Game.ActionType actionMade, Unit exe) //Created by Nick Lee 23-9-14, modified 13-10-14
 	{
 		actionType = actionMade; //gets action made
 		finishLoS ();
@@ -397,7 +397,7 @@ public class ActionManager {
 			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
-			executor = unit;
+			executor = exe;
 			voidOverwatch(executor);
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
