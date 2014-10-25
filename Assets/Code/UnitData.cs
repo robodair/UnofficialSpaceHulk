@@ -44,7 +44,7 @@ public static class UnitData{
 		}
 	}//untested
 
-	public static Dictionary<Game.MoveType, int> getMoveSet(Game.EntityType unitType) // contents modified by Nick Lee, 16-9-2014
+	public static Dictionary<Game.MoveType, int> getMoveSet(Game.EntityType unitType) // contents modified by Nick Lee, 25-10-2014
 	{//Gets and returns the movement set of each specific unit type
 		if (unitType == Game.EntityType.Blip) {
 			Dictionary<Game.MoveType, int> BlipMovements = new Dictionary<Game.MoveType, int>();
