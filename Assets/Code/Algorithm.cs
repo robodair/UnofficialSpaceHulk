@@ -45,6 +45,12 @@ public class Algorithm : MonoBehaviour {
 	//Ian Mallett 24.10.14
 	//Added functionality to the placeBlips method
 
+	//Ian Mallett 25.10.14
+	//Added functionality to the isInVision method
+	//Added checks to canAttack method whether the unitType can attack.
+	//Added an overload for the getPath method which prevents the path going into Space Marine vision
+	//Prevented blips from moving into Space Marine vision
+
 	public Game game;
 	public Map map;
 
@@ -93,15 +99,21 @@ public class Algorithm : MonoBehaviour {
 	                    Vector2 targetSquare, Game.Facing targetFacing,
 	                    Dictionary<Game.MoveType, int> moveSet)
 	{
-		return getPath (initialSquare, initialFacing, targetSquare, targetFacing, moveSet, false, false, false);
+		return getPath (initialSquare, initialFacing, targetSquare, targetFacing, moveSet, true, false, false, false);
 	}
 
-
+	public Path getPath(Vector2 initialSquare, Game.Facing initialFacing,
+	                    Vector2 targetSquare, Game.Facing targetFacing,
+	                    Dictionary<Game.MoveType, int> moveSet,
+	                    bool canMoveIntoVision)
+	{
+		return getPath (initialSquare, initialFacing, targetSquare, targetFacing, moveSet, canMoveIntoVision, false, false, false);
+	}
 
 	private Path getPath(Vector2 initialSquare, Game.Facing initialFacing,
 						 Vector2 targetSquare, Game.Facing targetFacing,
-						 Dictionary<Game.MoveType, int> moveSet, bool ignoreDoors,
-	                     bool ignoreGenestealers, bool ignoreSpaceMarines)
+						 Dictionary<Game.MoveType, int> moveSet, bool canMoveIntoVision,
+	                     bool ignoreDoors, bool ignoreGenestealers, bool ignoreSpaceMarines)
 	{
 		//Create the set of visited positions
 		List<Path> completedPositions = new List<Path>();
@@ -209,31 +221,35 @@ public class Algorithm : MonoBehaviour {
 								    (ignoreDoors && map.isOccupied (newPath.finalSquare) &&
 								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.Door) ||
 								    (ignoreGenestealers && map.isOccupied (newPath.finalSquare) &&
-								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.GS) ||
+								 	 (map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.GS ||
+								 	  map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.Blip)) ||
 								    (ignoreSpaceMarines && map.isOccupied (newPath.finalSquare) &&
 								 	 map.getOccupant (newPath.finalSquare).unitType == Game.EntityType.SM))
 								{
-									if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
+									if (canMoveIntoVision || !isInVision (newPath.finalSquare))
 									{
-										//Check whether the path reaches the end
-										if (newPath.finalSquare == targetSquare &&
-										    newPath.finalFacing.Equals (targetFacing))
+										if (map.areLinked (currentPath.finalSquare, newPath.finalSquare))
 										{
-											if (bestPath != null)
+											//Check whether the path reaches the end
+											if (newPath.finalSquare == targetSquare &&
+											    newPath.finalFacing.Equals (targetFacing))
 											{
-												if (newPath.APCost < bestPath.APCost)
+												if (bestPath != null)
+												{
+													if (newPath.APCost < bestPath.APCost)
+													{
+														bestPath = newPath;
+													}
+												}
+												else
 												{
 													bestPath = newPath;
 												}
 											}
 											else
 											{
-												bestPath = newPath;
+												currentPositions.Add (newPath);
 											}
-										}
-										else
-										{
-											currentPositions.Add (newPath);
 										}
 									}
 								}
@@ -604,6 +620,16 @@ public class Algorithm : MonoBehaviour {
 
 	private bool isInVision(Vector2 position)
 	{
+		foreach (Unit unit in map.getUnits (Game.EntityType.SM))
+		{
+			foreach (Vector2 lookPos in unit.currentLoS)
+			{
+				if (lookPos == position)
+				{
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
@@ -690,8 +716,7 @@ public class Algorithm : MonoBehaviour {
 		if (activeUnit == null)
 		{
 			game.setTurn (Game.PlayerType.SM);
-			
-			Debug.Log (game.playerTurn);
+
 		}
 		else
 		{
@@ -757,7 +782,7 @@ public class Algorithm : MonoBehaviour {
 	{
 		List<Unit> availableUnits = new List<Unit> ();
 
-		//Check for Genestealers who have already performed an action,
+		//Check for Units who have already performed an action,
 		//and make a list of all genestealers with maximum ap
 		foreach (Unit unit in map.getUnits (unitType))
 		{
@@ -821,28 +846,33 @@ public class Algorithm : MonoBehaviour {
 		Path nextPos = addMovement (new Path (executor.position, executor.facing),
 		                               usePath.path [0],
 		                               UnitData.getMoveSet (executor.unitType));
-		//If the target square isn't occupied, or the movement is turning on the spot
-		if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
+		//If it is a blip, it cannot move into LoS
+		if (executor.unitType != Game.EntityType.Blip ||
+		    !isInVision (nextPos.finalSquare))
 		{
-			return move (executor, nextPos);
-		}
-		else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
-		{
-			Path toDoor = goToCardinal (executor, nextPos.finalSquare, false, false, false);
-			if (toDoor != null)
+			//If the target square isn't occupied, or the movement is turning on the spot
+			if (!map.isOccupied (nextPos.finalSquare) || nextPos.finalSquare == executor.position)
 			{
-				if (toDoor.path.Count == 0)
+				return move (executor, nextPos);
+			}
+			else if (map.getOccupant (nextPos.finalSquare).unitType == Game.EntityType.Door)
+			{
+				Path toDoor = goToCardinal (executor, nextPos.finalSquare, false, false, false);
+				if (toDoor != null)
 				{
-					return openDoor(executor);
+					if (toDoor.path.Count == 0)
+					{
+						return openDoor(executor);
+					}
+					else
+					{
+						return nextAction (executor, toDoor);
+					}
 				}
 				else
 				{
-					return nextAction (executor, toDoor);
+					executor.AP = 0;
 				}
-			}
-			else
-			{
-				executor.AP = 0;
 			}
 		}
 		
@@ -893,7 +923,7 @@ public class Algorithm : MonoBehaviour {
 		foreach(Unit SM in map.getUnits (Game.EntityType.SM))
 		{
 			Path newPath = getPath (position, facing, SM.position, facing,
-			                        UnitData.getMoveSet (moveSet),
+			                        UnitData.getMoveSet (moveSet), true,
 			                        ignoreDoors, ignoreGS, ignoreSM);
 
 			if (shortestPath != null)
@@ -914,6 +944,21 @@ public class Algorithm : MonoBehaviour {
 
 	private bool canAttack(Unit unit)
 	{
+		//If the unit can attack
+		bool hasAttack = false;
+		for (int i = 0; i < UnitData.getActionSet(unit.unitType).Length; i++)
+		{
+			if (UnitData.getActionSet(unit.unitType)[i] == Game.ActionType.Attack)
+			{
+				hasAttack = true;
+			}
+		}
+		if (!hasAttack)
+		{
+			return false;
+		}
+
+		//If there is a target to attack
 		Unit potentialTarget = map.getOccupant (unit.position + (Vector2)(game.facingDirection [unit.facing] * Vector2.up));
 		if (potentialTarget != null)
 		{
@@ -980,7 +1025,7 @@ public class Algorithm : MonoBehaviour {
 		{
 			Vector2 testPosition = targetPosition + (Vector2)(game.facingDirection[(Game.Facing)i]*Vector2.up);
 			Path testPath = getPath (unit.position, unit.facing, testPosition, (Game.Facing)((i + 2)%4), UnitData.getMoveSet (unit.unitType),
-			                         ignoreDoors, ignoreGS, ignoreSM);
+			                         true, ignoreDoors, ignoreGS, ignoreSM);
 			if (testPath != null)
 			{
 				if (shortestPath == null)
