@@ -51,6 +51,7 @@ public class Algorithm : MonoBehaviour {
 	//Added an overload for the getPath method which prevents the path going into Space Marine vision
 	//Prevented blips from moving into Space Marine vision
 	//Add blip revealing
+	//Allowed blips to open doors that the Space Marine can see
 
 	public Game game;
 	public Map map;

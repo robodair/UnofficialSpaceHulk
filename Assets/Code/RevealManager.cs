@@ -34,6 +34,9 @@ public class RevealManager : MonoBehaviour {
 	//Made placing a Genestealer remove the square from the selectable squares
 	//Added checks whether the placing square was occupied
 
+	//Ian Mallett 25.10.14
+	//Continued the AI after an involuntary reveal
+
 	public bool currentlyRevealing;
 	public int numberOfGS;
 	public int numberOfGSToPlace;
