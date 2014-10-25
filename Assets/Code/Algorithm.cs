@@ -775,7 +775,7 @@ public class Algorithm : MonoBehaviour {
 	
 	private Game.Facing deployFacing(Vector2 position)
 	{
-		Path toSM = findNearestSM (position, Game.Facing.North, true, true, true, Game.EntityType.Blip);
+		Path toSM = findNearestSM (position, Game.Facing.North, true, true, true, orthoSet());
 		if (toSM != null)
 		{
 			return firstFacing(toSM);
@@ -789,15 +789,9 @@ public class Algorithm : MonoBehaviour {
 	//The initial facing along the given path
 	private Game.Facing firstFacing(Path path)
 	{
-		Dictionary<Game.MoveType, int> moveSet = new Dictionary<Game.MoveType, int> ();
-		moveSet.Add (Game.MoveType.Forward, 1);
-		moveSet.Add (Game.MoveType.Right, 1);
-		moveSet.Add (Game.MoveType.Left, 1);
-		moveSet.Add (Game.MoveType.Back, 1);
+		Path orthoPath = getPath (path.initialSquare, Game.Facing.North, path.finalSquare, Game.Facing.North, orthoSet(), true, true, true, true);
 
-		Path orthoPath = getPath (path.initialSquare, Game.Facing.North, path.finalSquare, Game.Facing.North, moveSet, true, true, true, true);
-
-		Path secondPos = addMovement (new Path(orthoPath.initialSquare, orthoPath.initialFacing), orthoPath.path [0], moveSet);
+		Path secondPos = addMovement (new Path(orthoPath.initialSquare, orthoPath.initialFacing), orthoPath.path [0], orthoSet());
 
 
 
@@ -998,7 +992,7 @@ public class Algorithm : MonoBehaviour {
 				facing = map.otherAreas[-1 - (int)position.x].relativePosition;
 			}
 		}
-		Path toSM = findNearestSM (position, facing, true, true, true, Game.EntityType.Blip);
+		Path toSM = findNearestSM (position, facing, true, true, true, orthoSet());
 		if (toSM != null)
 		{
 			return toSM.APCost;
@@ -1008,7 +1002,7 @@ public class Algorithm : MonoBehaviour {
 
 	private Unit nearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
 	{
-		Path toSM = findNearestSM (unit.position, unit.facing, true, true, true, Game.EntityType.Blip);
+		Path toSM = findNearestSM (unit.position, unit.facing, true, true, true, orthoSet());
 		if (toSM != null)
 		{
 			if (map.isOccupied (toSM.finalSquare))
@@ -1021,17 +1015,17 @@ public class Algorithm : MonoBehaviour {
 
 	private Path findNearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
 	{
-		return findNearestSM (unit.position, unit.facing, ignoreDoors, ignoreGS, ignoreSM, unit.unitType);
+		return findNearestSM (unit.position, unit.facing, ignoreDoors, ignoreGS, ignoreSM, orthoSet());
 	}
 
-	private Path findNearestSM(Vector2 position, Game.Facing facing, bool ignoreDoors, bool ignoreGS, bool ignoreSM, Game.EntityType moveSet)
+	private Path findNearestSM(Vector2 position, Game.Facing facing, bool ignoreDoors, bool ignoreGS, bool ignoreSM, Dictionary<Game.MoveType, int> moveSet)
 	{
 		Path shortestPath = null;
 		//Check each Space Marine to be the closest to the unit
 		foreach(Unit SM in map.getUnits (Game.EntityType.SM))
 		{
 			Path newPath = getPath (position, facing, SM.position, facing,
-			                        UnitData.getMoveSet (moveSet), true,
+			                        moveSet, true,
 			                        ignoreDoors, ignoreGS, ignoreSM);
 
 			if (shortestPath != null)
@@ -1048,6 +1042,17 @@ public class Algorithm : MonoBehaviour {
 		}
 
 		return shortestPath;
+	}
+
+	private Dictionary<Game.MoveType, int> orthoSet()
+	{
+		Dictionary<Game.MoveType, int> moveSet = new Dictionary<Game.MoveType, int> ();
+		moveSet.Add (Game.MoveType.Forward, 1);
+		moveSet.Add (Game.MoveType.Right, 1);
+		moveSet.Add (Game.MoveType.Left, 1);
+		moveSet.Add (Game.MoveType.Back, 1);
+
+		return moveSet;
 	}
 
 	private bool canAttack(Unit unit)
