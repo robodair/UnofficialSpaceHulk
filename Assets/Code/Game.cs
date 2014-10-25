@@ -101,6 +101,10 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 24.10.14
 	//Made the deployBlip method work in any gameState
 
+	//Ian Mallett 25.10.14
+	//Changed the resetAP method so that it would give AP to blips
+	//Changed the deployBlip method so that it would set the blip's AP and noOfGS values.
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -339,16 +343,13 @@ public class Game : MonoBehaviour {
 
 		else
 		{
-			foreach (Square square in gameMap.map)
+			foreach (Unit gs in gameMap.getUnits (EntityType.GS))
 			{
-				if (square.isOccupied)
-				{
-					if (square.occupant.unitType == EntityType.Blip ||
-					    square.occupant.unitType == EntityType.GS)
-					{
-						square.occupant.AP = UnitData.getMaxAP(square.occupant.unitType);
-					}
-				}
+				gs.AP = UnitData.getMaxAP(EntityType.GS);
+			}
+			foreach (Unit blip in gameMap.getUnits(EntityType.Blip))
+			{
+				blip.AP = UnitData.getMaxAP(EntityType.Blip);
 			}
 		}
 	}
@@ -418,6 +419,8 @@ public class Game : MonoBehaviour {
 		{
 			DeploymentArea targetArea = gameMap.otherAreas[deploymentArea];
 			Unit blip = new Unit("Blip", EntityType.Blip, new Vector2(-1 - deploymentArea, 0), targetArea.relativePosition);
+			blip.AP = UnitData.getMaxAP (blip.unitType);
+			blip.noOfGS = gsInBlip;
 			gameMap.placeUnit (blip);
 			ioModule.placeUnit (blip);
 		}
