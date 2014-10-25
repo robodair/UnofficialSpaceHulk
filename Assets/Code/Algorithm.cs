@@ -50,6 +50,7 @@ public class Algorithm : MonoBehaviour {
 	//Added checks to canAttack method whether the unitType can attack.
 	//Added an overload for the getPath method which prevents the path going into Space Marine vision
 	//Prevented blips from moving into Space Marine vision
+	//Add blip revealing
 
 	public Game game;
 	public Map map;
@@ -701,9 +702,116 @@ public class Algorithm : MonoBehaviour {
 
 	private void revealBlips()
 	{
-
+		foreach (Unit blip in map.getUnits (Game.EntityType.Blip))
+		{
+			//The blip must be on the map
+			if (blip.position.x > 0)
+			{
+				revealBlip(blip);
+			}
+		}
 	}
 
+	private void revealBlip (Unit blip)
+	{
+		int gsToPlace = blip.noOfGS;
+		game.ioModule.removeUnit (blip.position);
+		map.removeUnit (blip.position);
+		//Place the central GS
+		game.deploy (Game.EntityType.GS, blip.position, deployFacing (blip.position));
+		gsToPlace--;
+
+		if (gsToPlace > 0)
+		{
+			//Find the available reveal positions
+			List<Vector2> availablePositions = new List<Vector2> ();
+			for (int i = 0; i < 9; i++)
+			{
+				Vector2 checkPos = blip.position + new Vector2((i%3) - 1, (i/3) - 1);
+				if (map.hasSquare(checkPos) && !map.isOccupied (checkPos) && !isInVision (checkPos))
+				{
+					availablePositions.Add (checkPos);
+				}
+			}
+
+			if (availablePositions.Count < gsToPlace)
+			{
+				gsToPlace = availablePositions.Count;
+			}
+
+			//Sort available positions into nearestPositions
+			List<Vector2> nearestPositions = new List<Vector2>();
+			for (int i = 0; i < availablePositions.Count; i++)
+			{
+				Vector2 placePosition = availablePositions[i];
+				for (int j = 0; j <= nearestPositions.Count; j++)
+				{
+					if (j == nearestPositions.Count)
+					{
+						nearestPositions.Add (placePosition);
+						break;
+					}
+					else
+					{
+						if (distanceToSM(placePosition) < distanceToSM(nearestPositions[j]))
+						{
+							nearestPositions.Insert(j, placePosition);
+							break;
+						}
+					}
+				}
+			}
+
+			//Place a Genestealer in each nearest position in order, until out of Genestealers
+			for (int i = 0; i < gsToPlace; i++)
+			{
+				game.deploy (Game.EntityType.GS, nearestPositions[i], deployFacing(nearestPositions[i]));
+			}
+
+
+		}
+
+	}
+	
+	private Game.Facing deployFacing(Vector2 position)
+	{
+		Path toSM = findNearestSM (position, Game.Facing.North, true, true, true, Game.EntityType.Blip);
+		if (toSM != null)
+		{
+			return firstFacing(toSM);
+		}
+		else
+		{
+			return Game.Facing.North;
+		}
+	}
+
+	//The initial facing along the given path
+	private Game.Facing firstFacing(Path path)
+	{
+		Dictionary<Game.MoveType, int> moveSet = new Dictionary<Game.MoveType, int> ();
+		moveSet.Add (Game.MoveType.Forward, 1);
+		moveSet.Add (Game.MoveType.Right, 1);
+		moveSet.Add (Game.MoveType.Left, 1);
+		moveSet.Add (Game.MoveType.Back, 1);
+
+		Path orthoPath = getPath (path.initialSquare, Game.Facing.North, path.finalSquare, Game.Facing.North, moveSet, true, true, true, true);
+
+		Path secondPos = addMovement (new Path(orthoPath.initialSquare, orthoPath.initialFacing), orthoPath.path [0], moveSet);
+
+
+
+		for (int i = 0; i < 4; i++)
+		{
+			Game.Facing facing = (Game.Facing)i;
+			if (secondPos.finalSquare == secondPos.initialSquare + (Vector2)(game.facingDirection[facing]*Vector2.up))
+			{
+				return facing;
+			}
+		}
+		return Game.Facing.North;
+	}
+	
 	public void continueAI()
 	{
 		//Find the next unit
