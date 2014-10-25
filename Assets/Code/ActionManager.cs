@@ -233,6 +233,7 @@ public class ActionManager {
 				//if defender wins kill attacker
 			}
 			update (Game.ActionType.Attack); //runs update for attack method
+			postAction (); //runs postaction
 		} else { //if not facing each other
 			if(attDie[attDie.Count - 1] > defDie[defDie.Count - 1])
 			{
@@ -278,12 +279,10 @@ public class ActionManager {
 				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
 				//creates path involving the units movement
 				attackMove = true; //sets attack move to true
+				postAction (); //runs postaction
 				moveMethod ();//makes a move
 			}
 		}
-
-		//for debugging processes gets die rolls
-		postAction (); //runs postaction
 	}
 
 	private void shootMethod(Unit shooter, Unit shootie)//Created by Nick Lee 18-9-14, modified 21-10-14
