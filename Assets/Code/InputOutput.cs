@@ -1491,7 +1491,8 @@ public class InputOutput : MonoBehaviour {
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
 				//Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
 				gameClass.changeGameState(Game.GameState.NetworkWait);
-				if (!gameClass.gameIsMultiplayer && !action.gameOver){									//If the game is not multiplayer and is not now over, tell the AI to make another movement
+				if (!gameClass.gameIsMultiplayer && !action.gameOver && action.actionType != Game.ActionType.InvoluntaryReveal){									
+																										//If the game is not multiplayer and is not now over, and the last action was not an involuntary reveal, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
 						//Debug.Log ("CONTINUED AI");
 				}
