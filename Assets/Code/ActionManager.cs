@@ -83,12 +83,12 @@ public class ActionManager {
 		updateLoS ();
 		
 		makeActions (actionUpdate, exe);//make an action array
-
+		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				for (int q = 0; q < marines.Count; q++) { 
+				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
 					if(marines[i].currentLoS[q] == unit.position && marines[i].isOnOverwatch)
 					{
 						overwatchShot = true; //set overwatch shot to true
@@ -99,8 +99,8 @@ public class ActionManager {
 					}
 				}
 			}
-		}
-
+		};
+		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
 		blips = game.gameMap.getUnits (Game.EntityType.Blip);
@@ -120,7 +120,7 @@ public class ActionManager {
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip); //runs the involuntary reveal for every blip revealed
 		}
-
+		
 		makePrevLoS (); //makes the previous line of sight
 	}
 
@@ -179,7 +179,7 @@ public class ActionManager {
 					}
 				}
 				game.gameMap.shiftUnit (mover.position, moving, compassFacing);
-				update (Game.ActionType.Move, mover); //update method for move
+				update (Game.ActionType.Move, mover); //update method for move;
 				//moves the unit
 			}
 			else
@@ -293,7 +293,10 @@ public class ActionManager {
 		executie = shootie;
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			Dice.Add (diceRoll ());
+			if(executor.name == executor.name)
+				Dice.Add (diceRoll ());
+			else
+				Dice.Add (diceRoll ());
 		}
 		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray());
 		//rolls 2 die
