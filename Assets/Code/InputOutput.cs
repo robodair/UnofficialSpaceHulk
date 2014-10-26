@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.5
+ * Version 26-10-14.6
  */
 
 using UnityEngine;
@@ -11,93 +11,162 @@ using System.Collections.Generic; // For use of Lists Alisdair 3-10-14
 
 public class InputOutput : MonoBehaviour {
 
-	public GameObject FloorPiecePrefab; //Added 9/9/2014 Alisdair
-	public GameObject SpaceMarinePrefab, GenestealerPrefab, BlipPrefab, OpenDoorPrefab, ClosedDoorPrefab, BlipDeploymentPiecePrefab; //Added 11/9/2014 Alisdair
+	/// ============================
+	/// Class Variable Declarations 
+	/// ============================
+
+		/// ++++++++++++++++
+		/// Public Variables
+		/// ++++++++++++++++
+
+		// GAMEOBJECTS //
+	public GameObject 
+		// Map representation
+	FloorPiecePrefab, 
+	SpaceMarinePrefab, 
+	GenestealerPrefab, 
+	BlipPrefab, 
+	OpenDoorPrefab, 
+	ClosedDoorPrefab, 
+	BlipDeploymentPiecePrefab, 
+		// UI
+	UICanvas,
+	endGameUI,
+		//Facing Selection
+	facingSelectionCanvas,
+	currentFacingSelectionCanvas,
+		// Hint Objects
+	overwatchSprite,
+	sustainedFireSprite,
+	jammedUnitSprite,
+		// Projectiles
+	bulletPrefab, 
+	explosionPrefab;
+
+		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
 	public Game gameClass; //Added 11/9/2014 Alisdair 
+	public InputHandler inputHandlerController; // Rory Bolt 25.9.14
 
-	// UI and Button References added 14/9/14 by Alisdair
-	public GameObject UICanvas;
-	GameObject btnAttackGO, btnShootGO, btnMoveGO, btnToggleDoorGO, btnOverwatchGO, btnRevealGO;
-	Button btnAttack, btnShoot, btnMove, btnToggleDoor, btnOverwatch, btnReveal;
-
-	// UI text field references 14 Sept 14 by Alisdair
-	GameObject unitAPText, playerCPText;
-
-	// Facing Selection canvas Added by Alisdair 17/9/2014
-	public GameObject facingSelectionCanvas;
-	public GameObject currentFacingSelectionCanvas; //Made public 2.10.14 RB
-
-	// Rory Bolt 25.9.14
-	public InputHandler inputHandlerController;
-
-	// End Turn button added 2-10-2014 by Alisdair
-	GameObject btnEndTurnGO;
-	Button btnEndTurn;
-
-	// Color store for selecton/deselection added Alisdair 3-10-2014
-	Unit selectedUnit;
-	Color preSelectionColor;
-
-	// Other action showing declerations Alisdair 4-10-14 
-	List<Action> showActionsList = new List<Action>();
+		// INSPECTOR CONTROLS //
+		// Movement Speeds
 	public float stepAmmount;
 	public int rotateStepMultiplier;
-	float stepMoveAmmount;
-	float stepRotateAmmount;
-
-	// Float for the elevation of all new units
+		// Preferences
+	public bool susFireOnlyOnSelection;
+		// Placement
 	public float unitElevation;
 
-	// Declerations for hint objects Alisdair 
-	public GameObject overwatchSprite;
-	public GameObject sustainedFireSprite;
-	public GameObject jammedUnitSprite;
+		// SCRIPT FEEDBACKS //
+		// Bullets finished their path
+	public bool bulletsComplete = false;
 
-	// variables for tracking AP and CP
+		/// +++++++++++++++++
+		/// Private Variables
+		/// +++++++++++++++++
+
+		// GAMEOBJECTS //
+	GameObject 
+		// Buttons
+	btnAttackGO, 
+	btnShootGO, 
+	btnMoveGO, 
+	btnToggleDoorGO, 
+	btnOverwatchGO, 
+	btnRevealGO,
+	btnEndTurnGO,
+		// Text
+	unitAPText, 
+	playerCPText,
+		// Dice
+	sMDie1, 
+	sMDie2, 
+	gSDie1, 
+	gSDie2, 
+	gSDie3;
+
+		// BUTTONS //
+	Button 
+		// Action Buttons
+	btnAttack, 
+	btnShoot, 
+	btnMove, 
+	btnToggleDoor, 
+	btnOverwatch, 
+	btnReveal,
+		// Turn Button
+	btnEndTurn;
+
+		// SELECTION //
+		// Unit
+	Unit selectedUnit;
+		// Colors
+	Color preSelectionColor;
+
+		// LISTS //
+		// Actions
+	List<Action> showActionsList = new List<Action>();
+		// Action Managers
+	List<ActionManager> actionManagers = new List<ActionManager>();
+		// Action Phases
+	List<ShootPhase> shootPhaseList = new List<ShootPhase>();
+	List <AttackPhase> attackPhaseList = new List<AttackPhase>();
+		// Renderers
+	List<Renderer> renderers = new List<Renderer>();
+
+		// ENUMERATED TYPES //
+		// Phases
+	enum ShootPhase{RotateTowards, CreateBullets, BulletsMoving, UnitDeath, RotateBack};
+	enum AttackPhase{RotateTowards, MoveTowards,  MoveBack, UnitDeath, RotateBack};
+
+		// ACTION DISPLAY //
+		// Movement
+	float stepMoveAmmount;
+	float stepRotateAmmount;
+		// Action & Command Points
 	int currentAP;
 	int currentCP;
-
-	// Variables required for showing shoot actions - Alisdair 15-10-14
-	enum ShootPhase{RotateTowards, CreateBullets, BulletsMoving, UnitDeath, RotateBack}; // The stages of shooting
-	List<ShootPhase> shootPhaseList = new List<ShootPhase>(); // List to add the required phases of a shoot actions
-	public GameObject bulletPrefab, explosionPrefab; 	// Bullet and explosion gameobjects
-	bool isFirstLoopofAction = true; 	// Check to allow storage of a rotation to turn to
-	Quaternion rotationBefore;			// Quaternion of the unit before turning to face the target
-	bool attackSuccessful = false;		// Bool for inclusion of unit death
-	public bool bulletsComplete = false; // Bool for finishing bullets moving phase
-	Quaternion aimRot = Quaternion.identity; // Initially setup the aim rotation.
-
-	// Variables for showing attack actions
-	enum AttackPhase{RotateTowards, MoveTowards,  MoveBack, UnitDeath, RotateBack}; 	// Stages of a melee attack
-	List <AttackPhase> attackPhaseList = new List<AttackPhase>();							// The list to store the phases of the attack
-	Vector3 exeInitPos = new Vector3();														// The store of the original unit position
-	Vector3 exeUnitAttackPos = new Vector3();												// The position to move the unit to for the attack animation 
-	public static float FLASH_WAIT = 0.2f;													// The length in seconds of a flash on or off stage
-	public static int ALLOWED_NUM_FLASHES = 5;												// The number of flashes in a successful attack
-	List<Renderer> renderers = new List<Renderer>();
+		// Processing
+	bool isFirstLoopofAction = true;
+	bool attackSuccessful = false;
 	bool exeKilled = false;
-
-	// Variables for dice
-	GameObject sMDie1, sMDie2, gSDie1, gSDie2, gSDie3;
-
-	// Variables for Involuntary reveal and freezing action sequence
+		// Rotations
+	Quaternion rotationBefore;
+	Quaternion aimRot = Quaternion.identity;
+		// Positions
+	Vector3 exeInitPos = new Vector3();
+	Vector3 exeUnitAttackPos = new Vector3();
+		// Involuntary Reveal
 	Action previousAction;
-	List<ActionManager> actionManagers = new List<ActionManager>();
+		// Pausing and playing
 	bool letActionsPlay = true;
 
-	// Gameobject for the end game titles
-	public GameObject endGameUI;
 
-	// Boolean for whether or not to show sustained fire always, or only when unit selected Alisdair 24-10-14
-	public bool susFireOnlyOnSelection;
+	/// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	/// BEGIN METHODS
+	/// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	// assign the step ammounts in the start method Alisdair 12-10-14
+
+	/// ======================
+	/// Starting the instance
+	/// ======================
+
+	/// <summary>
+	/// Start this instance of InputOutput and assing the varibles that are used to determine the move speed of the units
+	/// </summary>
 	public void Start(){
 		stepMoveAmmount = stepAmmount;
 		stepRotateAmmount = stepAmmount * rotateStepMultiplier;
 	}
 
+
+	/// ================
+	/// Showing Actions
+	/// ================
+
+	/// <summary>
+	/// Called once per frame, update is used to show any actions that need to be shown
+	/// </summary>
 	public void Update(){
 		if (letActionsPlay){
 			// Get the action from the first position in the list
@@ -118,7 +187,7 @@ public class InputOutput : MonoBehaviour {
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
-				Debug.Log(exeUnit.unitType);
+				//Debug.Log(exeUnit.unitType);
 				Vector3 exePos = action.executor.gameObject.transform.position;
 				Quaternion exeRot = action.executor.gameObject.transform.rotation;
 				exeInitPos = makePosition(action.executor.position, unitElevation);				// Store the original position of the executor
@@ -185,7 +254,7 @@ public class InputOutput : MonoBehaviour {
 
 						//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
 						if (action.executor.overwatchSprite == null){
-						Debug.LogWarning("Creating a new Overwatch Sprite!");
+						//Debug.LogWarning("Creating a new Overwatch Sprite!");
 							action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 						}
 
@@ -543,6 +612,11 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+
+	/// =======================================
+	/// Methods for Instantiating the map and UI
+	/// =======================================
+
 	/// <summary>
 	/// Create the Game UI in the scene
 	/// </summary>
@@ -700,22 +774,45 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
+
+	/// ==============================================
+	/// Acceptor methods for Showing action sequences
+	/// ==============================================
+
+	/// <summary>
+	/// Adds the given list of action objects to the list to be shown
+	/// </summary>
+	/// <param name="actions">Action object Array.</param>
 	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
 		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
-		updateGUIActions(); //Disable the GUI Actions Alisdair 13-10-14
+		updateGUIActions(); 																						//Disable the GUI Actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
 
-	//REcieve the array of actions to perform & an ActionManager that calculated the lead up to an involuntary reveal
-	//This is for dealing with Overwatch Alisdair 11-10-14
+	/// <summary>
+	/// Adds the given list of action objects to the list to be shown and stores the action manager for use when the Involuntary reveal action is reached
+	/// This is for dealing with Overwatch
+	/// </summary>
+	/// <param name="actions">Action object Array.</param>
+	/// <param name="actionManager">ActionManager.</param>
 	public void showActionSequence(Action[] actions, ActionManager actionManager){
 		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
 		actionManagers.Add(actionManager);
-		updateGUIActions(); //Disable the GUI actions Alisdair 13-10-14
+		updateGUIActions(); 																						//Disable the GUI actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
 
+
+	/// ==========================
+	/// Selection and Deselection
+	/// ==========================
+
+	/// <summary>
+	/// Shows the selection of the gameobject assigned to the unit given and adjusts the action buttons to reflect the selected unit
+	/// </summary>
+	/// <param name="unit">Unit.</param>
+	/// <param name="actions">Actions.</param>
 	public void selectUnit (Unit unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
@@ -750,6 +847,9 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Deselect the selected unit and disable the Action Buttons
+	/// </summary>
 	public void deselect(){ //Filled by Alisdair 11/9/2014
 		/*
 		 * This method removes the mesh renderer tint on the selected unit
@@ -777,15 +877,25 @@ public class InputOutput : MonoBehaviour {
 		else {
 			Debug.LogWarning ("There is not a unit selected.");
 		}
-
-
-
 	}
 
+	/// =====================================
+	/// Methods for adding and removing units
+	/// =====================================
+
+	/// <summary>
+	/// Show the deployment of units onto the map
+	/// </summary>
+	/// <param name="units">Units to show deployment of.</param>
+	/// <param name="positions">Vector 2 Positions they must be deployed ay.</param>
 	public void showDeployment(Unit[] units, Vector2[] positions){
-		Debug.LogError("ShowDeployment method INCOMPLETE. Refer Alisdair.");
+		Debug.LogError("ShowDeployment method INCOMPLETE.");
 	}
 
+	/// <summary>
+	/// Places the gameobject for the given unit in the correct position
+	/// </summary>
+	/// <param name="unit">Unit.</param>
 	public void placeUnit(Unit unit){ //Added Gameobject Return 22/9/14 Alisdair
 		//Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
 
@@ -873,45 +983,16 @@ public class InputOutput : MonoBehaviour {
 			Destroy(mapClass.getSquare(position).occupant.gameObject);
 	}
 
+	/// ==================
+	/// Resetting The Map
+	/// ==================
+
+	/// <summary>
+	/// Resets the map to the representation held in the game class by removing all the gameobjects that are used to represent the map
+	/// and then calling generateMap
+	/// </summary>
 	public void resetMap(){
 		Debug.LogWarning("Reset Map Called");
-
-		//Added removing old gameobjects to this method - Alisdair 19-9-2014
-
-//		Commented out as uneeded Alisdair 25/9/14
-//
-//		Debug.Log ("Resetting Map - Removing GameObjects");
-//
-//		for (int i = 0; i < mapClass.map.Length; i++) {
-//
-//			Square square = (Square) mapClass.map.GetValue(i);
-//
-//			try{
-//				Destroy(square.occupant.gameObject);
-//			}
-//			catch (UnityException ex)
-//			{
-//				Debug.Log("Exception - no occupant at Position: " + square.position + "Exception: " + ex);
-//			}
-//
-//			try{
-//				Destroy (square.door.gameObject);
-//			}
-//			catch (UnityException ex)
-//			{
-//				Debug.Log("Exception - no door at Position: " + square.position + "Exception: " + ex);
-//			}
-//
-//			try{
-//				Destroy(square.model);
-//			}
-//			catch (UnityException ex)
-//			{
-//				Debug.Log("Exception - no model at Position: " + square.position + "Exception: " + ex);
-//			}
-//		}
-//		
-
 		//Switched to iterating through a list of all the gameobjects, 
 		//This way it doesn't matter if references in the map class are incorrect - Alisdair 25/9/14
 		//http://answers.unity3d.com/questions/297171/find-all-objects-in-a-scene.html
@@ -933,6 +1014,14 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+
+	/// ===========================
+	/// Methods for Action Buttons
+	/// ===========================
+
+	/// <summary>
+	/// Disables all the GUI action buttons.
+	/// </summary>
 	void updateGUIActions(){
 		/*
 		 * This method disables all the action buttons on the GUI
@@ -947,11 +1036,11 @@ public class InputOutput : MonoBehaviour {
 		btnReveal.interactable = false;
 	}
 
+	/// <summary>
+	/// Updates the GUI Action buttons to reflect the commands that are allowed for the specific unit
+	/// </summary>
+	/// <param name="actions">List of ActionTypes that are the butons to enable.</param>
 	void updateGUIActions(Game.ActionType[] actions){
-		/*
-		 * This method is for updating the GUI command buttons to reflect the commands that are allowed for the specific unit
-		 */
-
 		//disable all the buttons
 		updateGUIActions ();
 
@@ -984,27 +1073,30 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Called when the Attack Button is clicked
+	/// </summary>
 	public void btnAttackClicked(){ //Added By Alisdair 14/9/14
-		/*
-		 * This method needs to pass the button click back to the Game class so that action can be taken
-		 */ 
 		inputHandlerController.attack ();
 	}
 
+	/// <summary>
+	/// Called when the Move Button is clicked
+	/// </summary>
 	public void btnMoveClicked(){ //Added By Alisdair 14/9/14
-		/*
-		 * This method needs to pass the button click back to the Game class so that action can be taken
-		 */ 
 		inputHandlerController.movement ();//RB 18/9/14
 	}
 
+	/// <summary>
+	/// Called when the Overwatch Button is clicked
+	/// </summary>
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
-		/*
-		 * This method needs to pass the button click back to the Game class so that action can be taken
-		 */ 
 		inputHandlerController.overwatchClicked();
 	}
 
+	/// <summary>
+	/// Called when the Reveal Button is clicked
+	/// </summary>
 	public void btnRevealClicked(){ //Added By Alisdair 14/9/14
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
@@ -1012,6 +1104,9 @@ public class InputOutput : MonoBehaviour {
 		Debug.LogWarning ("Reveal Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 	}
 
+	/// <summary>
+	/// Called when the Shoot Button is clicked
+	/// </summary>
 	public void btnShootClicked(){ //Added By Alisdair 14/9/14
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
@@ -1019,6 +1114,9 @@ public class InputOutput : MonoBehaviour {
 		inputHandlerController.shoot ();
 	}
 
+	/// <summary>
+	/// Called when the Toggle Door Button is clicked
+	/// </summary>
 	public void btnToggleDoorClicked(){ //Added By Alisdair 14/9/14
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
@@ -1026,14 +1124,27 @@ public class InputOutput : MonoBehaviour {
 		inputHandlerController.toggleDoor ();
 	}
 
-	//Method to create a facing selection canvas (at a specified position)
-	// - Need to add new gameobject decleration to the top of this class for the button canvas
-	// Needs to assign methods to call to the buttons
+
+	/// ================================
+	/// Facing Selection Canvas Creation
+	/// ================================
+
+	/// <summary>
+	/// Instantiates the facing selection canvas at a specified position (through the override method, this method is a shortcut for when all buttons are enabled)
+	/// </summary>
+	/// <param name="position">Position.</param>
 	public void instantiateFacingSelection(Vector2 position){
 		instantiateFacingSelection(position, true, true, true, true);
 	}
 
-	//Second method to create a facing selection canvas, with parameters to select which buttons show up
+	/// <summary>
+	/// Instantiates the facing selection canvas and allows choosing of which buttons are active
+	/// </summary>
+	/// <param name="position">Vector 2 Position of the canvas.</param>
+	/// <param name="north">If set to <c>true</c> north is active.</param>
+	/// <param name="east">If set to <c>true</c> east is active.</param>
+	/// <param name="south">If set to <c>true</c> south is active.</param>
+	/// <param name="west">If set to <c>true</c> west is active.</param>
 	public void instantiateFacingSelection(Vector2 position, bool north, bool east, bool south, bool west){
 		//Create the canvas at the position
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
@@ -1057,9 +1168,13 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
-	//Methods for buttons - Aisdair 17-9-14
-	//- each button needs to call a method on the selection/input class to tell it what button has been clicked
-	// - the selection canvas that is the parent of the button then needs to be destroyed.
+	/// ===========================================
+	/// Methods for Facing Selection Canvas buttons
+	/// ===========================================
+
+	/// <summary>
+	/// Called when the facing selection canvas north button is pressed
+	/// </summary>
 	public void btnFaceNorth(){
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
@@ -1072,6 +1187,9 @@ public class InputOutput : MonoBehaviour {
 		Destroy(currentFacingSelectionCanvas);
 	}
 
+	/// <summary>
+	/// Called when the facing selection canvas east button is pressed
+	/// </summary>
 	public void btnFaceEast(){
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
@@ -1085,6 +1203,9 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
+	/// <summary>
+	/// Called when the facing selection canvas South button is pressed
+	/// </summary>
 	public void btnFaceSouth(){
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
@@ -1098,6 +1219,9 @@ public class InputOutput : MonoBehaviour {
 		
 	}
 
+	/// <summary>
+	/// Called when the facing selection canvas west button is pressed
+	/// </summary>
 	public void btnFaceWest(){
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
@@ -1111,17 +1235,29 @@ public class InputOutput : MonoBehaviour {
 		
 	}
 
-	//Method to convert vector 2 to vector 3 - Alisdair 22-9-14
+	/// <summary>
+	/// Converts the position given from a vector 2 to a vector 3 for the units, at the given elevation
+	/// </summary>
+	/// <returns>The Vector 3 position.</returns>
+	/// <param name="position">Vector 2 Position</param>
+	/// <param name="elevation">Elevation</param>
 	Vector3 makePosition(Vector2 position, float elevation){
 		Vector3 v3 = new Vector3 (position.x, elevation, position.y); 
 		return v3;
 	}
 
-	//Method for positioning open doors
+	/// <summary>
+	/// Converts the position given from a vector 2 to a vector 3 for a open or closed door, at the given elevation and facing
+	/// </summary>
+	/// <returns>The Vector 3 door position</returns>
+	/// <param name="position">Vector 2 Position.</param>
+	/// <param name="elevation">Elevation.</param>
+	/// <param name="facing">Facing of the door.</param>
+	/// <param name="open">If set to <c>true</c> the door is open. (affects the offset perpendicular to the facing)</param>
 	Vector3 makePositionDoor(Vector2 position, float elevation, Game.Facing facing, bool open){
 		float offset = 0.0f;
 		if (open){
-			offset = -0.75f; 
+			offset = -0.75f;
 		}
 		elevation++;
 		Vector3 newPosition;
@@ -1140,7 +1276,11 @@ public class InputOutput : MonoBehaviour {
 	}
 
 
-	//Method to get facing from Game enum Added by Alisdair 22/9/14
+	/// <summary>
+	/// Makes a Quaternion facing for the units from the Game class enumerated Type
+	/// </summary>
+	/// <returns>The Quaternion facing.</returns>
+	/// <param name="facingEnum">Facing Enumarated Type.</param>
 	Quaternion makeFacing(Game.Facing facingEnum){
 
 		switch (facingEnum){
@@ -1165,7 +1305,10 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
-	//When end turn button clicked - Added 2-10-14 Alisdair
+	/// <summary>
+	/// Change the turn when the end turn button is clicked by the player.
+	/// (Playerturn protection not needed here, as the button will not be active at all if it is not the client player's turn.
+	/// </summary>
 	void btnEndTurnClicked(){
 
 		switch (gameClass.playerTurn){
@@ -1199,7 +1342,13 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
-	//Adjust quaternion that makes sense for use with the space marine model - Alisdair 2-10-2014
+	/// <summary>
+	/// Adjusts the rotation by the offset that has been specified for each entity type
+	/// This is for models imported from 3ds Max, which have different axis values from unity
+	/// </summary>
+	/// <returns>The Quaternion rotation.</returns>
+	/// <param name="reference">Reference generated by makeFacing.</param>
+	/// <param name="type">the EntityType of the unit the rotation is for.</param>
 	Quaternion makeRotation(Quaternion reference, Game.EntityType type){
 
 		Quaternion returnQuaternion;
@@ -1254,6 +1403,10 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Hides the sustained fire sprites on the specified unit
+	/// </summary>
+	/// <param name="unit">Unit.</param>
 	void removeSusFire(Unit unit){
 		//Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
 		if (unit.hasSustainedFire && unit.sustainedFireSprite != null){
@@ -1262,7 +1415,10 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
-	//Method to update the displayed CP and AP
+	/// <summary>
+	/// Updates the Action and Command point display by the ammount of AP and CP that is used.
+	/// </summary>
+	/// <param name="aPUsed">A P used.</param>
 	void updateCPAP(int aPUsed){
 		//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
 		// if it does not cut into CP, just display it
@@ -1605,6 +1761,9 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Removes all jam sprites form the map.
+	/// </summary>
 	public void removeJam(){
 		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("jammedSprite")){
 			Destroy(obj);
@@ -1657,10 +1816,17 @@ public class InputOutput : MonoBehaviour {
 			gSDie3.GetComponent<Text>().text = "X";
 	}
 
+
+	/// <summary>
+	/// Continues the action sequence.
+	/// </summary>
 	public void continueActionSequence(){
 		letActionsPlay = true;
 	}
 
+	/// <summary>
+	/// Refreshs the blip counts above the deployment squares
+	/// </summary>
 	void refreshBlipCounts()
 	{
 		foreach(DeploymentArea depArea in mapClass.otherAreas){
@@ -1682,7 +1848,7 @@ public class InputOutput : MonoBehaviour {
 	/// Hot toggle method for the modes of displaying sustained fire
 	/// </summary>
 	/// <param name="active">If set to <c>true</c> then sustained fire sprites are only shown on selection</param>
-	void susFireOnlyOnSelectedUnit(bool active){
+	public void susFireOnlyOnSelectedUnit(bool active){
 		susFireOnlyOnSelection = active;
 		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("susFireSprite")){			// deactivate all sustained fire gameobjects
 			obj.SetActive(false);
