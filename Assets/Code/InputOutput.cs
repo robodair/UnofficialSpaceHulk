@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 25-10-14.0
+ * Version 26-10-14.0
  */
 
 using UnityEngine;
@@ -1498,7 +1498,7 @@ public class InputOutput : MonoBehaviour {
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
 				//Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
 				gameClass.changeGameState(Game.GameState.NetworkWait);
-				if (!gameClass.gameIsMultiplayer){ 														//If the game is not multiplayer, tell the AI to make another movement
+				if (!gameClass.gameIsMultiplayer && !action.gameOver){									//If the game is not multiplayer and is not now over, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
 						//Debug.Log ("CONTINUED AI");
 				}
