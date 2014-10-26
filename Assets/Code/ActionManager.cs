@@ -88,13 +88,15 @@ public class ActionManager {
 		//makes a list of all marine units
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
-				{
-					overwatchShot = true; //set overwatch shot to true
-					shot = true; //set shot equal to true
-					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
-					shot = false;
-					overwatchShot = false; //set overwatch shot to false
+				for (int q = 0; q < marines.Count; q++) { 
+					if(marines[i].currentLoS[q] == unit.position && marines[i].isOnOverwatch)
+					{
+						overwatchShot = true; //set overwatch shot to true
+						shot = true; //set shot equal to true
+						shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+						shot = false;
+						overwatchShot = false; //set overwatch shot to false
+					}
 				}
 			}
 		}
@@ -322,7 +324,10 @@ public class ActionManager {
 				} else {
 					shooter.sustainedFireTarget = target;
 					shooter.hasSustainedFire = true;
-					sustainedFireChanged.Add (shooter, shootie);
+					if(!sustainedFireChanged.ContainsKey(shooter))
+						sustainedFireChanged.Add (shooter, shootie);
+					else
+						sustainedFireChanged[shooter] = shootie;
 					//if not killed changes sustained fire
 				}
 				//non-sustained fire shots (kill on 6's)
@@ -406,7 +411,6 @@ public class ActionManager {
 			unitJams = false; //cant jam
 			destroyedUnits.Clear(); //nothing can be killed by movement
 			voidSustainedFire(executor);
-			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
@@ -509,12 +513,15 @@ public class ActionManager {
 	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			if(marines[i].currentLoS.Contains(centralGene.position) && marines[i].isOnOverwatch)
+			for(int p = 0; p < marines[i].currentLoS.Count; p++)
 			{
-				overwatchShot = true; //set overwatch shot to true
-				shot = true; //set shot equal to true
-				shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
-				overwatchShot = false; //set overwatch shot to false
+				if(marines[i].currentLoS[p] == (centralGene.position) && marines[i].isOnOverwatch)
+				{
+					overwatchShot = true; //set overwatch shot to true
+					shot = true; //set shot equal to true
+					shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
+					overwatchShot = false; //set overwatch shot to false
+				}
 			}
 		}
 	}
@@ -525,7 +532,10 @@ public class ActionManager {
 			voided.sustainedFireTarget = null;
 			voided.hasSustainedFire = false;
 			sustainedFireLost.Add (voided);
-			sustainedFireChanged.Add (voided, null);
+			if(!sustainedFireChanged.ContainsKey(voided))
+				sustainedFireChanged.Add (voided, null);
+			else
+				sustainedFireChanged[voided] = null;
 			//makes the units sustained fire null and makes sure to record change for action list
 		}
 	}
