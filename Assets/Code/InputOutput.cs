@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.2
+ * Version 27-10-14.3
  */
 
 using UnityEngine;
@@ -178,21 +178,21 @@ public class InputOutput : MonoBehaviour {
 					// else, leave the action to be iterated again in the next frame
 
 			if(showActionsList.Count > 0){
-				//Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
+				//if (Debug.isDebugBuild) Debug.Log ("ShowActionsList.Count != 0, incrementing an action");
 				if (gameClass.gameState != Game.GameState.ShowAction){
 					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
 					}
 				Action action = showActionsList[0];
-				//Debug.Log ("The action is of type: " + action.actionType);
+				//if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
-				//Debug.Log(exeUnit.unitType);
+				//if (Debug.isDebugBuild) Debug.Log(exeUnit.unitType);
 				Vector3 exePos = action.executor.gameObject.transform.position;
 				Quaternion exeRot = action.executor.gameObject.transform.rotation;
 				exeInitPos = makePosition(action.executor.position, unitElevation);				// Store the original position of the executor
-				//Debug.Log ("Unit Position: " + exePos);
-				//Debug.Log("Unit Rotation: " + exeRot);
+				//if (Debug.isDebugBuild) Debug.Log ("Unit Position: " + exePos);
+				//if (Debug.isDebugBuild) Debug.Log("Unit Rotation: " + exeRot);
 				
 				// Target unit decleration
 				Unit tarUnit;
@@ -214,13 +214,13 @@ public class InputOutput : MonoBehaviour {
 							isFirstLoopofAction = false;
 							break;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
 						}
-						//Debug.Log("Update entered Move action sector of switch");
+						//if (Debug.isDebugBuild) Debug.Log("Update entered Move action sector of switch");
 					
 						// Create aim pos and rot
 						Vector3 aimPos = makePosition(action.movePosition, unitElevation);
-						//Debug.Log ("Aim position is " + aimPos);
+						//if (Debug.isDebugBuild) Debug.Log ("Aim position is " + aimPos);
 						aimRot = makeRotation(makeFacing(action.moveFacing), exeUnit.unitType);
-						//Debug.Log ("Aim Rotation is: " + aimRot);
+						//if (Debug.isDebugBuild) Debug.Log ("Aim Rotation is: " + aimRot);
 
 						// Make part of the movements
 						action.executor.gameObject.transform.position = Vector3.MoveTowards(exePos, aimPos, stepMoveAmmount*Time.deltaTime);
@@ -229,16 +229,16 @@ public class InputOutput : MonoBehaviour {
 						// Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
 						// also update the unit AP and CP fields
 						if (exePos == aimPos){
-							//Debug.Log("PositionEqual");
+							//if (Debug.isDebugBuild) Debug.Log("PositionEqual");
 							if(exeRot.eulerAngles.y == aimRot.eulerAngles.y){
 								finishAction(action);
 							}
 							else{
-								//Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
+								//if (Debug.isDebugBuild) Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + exeRot.eulerAngles);
 							}
 						}
 						else {
-							//Debug.Log ("Position not Equal, Position target is: " + aimPos);
+							//if (Debug.isDebugBuild) Debug.Log ("Position not Equal, Position target is: " + aimPos);
 						}
 
 						break;
@@ -255,7 +255,7 @@ public class InputOutput : MonoBehaviour {
 
 						//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
 						if (action.executor.overwatchSprite == null){
-						//Debug.LogWarning("Creating a new Overwatch Sprite!");
+						//if (Debug.isDebugBuild) Debug.LogWarning("Creating a new Overwatch Sprite!");
 							action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
 						}
 
@@ -273,10 +273,10 @@ public class InputOutput : MonoBehaviour {
 							break;															// Skip The first frame of a action, ensures smooth movement (no jumps due to processing lag)
 						}
 						// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
-						//Debug.Log("Exe pos:" + exePos);
+						//if (Debug.isDebugBuild) Debug.Log("Exe pos:" + exePos);
 						Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
-						//Debug.Log ("converted to a pos in map: " + doorMapPosition);
-						//Debug.LogError(action.executor.facing);
+						//if (Debug.isDebugBuild) Debug.Log ("converted to a pos in map: " + doorMapPosition);
+						//if (Debug.isDebugBuild) Debug.LogError(action.executor.facing);
 						switch (action.executor.facing){
 							case (Game.Facing.North):
 								doorMapPosition.y++;
@@ -294,14 +294,14 @@ public class InputOutput : MonoBehaviour {
 								doorMapPosition.x--;
 								break;
 						}
-						//Debug.Log ("Final Door Position: " + doorMapPosition);
-						//Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+						//if (Debug.isDebugBuild) Debug.Log ("Final Door Position: " + doorMapPosition);
+						//if (Debug.isDebugBuild) Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
 
 							// Check if the position has a door, Get the door (unit), Toggle the door 
 						Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
 						Unit doorToToggle;
 						// Check that the door is there, then assign the variables for use in toggling
-						//Debug.Log ("DOES POSITION HAVE DOOR?: " + mapClass.hasDoor(doorMapPosition));
+						//if (Debug.isDebugBuild) Debug.Log ("DOES POSITION HAVE DOOR?: " + mapClass.hasDoor(doorMapPosition));
 						if (mapClass.hasDoor(doorMapPosition)){
 							doorToToggle = mapClass.getOccupant(doorMapPosition);
 							//target unit variables being assigned
@@ -338,13 +338,13 @@ public class InputOutput : MonoBehaviour {
 							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
 							renderers.Clear();
 							foreach(Unit un in action.destroyedUnits){
-								//Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
+								//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
 								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());								// Get all the renderer gameobject components that need to be faded
 							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
 							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, action.target.gameObject);
-							//Debug.LogWarning("Offset rotation IS: " + offset);
+							//if (Debug.isDebugBuild) Debug.LogWarning("Offset rotation IS: " + offset);
 							exeUnitAttackPos = Vector3.MoveTowards(exePos, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
 							
 							attackPhaseList.Add(AttackPhase.RotateTowards); 														// Add the rotation phase
@@ -353,7 +353,7 @@ public class InputOutput : MonoBehaviour {
 							bool addEndPhases = true;																				// Bool set to determine if the end phases are needed or not
 							if (action.destroyedUnits.Count > 0){ 																	// Determine if the attack was successful (for use when creating bullets)
 								attackSuccessful = true;
-								//Debug.LogWarning("Melee attack to be successful");
+								//if (Debug.isDebugBuild) Debug.LogWarning("Melee attack to be successful");
 								attackPhaseList.Add(AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
 								//Check to see if the executor is the one that dies (if it is, do not add the move back and rotate back phases
 								exeKilled = false;
@@ -377,7 +377,7 @@ public class InputOutput : MonoBehaviour {
 						switch (attackPhaseList[0]){ 																				// Use a switch for actioning the phases
 								
 							case (AttackPhase.RotateTowards): 																		// Rotating the executor to face the target
-								Debug.LogWarning("Rotate Toward phase");
+								if (Debug.isDebugBuild) Debug.LogWarning("Rotate Toward phase");
 								
 								//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
 								
@@ -464,7 +464,7 @@ public class InputOutput : MonoBehaviour {
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 
 							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
-							Debug.LogWarning("Offset rotation IS: " + offset);
+							if (Debug.isDebugBuild) Debug.LogWarning("Offset rotation IS: " + offset);
 
 							foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
 								renderers.Add (rend);																				// Get all the renderer gameobject components that need to be faded
@@ -479,7 +479,7 @@ public class InputOutput : MonoBehaviour {
 
 								if (action.destroyedUnits.Count > 0){ 																//Determine if the attack was successful (for use when creating bullets)
 									attackSuccessful = true;
-									//Debug.LogWarning("Shoot attack to be successful");
+									//if (Debug.isDebugBuild) Debug.LogWarning("Shoot attack to be successful");
 									shootPhaseList.Add(ShootPhase.UnitDeath); 														//If it is successful add the phase for unit death for the lineup
 								}
 
@@ -490,7 +490,7 @@ public class InputOutput : MonoBehaviour {
 						switch (shootPhaseList[0]){ 																				// Use a switch for actioning the phases
 
 							case (ShootPhase.RotateTowards): 																		// Rotating the SM to face the GS
-								Debug.LogWarning("Rotate Toward phase");
+								if (Debug.isDebugBuild) Debug.LogWarning("Rotate Toward phase");
 								
 								//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
 
@@ -500,13 +500,13 @@ public class InputOutput : MonoBehaviour {
 								break;
 
 							case (ShootPhase.CreateBullets): 																		// Creating the bullets
-								//Debug.LogWarning("Creating the bullets");
+								//if (Debug.isDebugBuild) Debug.LogWarning("Creating the bullets");
 								
 								Vector3 bulStart = new Vector3(exePos.x, unitElevation + 1.0f, exePos.z);							// Create the Vector3 positions for the bullets to start and end at
 								Vector3 bulEnd = new Vector3(tarUnit.gameObject.transform.position.x, unitElevation + 0.8f, tarUnit.gameObject.transform.position.z);
 
 								if (!attackSuccessful){ 																			// If the attack is not successful make the bullets miss
-									//Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
+									//if (Debug.isDebugBuild) Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
 									int rand = Random.Range(1, 4);
 									switch (rand){
 										case 1: 																					// make the bullets miss above
@@ -585,7 +585,7 @@ public class InputOutput : MonoBehaviour {
 								break;
 
 							case(ShootPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
-								Debug.LogWarning("RotateBack Phase");
+								if (Debug.isDebugBuild) Debug.LogWarning("RotateBack Phase");
 								//action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(exeRot, rotationBefore, stepRotateAmmount*Time.deltaTime); 
 																																	// Rotate the Space marine back to the correct direction
 								
@@ -608,7 +608,7 @@ public class InputOutput : MonoBehaviour {
 						break;																											// Call the involuntary reveal method
 
 					default:
-						Debug.LogWarning("Game to show an action now");
+						if (Debug.isDebugBuild) Debug.LogWarning("Game to show an action now");
 						break;
 				}
 			}
@@ -667,7 +667,7 @@ public class InputOutput : MonoBehaviour {
 		playerCPText = GameObject.Find ("CPText");
 		currentAP = 0;
 		currentCP = gameClass.remainingCP;//Changed to reference game class Alisdair 11-10-14
-		//Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
+		//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
 
 		//assign the dice text elements
@@ -761,7 +761,7 @@ public class InputOutput : MonoBehaviour {
 						xPos++;
 						break;
 					default:
-						Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
+						if (Debug.isDebugBuild) Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
 						break;
 				}
 
@@ -788,7 +788,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="actions">Action object Array.</param>
 	//Recieve the array of actions to perform Alisdair
 	public void showActionSequence(Action[] actions){
-		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		//if (Debug.isDebugBuild) Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
 		updateGUIActions(); 																						//Disable the GUI Actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
 	}
@@ -800,7 +800,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="actions">Action object Array.</param>
 	/// <param name="actionManager">ActionManager.</param>
 	public void showActionSequence(Action[] actions, ActionManager actionManager){
-		//Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
+		//if (Debug.isDebugBuild) Debug.Log ("Showing an Action Sequence of length: " + actions.Length);
 		actionManagers.Add(actionManager);
 		updateGUIActions(); 																						//Disable the GUI actions Alisdair 13-10-14
 		showActionsList.AddRange(actions);
@@ -825,24 +825,24 @@ public class InputOutput : MonoBehaviour {
 		selectedUnit = unit;
 		selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
 		setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
-		Debug.Log("Unit selected");
+		// if (Debug.isDebugBuild) Debug.Log("Unit selected");
 		// store color of the unit
-		//Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
-		//Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
+		//if (Debug.isDebugBuild) Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
+		//if (Debug.isDebugBuild) Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
 		preSelectionColor = new Color(selectedUnit.gameObject.renderer.material.color.r, selectedUnit.gameObject.renderer.material.color.g, selectedUnit.gameObject.renderer.material.color.b, selectedUnit.gameObject.renderer.material.color.a);
 
 		//colour the selectedUnit unit
 		selectedUnit.gameObject.renderer.material.color = new Color ();
 		selectedUnit.gameObject.renderer.material.color = Color.cyan;
-		//Debug.Log ("Changed color: " + selectedUnit.gameObject.renderer.material.color);
-		//Debug.Log ("Pre color recheck: " + preSelectionColor);
+		//if (Debug.isDebugBuild) Debug.Log ("Changed color: " + selectedUnit.gameObject.renderer.material.color);
+		//if (Debug.isDebugBuild) Debug.Log ("Pre color recheck: " + preSelectionColor);
 		//update the GUI actionst 
 		updateGUIActions(actions);
 
 		//get and show the AP and CP for the unit
 		currentAP = unit.AP;
 		currentCP = gameClass.remainingCP;
-		//Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
+		//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
 		updateCPAP(0);
 
 
@@ -865,23 +865,23 @@ public class InputOutput : MonoBehaviour {
 			if(susFireOnlyOnSelection){
 				removeSusFire(selectedUnit);
 			}
-			//Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
-			//Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
-			//Debug.Log ("Color To be: " + preSelectionColor);
+			//if (Debug.isDebugBuild) Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
+			//if (Debug.isDebugBuild) Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
+			//if (Debug.isDebugBuild) Debug.Log ("Color To be: " + preSelectionColor);
 			selectedUnit.gameObject.collider.enabled = true;																	// Renable the collider so that the unit can be clicked on again
 			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
-			//Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
+			//if (Debug.isDebugBuild) Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
 
 			selectedUnit = null;
 
 			//set the gui to show no actions & set AP to 0
 			updateGUIActions();
-			//Debug.Log("UpdateCPAP DESELECT with AP: " + 0);
+			//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP DESELECT with AP: " + 0);
 			currentAP = 0;
 			updateCPAP(0);
 		} 
 		else {
-			Debug.Log("There is not a unit currently selected.");
+			// if (Debug.isDebugBuild) Debug.Log("There is not a unit currently selected.");
 		}
 	}
 
@@ -895,7 +895,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="units">Units to show deployment of.</param>
 	/// <param name="positions">Vector 2 Positions they must be deployed ay.</param>
 	public void showDeployment(Unit[] units, Vector2[] positions){
-		Debug.LogError("ShowDeployment method INCOMPLETE.");
+		if (Debug.isDebugBuild) Debug.LogError("ShowDeployment method INCOMPLETE.");
 	}
 
 	/// <summary>
@@ -903,7 +903,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="unit">Unit.</param>
 	public void placeUnit(Unit unit){ //Added Gameobject Return 22/9/14 Alisdair
-		//Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
+		//if (Debug.isDebugBuild) Debug.LogError("placeUnit method partially complete. Refer Alisdair.");
 
 		//Check to see if the unit is being placed in a deployment area
 		if (unit.position.x < 0){ // if the unit is being placed in a deployment area
@@ -936,7 +936,7 @@ public class InputOutput : MonoBehaviour {
 					xPos++;
 					break;
 				default:
-					Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
+					if (Debug.isDebugBuild) Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
 					break;
 			}
 
@@ -947,7 +947,7 @@ public class InputOutput : MonoBehaviour {
 					refreshBlipCounts();
 					break;
 				default:
-					Debug.LogError("There was not a valid unit to place into a deployment area.");
+					if (Debug.isDebugBuild) Debug.LogError("There was not a valid unit to place into a deployment area.");
 					break;
 			}
 		}
@@ -972,7 +972,7 @@ public class InputOutput : MonoBehaviour {
 					unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor object
 					break;
 				default:
-					Debug.LogError("There was not a valid unit to place");
+					if (Debug.isDebugBuild) Debug.LogError("There was not a valid unit to place");
 					break;
 			}
 		}
@@ -998,7 +998,7 @@ public class InputOutput : MonoBehaviour {
 	/// and then calling generateMap
 	/// </summary>
 	public void resetMap(){
-		Debug.LogWarning("Reset Map Called");
+		if (Debug.isDebugBuild) Debug.LogWarning("Reset Map Called");
 		//Switched to iterating through a list of all the gameobjects, 
 		//This way it doesn't matter if references in the map class are incorrect - Alisdair 25/9/14
 		//http://answers.unity3d.com/questions/297171/find-all-objects-in-a-scene.html
@@ -1073,7 +1073,7 @@ public class InputOutput : MonoBehaviour {
 				btnToggleDoor.interactable = true;
 				break;
 			default:
-				Debug.LogError("There was not an ActionType at position: " + i + " in the actions Array. updateGUIActions(Game.ActionType[] actions)");
+				if (Debug.isDebugBuild) Debug.LogError("There was not an ActionType at position: " + i + " in the actions Array. updateGUIActions(Game.ActionType[] actions)");
 				break;
 			}
 		}
@@ -1107,7 +1107,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		Debug.LogWarning ("Reveal Button Clicked, this method is INCOMPLETE. Refer Alisdair");
+		if (Debug.isDebugBuild) Debug.LogWarning ("Reveal Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 	}
 
 	/// <summary>
@@ -1304,7 +1304,7 @@ public class InputOutput : MonoBehaviour {
 				return Quaternion.Euler(0,270,0);
 			
 			default:
-				Debug.LogError("Unable to determine facing set to Quaternion.identity.");
+				if (Debug.isDebugBuild) Debug.LogError("Unable to determine facing set to Quaternion.identity.");
 				return Quaternion.identity;
 				
 			
@@ -1326,7 +1326,7 @@ public class InputOutput : MonoBehaviour {
 				gameClass.setTurn(Game.PlayerType.GS);
 				break;
 			default:
-				Debug.LogError("Houston we have a problem. No player turn is assigned.");
+				if (Debug.isDebugBuild) Debug.LogError("Houston we have a problem. No player turn is assigned.");
 				gameClass.setTurn(Game.PlayerType.GS);
 				break;
 		}
@@ -1381,7 +1381,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
-		Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
+		if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
 			if (unit.overwatchSprite != null)
 				Destroy(unit.overwatchSprite);
@@ -1402,7 +1402,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeSusFire(List <Unit> units){
-		//Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
+		//if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
 		foreach (Unit unit in units){
 			if (unit.sustainedFireSprite != null)
 				Destroy(unit.sustainedFireSprite);
@@ -1415,7 +1415,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="unit">Unit.</param>
 	void removeSusFire(Unit unit){
-		//Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
+		//if (Debug.isDebugBuild) Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
 		if (unit.hasSustainedFire && unit.sustainedFireSprite != null){
 			unit.sustainedFireSprite.gameObject.SetActive(false);
 			unit.sustainedFireTargetSprite.gameObject.SetActive(false);
@@ -1428,22 +1428,22 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="aPUsed">A P used.</param>
 	void updateCPAP(int aPUsed){
 		if(gameClass.playerTurn == gameClass.thisPlayer){												// Check whether there should be any display of point changes to the curent player
-			//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
+			//if (Debug.isDebugBuild) Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
 			// if it does not cut into CP, just display it
 			if (aPUsed < currentAP || aPUsed == currentAP || gameClass.playerTurn == Game.PlayerType.GS){ // Display only AP deduction if the player is genestealer
-				//Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
+				//if (Debug.isDebugBuild) Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
 				currentAP = currentAP - aPUsed;
-				//Debug.Log("New Current AP: " + currentAP);
+				//if (Debug.isDebugBuild) Debug.Log("New Current AP: " + currentAP);
 				unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 				playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
 			}
 			// If it does cut into CP, calculate how much, and then display it
 			else{
-				//Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
+				//if (Debug.isDebugBuild) Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
 				currentCP = (currentAP + currentCP) - aPUsed;
-				//Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
+				//if (Debug.isDebugBuild) Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
 				currentAP = 0;
-				//Debug.Log("Current AP set to: " + currentAP);
+				//if (Debug.isDebugBuild) Debug.Log("Current AP set to: " + currentAP);
 			
 				unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
 				playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
@@ -1505,7 +1505,7 @@ public class InputOutput : MonoBehaviour {
 				case("SW"):
 					return -180f+acuteAngle;	// North to SW is a negative angle
 				default:
-						Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					if (Debug.isDebugBuild) Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
 						return 0f;					// For shooting yourself in the foot you don't need to change rotation
 			}
 
@@ -1528,7 +1528,7 @@ public class InputOutput : MonoBehaviour {
 				case("SW"):
 					return acuteAngle;			// South to SW is positive
 				default:
-					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					if (Debug.isDebugBuild) Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
 					return 0f;					// For shooting yourself in the foot you don't need to change rotation
 			}
 			
@@ -1551,7 +1551,7 @@ public class InputOutput : MonoBehaviour {
 				case("SW"):
 					return 180f-acuteAngle;		// East to SW is positive
 				default:
-					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					if (Debug.isDebugBuild) Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
 					return 0f;					// For shooting yourself in the foot you don't need to change rotation
 			}
 			
@@ -1574,12 +1574,12 @@ public class InputOutput : MonoBehaviour {
 				case("SW"):
 					return -180+acuteAngle;		// West to SW is negative
 				default:
-					Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
+					if (Debug.isDebugBuild) Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
 					return 0f;					// For shooting yourself in the foot you don't need to change rotation
 			}
 
 		default:
-			Debug.LogError ("A unit did not have a facing");
+			if (Debug.isDebugBuild) Debug.LogError ("A unit did not have a facing");
 			return 0f; //if the unit had no facing return no rotation
 		}
 	}	
@@ -1652,9 +1652,9 @@ public class InputOutput : MonoBehaviour {
 		refreshBlipCounts();																			// Display the new blip counts
 		
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
-			//Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
+			//if (Debug.isDebugBuild) Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
 			if(gameClass.thisPlayer == gameClass.playerTurn){ 											// If it is the active player turn, change back to inactive after showing the sequence
-				//Debug.Log ("IT WAS THE CLIENT'S TURN");
+				//if (Debug.isDebugBuild) Debug.Log ("IT WAS THE CLIENT'S TURN");
 				if (gameClass.unitSelected){
 					gameClass.changeGameState(Game.GameState.InactiveSelected);							
 					gameClass.selectUnit(gameClass.selectedUnit.gameObject);
@@ -1665,15 +1665,15 @@ public class InputOutput : MonoBehaviour {
 			}
 
 			if(gameClass.thisPlayer != gameClass.playerTurn){ 											//If it is the other player or AI turn change back to network wait
-				//Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
+				//if (Debug.isDebugBuild) Debug.Log ("IT WAS NOT THE CLIENT'S TURN");
 				gameClass.changeGameState(Game.GameState.NetworkWait);
 				if (!gameClass.gameIsMultiplayer && !action.gameOver && action.actionType != Game.ActionType.InvoluntaryReveal){									
 																										//If the game is not multiplayer and is not now over, and the last action was not an involuntary reveal, tell the AI to make another movement
 						gameClass.algorithm.continueAI();
-						//Debug.Log ("CONTINUED AI");
+						//if (Debug.isDebugBuild) Debug.Log ("CONTINUED AI");
 				}
 				else{
-					//Debug.Log ("DID NOT CONTINUE AI");
+					//if (Debug.isDebugBuild) Debug.Log ("DID NOT CONTINUE AI");
 				}
 			}
 
@@ -1766,7 +1766,7 @@ public class InputOutput : MonoBehaviour {
 			Destroy (unit.jammedUnitSprite);
 		}
 		else{
-			Debug.LogError("A unit did not have a Jam sprite to remove");
+			if (Debug.isDebugBuild) Debug.LogError("A unit did not have a Jam sprite to remove");
 		}
 	}
 
@@ -1867,12 +1867,26 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Enable or disable the door colliders based on the parameter
+	/// </summary>
+	/// <param name="enabled">If set to <c>true</c> colliders are enabled.</param>
 	void setDoorCollidersEnabled(bool enabled){
-		//Debug.Log ("Setting Door Colliders to: " + enabled);
+		//if (Debug.isDebugBuild) Debug.Log ("Setting Door Colliders to: " + enabled);
 		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
 			if (door.activeInHierarchy){
 				door.collider.enabled = enabled;
 			}
 		}
 	}
+
+	/// <summary>
+	/// Removes the peanut butter.
+	/// Functionality Required - IT'S EASTER EGG TIME!
+	/// </summary>
+	void removePeanutButter(){
+		if (Debug.isDebugBuild)
+			if (Debug.isDebugBuild) Debug.Log("PEANUT BUTTER REMOVED");
+	}
+
 }
