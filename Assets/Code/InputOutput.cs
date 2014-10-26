@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.0
+ * Version 26-10-14.
  */
 
 using UnityEngine;
@@ -622,8 +622,8 @@ public class InputOutput : MonoBehaviour {
 			//Vector2 y = Vector3 z (North/South)
 			//Vector2 x = Vector3 x (East/West)
 			//Vector3 y is vertical (leave at constant value)
-			int xPos = (int) positionV2.x;
-			int zPos = (int) positionV2.y;
+			float xPos = positionV2.x;
+			float zPos = positionV2.y;
 
 			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (-0.5f), zPos), Quaternion.identity); //Create the game object in the scene
 			square.model = floorPiece; //Pass reference to the gameobject back to the square
@@ -658,8 +658,8 @@ public class InputOutput : MonoBehaviour {
 				//Vector2 y = Vector3 z (North/South)
 				//Vector2 x = Vector3 x (East/West)
 				//Vector3 y is vertical (leave at constant value)
-				int xPos = (int) adjPos.x;
-				int zPos = (int) adjPos.y;
+				float xPos = adjPos.x;
+				float zPos = adjPos.y;
 
 				//determine the position of the deployment area based on the facing 
 				switch (depArea.relativePosition){
@@ -794,8 +794,8 @@ public class InputOutput : MonoBehaviour {
 			//Vector2 y = Vector3 z (North/South)
 			//Vector2 x = Vector3 x (East/West)
 			//Vector3 y is vertical (leave at constant value)
-			int xPos = (int) adjPos.x;
-			int zPos = (int) adjPos.y;
+			float xPos = adjPos.x;
+			float zPos = adjPos.y;
 
 			//determine the position of the deployment area based on the facing 
 			switch (depArea.relativePosition){
@@ -1109,9 +1109,7 @@ public class InputOutput : MonoBehaviour {
 
 	//Method to convert vector 2 to vector 3 - Alisdair 22-9-14
 	Vector3 makePosition(Vector2 position, float elevation){
-		int xPos = (int) position.x;
-		int zPos = (int) position.y;
-		Vector3 v3 = new Vector3 (xPos, elevation, zPos); 
+		Vector3 v3 = new Vector3 (position.x, elevation, position.y); 
 		return v3;
 	}
 
@@ -1203,21 +1201,14 @@ public class InputOutput : MonoBehaviour {
 	Quaternion makeRotation(Quaternion reference, Game.EntityType type){
 
 		Quaternion returnQuaternion;
-		int x, y, z;
 
 		switch (type){
 			case (Game.EntityType.SM):
-				x = (int) reference.eulerAngles.x + 270;
-				y = (int) reference.eulerAngles.y - 90;
-				z = (int) reference.eulerAngles.z;
-				returnQuaternion = Quaternion.Euler(x, y, z);
-			return returnQuaternion;
+				returnQuaternion = Quaternion.Euler(reference.eulerAngles.x + 270, reference.eulerAngles.y - 90, reference.eulerAngles.z);
+				return returnQuaternion;
 
 			case (Game.EntityType.Door): // Door case added Alisdair 14-10-14
-				x = (int) reference.eulerAngles.x + 90;
-				y = (int) reference.eulerAngles.y;
-				z = (int) reference.eulerAngles.z;
-				returnQuaternion = Quaternion.Euler(x, y, z);
+				returnQuaternion = Quaternion.Euler(reference.eulerAngles.x + 90, reference.eulerAngles.y, reference.eulerAngles.z);
 				return returnQuaternion;
 
 
