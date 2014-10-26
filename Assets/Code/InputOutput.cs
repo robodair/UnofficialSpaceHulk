@@ -397,9 +397,11 @@ public class InputOutput : MonoBehaviour {
 							case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
 								Color color = Color.clear;
 								foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-										color = rend.material.color;
-										color.a -= 0.02f;
-										rend.material.color = color;
+									if(rend != null){
+											color = rend.material.color;
+											color.a -= 0.02f;
+											rend.material.color = color;
+									}
 									}
 									
 									if (color.a <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
@@ -564,10 +566,12 @@ public class InputOutput : MonoBehaviour {
 
 								
 								foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-									Color color = rend.material.color;
-									color.a -= 0.02f;
-									alphaLevel = color.a;
-									rend.material.color = color;
+									if (rend != null){
+										Color color = rend.material.color;
+										color.a -= 0.02f;
+										alphaLevel = color.a;
+										rend.material.color = color;
+									}
 								}
 
 								if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
@@ -816,11 +820,12 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
-		Debug.LogWarning("Unit selected");
+
 		deselect ();
 		selectedUnit = unit;
 		selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
 		setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
+		Debug.Log("Unit selected");
 		// store color of the unit
 		//Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
 		//Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
@@ -876,7 +881,7 @@ public class InputOutput : MonoBehaviour {
 			updateCPAP(0);
 		} 
 		else {
-			Debug.LogWarning ("There is not a unit selected.");
+			Debug.Log("There is not a unit currently selected.");
 		}
 	}
 
