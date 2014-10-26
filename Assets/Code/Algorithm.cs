@@ -944,6 +944,12 @@ public class Algorithm : MonoBehaviour {
 		{
 			usePath = travelPath;
 		}
+		//If the unit has reached its destination, but it has not chosen to attack
+		if (travelPath.path == null || travelPath.path.Count == 0)
+		{
+			executor.AP = 0;
+			return false;
+		}
 
 		//Find the path to the next square in the usePath
 		Path nextPos = addMovement (new Path (executor.position, executor.facing),
