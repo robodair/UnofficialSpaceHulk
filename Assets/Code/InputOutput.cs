@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.0
+ * Version 27-10-14.1
  */
 
 using UnityEngine;
@@ -816,10 +816,11 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
 		 */
-		//Debug.LogWarning("Unit selected")
+		Debug.LogWarning("Unit selected");
 		deselect ();
 		selectedUnit = unit;
-
+		selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
+		setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
 		// store color of the unit
 		//Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
 		//Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
@@ -862,6 +863,7 @@ public class InputOutput : MonoBehaviour {
 			//Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
 			//Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
 			//Debug.Log ("Color To be: " + preSelectionColor);
+			selectedUnit.gameObject.collider.enabled = true;																	// Renable the collider so that the unit can be clicked on again
 			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
 			//Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
 
@@ -1110,6 +1112,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
+		setDoorCollidersEnabled(true);											//Set the door collider so that they can be shot at if needed
 		inputHandlerController.shoot ();
 	}
 
@@ -1629,7 +1632,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="action">The Action object.</param>
 	void finishAction(Action action){
-		
+		setDoorCollidersEnabled(false);																	// Disable the door colliders to make it easy to click squares behind them
 		previousAction = showActionsList[0];															// Reset all the variables ready for the next action
 		updateCPAP(action.APCost);
 		if (attackPhaseList.Count > 0)
@@ -1856,6 +1859,15 @@ public class InputOutput : MonoBehaviour {
 		}
 		if (gameClass.selectedUnit != null){																// reselect the currently selected unit if there is one
 			gameClass.selectUnit(gameClass.selectedUnit.gameObject);
+		}
+	}
+
+	void setDoorCollidersEnabled(bool enabled){
+		Debug.Log ("Setting Door Colliders to: " + enabled);
+		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
+			if (door.activeInHierarchy){
+				door.collider.enabled = enabled;
+			}
 		}
 	}
 }

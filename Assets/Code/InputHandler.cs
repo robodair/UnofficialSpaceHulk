@@ -188,7 +188,7 @@ public class InputHandler : MonoBehaviour {
 	public void shoot()
 	{
 		gameController.changeGameState(Game.GameState.AttackSelection);
-		gameController.selectUnit (gameController.selectedUnit.gameObject);
+		//gameController.selectUnit (gameController.selectedUnit.gameObject);
 	}
 
 	public void shooting()
