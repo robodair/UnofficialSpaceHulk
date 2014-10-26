@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.2
+ * Version 26-10-14.4
  */
 
 using UnityEngine;
@@ -1185,17 +1185,15 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	public void defineEndTurnBtn(){
 		//Check to see if the End turn button should be enabled or not, and assign the required state
-		if (gameClass.gameState == Game.GameState.AttackSelection || 
-		    gameClass.gameState == Game.GameState.MoveSelection || 
-		    gameClass.gameState == Game.GameState.ShowAction ||
-		    gameClass.gameState == Game.GameState.NetworkWait){
-			if (gameClass.playerTurn == gameClass.thisPlayer) {
-				btnEndTurn.interactable = false;
+		if(gameClass.gameState == Game.GameState.Inactive||
+		   gameClass.gameState == Game.GameState.InactiveSelected){					// If the game is in a state where the turn can end
+			if(gameClass.playerTurn == gameClass.thisPlayer){						// And if it is this player's turn, enable the end turn button
+				btnEndTurn.interactable = true;
 			}
-		}
 
-		else {
-			btnEndTurn.interactable = true;
+		}
+		else {																		// In all other circumstances, disable the end turn button
+			btnEndTurn.interactable = false;
 		}
 	}
 
