@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.8
+ * Version 27-10-14.0
  */
 
 using UnityEngine;
@@ -1419,25 +1419,27 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="aPUsed">A P used.</param>
 	void updateCPAP(int aPUsed){
-		//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
-		// if it does not cut into CP, just display it
-		if (aPUsed < currentAP || aPUsed == currentAP){
-			//Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
-			currentAP = currentAP - aPUsed;
-			//Debug.Log("New Current AP: " + currentAP);
-			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
-			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
-		}
-		// If it does cut into CP, calculate how much, and then display it
-		else{
-			//Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
-			currentCP = (currentAP + currentCP) - aPUsed;
-			//Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
-			currentAP = 0;
-			//Debug.Log("Current AP set to: " + currentAP);
-		
-			unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
-			playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
+		if(gameClass.playerTurn == gameClass.thisPlayer){												// Check whether there should be any display of point changes to the curent player
+			//Debug.Log("begin Update CPAP, AP Used: " + aPUsed);
+			// if it does not cut into CP, just display it
+			if (aPUsed < currentAP || aPUsed == currentAP || gameClass.playerTurn == Game.PlayerType.GS){ // Display only AP deduction if the player is genestealer
+				//Debug.Log(" aPUsed <= currentAP; Current AP: " + currentAP + " AP Used: " + aPUsed);
+				currentAP = currentAP - aPUsed;
+				//Debug.Log("New Current AP: " + currentAP);
+				unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
+				playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
+			}
+			// If it does cut into CP, calculate how much, and then display it
+			else{
+				//Debug.Log("AP Used cuts into CP, Current AP: " + currentAP + ", Current CP: " + currentCP + ", AP Used: " + aPUsed);
+				currentCP = (currentAP + currentCP) - aPUsed;
+				//Debug.Log("New Current AP: " + currentAP + ", New Current CP: " + currentCP);
+				currentAP = 0;
+				//Debug.Log("Current AP set to: " + currentAP);
+			
+				unitAPText.GetComponent<Text>().text = "Unit Action Points: " + currentAP;
+				playerCPText.GetComponent<Text>().text = "Player Command Points: " + currentCP;
+			}
 		}
 	}
 
