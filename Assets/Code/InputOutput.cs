@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.
+ * Version 26-10-14.2
  */
 
 using UnityEngine;
@@ -118,6 +118,7 @@ public class InputOutput : MonoBehaviour {
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
+				Debug.Log(exeUnit.unitType);
 				Vector3 exePos = action.executor.gameObject.transform.position;
 				Quaternion exeRot = action.executor.gameObject.transform.rotation;
 				exeInitPos = makePosition(action.executor.position, unitElevation);				// Store the original position of the executor
@@ -388,28 +389,29 @@ public class InputOutput : MonoBehaviour {
 						tarUnit = action.target;
 						
 						if (isFirstLoopofAction){
+							isFirstLoopofAction = false;
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 
 							float offset = getBearing(exeUnit.gameObject, exeUnit.facing, tarUnit.gameObject);
 							Debug.LogWarning("Offset rotation IS: " + offset);
 
-						foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
-							renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
-						}
-							aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
-
-							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
-							shootPhaseList.Add(ShootPhase.RotateTowards); 															// Add the rotation phase
-							shootPhaseList.Add(ShootPhase.CreateBullets); 															// Add the phase for creating the bullets
-							shootPhaseList.Add(ShootPhase.BulletsMoving); 															// Add the bullet moving phase
-
-							if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
-								attackSuccessful = true;
-								//Debug.LogWarning("Shoot attack to be successful");
-								shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
+							foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
+								renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
 							}
+								aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
 
-							shootPhaseList.Add(ShootPhase.RotateBack); 																//Finally add the stage for rotating back after the shoot action
+								isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
+								shootPhaseList.Add(ShootPhase.RotateTowards); 															// Add the rotation phase
+								shootPhaseList.Add(ShootPhase.CreateBullets); 															// Add the phase for creating the bullets
+								shootPhaseList.Add(ShootPhase.BulletsMoving); 															// Add the bullet moving phase
+
+								if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
+									attackSuccessful = true;
+									//Debug.LogWarning("Shoot attack to be successful");
+									shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
+								}
+
+								shootPhaseList.Add(ShootPhase.RotateBack); 																//Finally add the stage for rotating back after the shoot action
 							
 						}
 
@@ -1246,7 +1248,7 @@ public class InputOutput : MonoBehaviour {
 	void removeSusFire(List <Unit> units){
 		//Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
 		foreach (Unit unit in units){
-			if (unit.sustainedFireSprite)
+			if (unit.sustainedFireSprite != null)
 				Destroy(unit.sustainedFireSprite);
 				Destroy (unit.sustainedFireTargetSprite);
 		}
@@ -1254,7 +1256,7 @@ public class InputOutput : MonoBehaviour {
 
 	void removeSusFire(Unit unit){
 		//Debug.Log ("Has Sustained Fire? " + unit.hasSustainedFire);
-		if (unit.hasSustainedFire){
+		if (unit.hasSustainedFire && unit.sustainedFireSprite != null){
 			unit.sustainedFireSprite.gameObject.SetActive(false);
 			unit.sustainedFireTargetSprite.gameObject.SetActive(false);
 		}
@@ -1533,6 +1535,7 @@ public class InputOutput : MonoBehaviour {
 				Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+				entry.Key.sustainedFireSprite.transform.parent = entry.Key.gameObject.transform;			// Asign the transform of the spaceMarine as the parent so the sprite moves with it (This should actually never happen, but it would look weird if the sm moved away from it's sprite)
 				if(susFireOnlyOnSelection){
 					entry.Key.sustainedFireSprite.SetActive(false);
 				}
@@ -1543,6 +1546,7 @@ public class InputOutput : MonoBehaviour {
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
+				entry.Key.sustainedFireTargetSprite.transform.parent = entry.Value.gameObject.transform;	// Asign the transform of the genestealer as the parent so the sprite moves with it
 				if(susFireOnlyOnSelection){
 					entry.Key.sustainedFireTargetSprite.SetActive(false);
 				}
