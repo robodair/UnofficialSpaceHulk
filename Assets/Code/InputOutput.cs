@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.7
+ * Version 26-10-14.8
  */
 
 using UnityEngine;
@@ -949,7 +949,7 @@ public class InputOutput : MonoBehaviour {
 			switch (unit.unitType){
 				
 				case Game.EntityType.Blip:
-					unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, unitElevation + 0.5f), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the blip object above the floor object
+					unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the blip object above the floor object
 					break;
 					
 				case Game.EntityType.Door:
