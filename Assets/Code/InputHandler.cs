@@ -145,7 +145,8 @@ public class InputHandler : MonoBehaviour {
 
 	public void hideAvailableSquares()
 	{
-		if(gameController.unitSelected)
+		if(gameController.unitSelected &&
+		   coloursSet)
 		{
 			foreach (Square square in availableSquares.Keys)
 			{
@@ -269,7 +270,8 @@ public class InputHandler : MonoBehaviour {
 	{
 		foreach (Vector2 position in selectableRevealPositions)
 		{
-			mapController.getSquare(position).model.renderer.material.color = Color.white;
+			if(mapController.getSquare (position).model.renderer.material.color != Color.white)
+				mapController.getSquare(position).model.renderer.material.color = Color.white;
 		}
 	}
 }
