@@ -1863,7 +1863,7 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	void setDoorCollidersEnabled(bool enabled){
-		Debug.Log ("Setting Door Colliders to: " + enabled);
+		//Debug.Log ("Setting Door Colliders to: " + enabled);
 		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
 			if (door.activeInHierarchy){
 				door.collider.enabled = enabled;
