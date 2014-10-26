@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.4
+ * Version 26-10-14.5
  */
 
 using UnityEngine;
@@ -131,6 +131,7 @@ public class InputOutput : MonoBehaviour {
 				if (isFirstLoopofAction){													// Display the dice roll on the first loop of the action
 					resetDice();															// Clear the dice first in case the action doesn't have dice to display
 					displayDice(action.diceRoll);
+					preAction(action);														// Use the preAction method to display the changes to the hint sprites before the action is shown
 				}
 
 				// Make the action
@@ -267,6 +268,7 @@ public class InputOutput : MonoBehaviour {
 						
 						
 						if (isFirstLoopofAction){
+							isFirstLoopofAction = false; 
 							renderers.Clear();
 							foreach(Unit un in action.destroyedUnits){
 								//Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
@@ -278,7 +280,7 @@ public class InputOutput : MonoBehaviour {
 							//Debug.LogWarning("Offset rotation IS: " + offset);
 							exeUnitAttackPos = Vector3.MoveTowards(exePos, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
 							
-							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
+																										// Set that it is no longer the first loop
 							attackPhaseList.Add(AttackPhase.RotateTowards); 														// Add the rotation phase
 							attackPhaseList.Add(AttackPhase.MoveTowards); 															// Add the moving toward phase
 							
@@ -1450,29 +1452,40 @@ public class InputOutput : MonoBehaviour {
 		createBullet(startPos, endPos, explodes, waitSeconds, false); //Call the other method with preset variables
 	}
 
-	/// ==================================
-	/// Ending an action
-	/// ==================================
+	/// =================================
+	/// Pre and post action methods
+	/// =================================
 
+	/// <summary>
+	/// Changes overwatch and sustained fire sprites before the action takes place.
+	/// </summary>
+	/// <param name="action">The Action object.</param>
+	void preAction(Action action){
+		if (action.sustainedFireChanged.Count > 0)														// Create the sustained fire sprites
+			showSusFire(action.sustainedFireChanged);
+		removeSusFire(action.sustainedFireLost);														// Remove Overwatch and sustained fire from units that lost it before the action begins
+		removeOverwatch(action.lostOverwatch);
+	}
+
+	/// <summary>
+	/// Finishes the action by checking if the game is over, updating the sprite displays, refreshing the AP cost, etc
+	/// </summary>
+	/// <param name="action">The Action object.</param>
 	void finishAction(Action action){
 		
-		previousAction = showActionsList[0];
+		previousAction = showActionsList[0];															// Reset all the variables ready for the next action
 		updateCPAP(action.APCost);
-		if (action.sustainedFireChanged.Count > 0)											// Create the sustained fire sprites
-			showSusFire(action.sustainedFireChanged);
 		if (attackPhaseList.Count > 0)
-			attackPhaseList.RemoveAt(0);
+			attackPhaseList.Clear();
 		if (shootPhaseList.Count > 0)
-			shootPhaseList.RemoveAt(0);
+			shootPhaseList.Clear();
 		showActionsList.RemoveAt(0);
-		attackSuccessful = false; 																		//Reset bools for use in next attack action
+		attackSuccessful = false;
 		isFirstLoopofAction = true;
-		refreshBlipCounts();
-		removeSusFire(action.sustainedFireLost);
-		removeOverwatch(action.lostOverwatch);
 		renderers.Clear();
 
-
+		refreshBlipCounts();																			// Display the new blip counts
+		
 		if (showActionsList.Count == 0){																// if that was the last action object in the list, then set the gamestate back to inactive & reselect the unit (to activate the buttons again)
 			//Debug.Log ("LAST ACTION IN THE SEQUENCE SHOWN");
 			if(gameClass.thisPlayer == gameClass.playerTurn){ 											// If it is the active player turn, change back to inactive after showing the sequence
