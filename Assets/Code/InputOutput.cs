@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 26-10-14.6
+ * Version 26-10-14.7
  */
 
 using UnityEngine;
@@ -210,7 +210,10 @@ public class InputOutput : MonoBehaviour {
 					/// MOVE ACTION
 					/// ============================
 					case (Game.ActionType.Move):
-						isFirstLoopofAction = false;
+						if (isFirstLoopofAction){
+							isFirstLoopofAction = false;
+							break;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
+						}
 						//Debug.Log("Update entered Move action sector of switch");
 					
 						// Create aim pos and rot
@@ -240,11 +243,9 @@ public class InputOutput : MonoBehaviour {
 
 						break;
 
-					///==============================
+					/// =================
 					/// OVERWATCH ACTION
-					/// 
-					/// ++++++++++++++++++++
-					/// INCOMPLETE
+					/// =================
 
 					case (Game.ActionType.Overwatch):
 						isFirstLoopofAction = false;
@@ -267,7 +268,10 @@ public class InputOutput : MonoBehaviour {
 					///=============================
 
 					case (Game.ActionType.ToggleDoor):
-						isFirstLoopofAction = false;
+						if(isFirstLoopofAction){
+							isFirstLoopofAction = false;
+							break;															// Skip The first frame of a action, ensures smooth movement (no jumps due to processing lag)
+						}
 						// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
 						//Debug.Log("Exe pos:" + exePos);
 						Vector2 doorMapPosition = new Vector2 (exePos.x, exePos.z);
@@ -329,19 +333,13 @@ public class InputOutput : MonoBehaviour {
 					///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 					case (Game.ActionType.Attack):
-							//Determine if the attack is GS > SM, SM > GS, or GS <> SM.
-							// run the "animation"  of the attack (as characters are not rigged for animation, display this with game objects moving into one another and then back into their original position. (also use change of mesh colours)
-								//gs to sm
-								//sm to gs
-								//sm & gs
-						
-						
+
 						if (isFirstLoopofAction){
-							isFirstLoopofAction = false; 
+							isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
 							renderers.Clear();
 							foreach(Unit un in action.destroyedUnits){
 								//Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
-								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());										// Get all the renderer gameobject components that need to be faded
+								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());								// Get all the renderer gameobject components that need to be faded
 							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
@@ -349,7 +347,6 @@ public class InputOutput : MonoBehaviour {
 							//Debug.LogWarning("Offset rotation IS: " + offset);
 							exeUnitAttackPos = Vector3.MoveTowards(exePos, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
 							
-																										// Set that it is no longer the first loop
 							attackPhaseList.Add(AttackPhase.RotateTowards); 														// Add the rotation phase
 							attackPhaseList.Add(AttackPhase.MoveTowards); 															// Add the moving toward phase
 							
@@ -371,9 +368,10 @@ public class InputOutput : MonoBehaviour {
 
 							}
 							if(addEndPhases){
-								attackPhaseList.Add(AttackPhase.MoveBack); 																// add the stage for moving back after the attack action
-								attackPhaseList.Add(AttackPhase.RotateBack);															// Rotate the unit back to it's original facing;
+								attackPhaseList.Add(AttackPhase.MoveBack); 															// Add the stage for moving back after the attack action
+								attackPhaseList.Add(AttackPhase.RotateBack);														// Rotate the unit back to it's original facing;
 							}
+							break;																									// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
 						}
 
 						switch (attackPhaseList[0]){ 																				// Use a switch for actioning the phases
@@ -467,23 +465,24 @@ public class InputOutput : MonoBehaviour {
 							Debug.LogWarning("Offset rotation IS: " + offset);
 
 							foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
-								renderers.Add (rend);																					// Get all the renderer gameobject components that need to be faded
+								renderers.Add (rend);																				// Get all the renderer gameobject components that need to be faded
 							}
-								aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 	// Calculate the rotation to aim for that means the SM will be facing the GS
+								aimRot = Quaternion.Euler(aimRot.eulerAngles.x, aimRot.eulerAngles.y - offset, aimRot.eulerAngles.z); 
+																																	// Calculate the rotation to aim for that means the SM will be facing the GS
 
-								isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
-								shootPhaseList.Add(ShootPhase.RotateTowards); 															// Add the rotation phase
-								shootPhaseList.Add(ShootPhase.CreateBullets); 															// Add the phase for creating the bullets
-								shootPhaseList.Add(ShootPhase.BulletsMoving); 															// Add the bullet moving phase
+								isFirstLoopofAction = false; 																		// Set that it is no longer the first loop
+								shootPhaseList.Add(ShootPhase.RotateTowards); 														// Add the rotation phase
+								shootPhaseList.Add(ShootPhase.CreateBullets); 														// Add the phase for creating the bullets
+								shootPhaseList.Add(ShootPhase.BulletsMoving); 														// Add the bullet moving phase
 
-								if (action.destroyedUnits.Count > 0){ 																	//Determine if the attack was successful (for use when creating bullets)
+								if (action.destroyedUnits.Count > 0){ 																//Determine if the attack was successful (for use when creating bullets)
 									attackSuccessful = true;
 									//Debug.LogWarning("Shoot attack to be successful");
-									shootPhaseList.Add(ShootPhase.UnitDeath); 															//If it is successful add the phase for unit death for the lineup
+									shootPhaseList.Add(ShootPhase.UnitDeath); 														//If it is successful add the phase for unit death for the lineup
 								}
 
-								shootPhaseList.Add(ShootPhase.RotateBack); 																//Finally add the stage for rotating back after the shoot action
-							
+								shootPhaseList.Add(ShootPhase.RotateBack); 															//Finally add the stage for rotating back after the shoot action
+							break;																									// Set that it is no longer the first loop
 						}
 
 						switch (shootPhaseList[0]){ 																				// Use a switch for actioning the phases
