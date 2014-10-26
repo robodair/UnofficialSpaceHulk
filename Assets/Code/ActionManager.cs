@@ -125,7 +125,7 @@ public class ActionManager {
 	private void postAction()//Created by Nick Lee 18-9-14, modified 23-10-14
 	{
 		game.ioModule.showActionSequence(actions.ToArray (), this); //gives the action array to the input output module
-		if(actions.Count < 0)
+		if(actions.Count > 0)
 			game.checkTriggers (actions[actions.Count - 1]); //checks the game for winning triggers
 		actions = new List<Action> ();
 		//makes a new version of the actions list
@@ -410,27 +410,26 @@ public class ActionManager {
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
-			executor = unit;
+			executor = exe;
 			voidOverwatch(executor);
 			voidOverwatch(target);
 			executie = target; //target of the attack
 			movePosition = executor.position; //no position change
 			moveFacing = executor.facing; //no facing change
 			voidSustainedFire(executor);
-			voidSustainedFire(target);
-			sustainedFireChanged.Clear (); //no gain in sustained fire possible
+			voidSustainedFire(executie);
 		}
 		else if (actionType == Game.ActionType.Shoot) {
 			movePosition = executor.position; //position unchanged
 			moveFacing = executor.facing; //facing unchanged
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-			executor = unit;
+			executor = exe;
 			voidSustainedFire(executor);
 			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
-			executor = unit;
+			executor = exe;
 			executie = null; //no target unit
 			movePosition = executor.position; //no change movement
 			moveFacing = executor.facing; //no change in facing
