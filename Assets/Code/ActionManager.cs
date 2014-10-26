@@ -199,15 +199,29 @@ public class ActionManager {
 		List<int> attDie = new List<int> (); //attackers dice rolls
 
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
-			attDie.Add (diceRoll ());
-			//gets the dice rolled by the attacker and their values and adds them to an array with the unit
+			if(attacker.name == attacker.name)
+			{
+				for(int k = 0; k < UnitData.getMeleeDice(attacker.unitType); k++) {
+					attDie.Add (diceRoll ());
+					f = 10;
+				}
+			}
+			else
+				attDie.Add (diceRoll ());
 		}
 		dieRolled.Add (game.playerTurn, attDie.ToArray());
 		attDie.Sort (); //sorts the attackers dice
 
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
-			defDie.Add (diceRoll ());
-			//rolls a new dice and adds to the list
+			if(defender.name == defender.name)
+			{
+				for(int k = 0; k < UnitData.getMeleeDice(defender.unitType); k++) {
+					defDie.Add (diceRoll ());
+					n = 10;
+				}
+			}
+			else
+				defDie.Add (diceRoll ());
 		}
 		if(game.playerTurn == Game.PlayerType.GS)
 			dieRolled.Add (Game.PlayerType.SM, defDie.ToArray());
@@ -241,6 +255,8 @@ public class ActionManager {
 			{
 				kill (defender);
 				//if attacker wins kill defender
+				update (Game.ActionType.Attack, attacker); //runs update for attack method
+				postAction (); //runs postaction
 			}
 			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
 			{ //if defender draws or wins
@@ -276,13 +292,14 @@ public class ActionManager {
 						break;
 						//if issue dont change anything
 					}
+
+					update (Game.ActionType.Attack, attacker); //runs update for attack method
+					customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
+					//creates path involving the units movement
+					attackMove = true; //sets attack move to true
+					postAction (); //runs postaction
+					moveMethod (defender);//makes a move
 				}
-				update (Game.ActionType.Attack, attacker); //runs update for attack method
-				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
-				//creates path involving the units movement
-				attackMove = true; //sets attack move to true
-				postAction (); //runs postaction
-				moveMethod (defender);//makes a move
 			}
 		}
 	}
@@ -293,8 +310,13 @@ public class ActionManager {
 		executie = shootie;
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			if(executor.name == executor.name)
-				Dice.Add (diceRoll ());
+			if(executor.name == executor.name && overwatchShot)
+			{
+				for(int k = 0; k < UnitData.getRangedDiceCount(shooter.unitType); k++) {
+					Dice.Add (diceRoll ());
+					n = 10;
+				}
+			}
 			else
 				Dice.Add (diceRoll ());
 		}
