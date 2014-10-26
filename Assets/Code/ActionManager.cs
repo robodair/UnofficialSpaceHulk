@@ -89,7 +89,7 @@ public class ActionManager {
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				for (int q = 0; q < marines.Count; q++) { 
-					if(marines[i].currentLoS[q] == (unit.position) && marines[i].isOnOverwatch)
+					if(marines[i].currentLoS[q] == unit.position && marines[i].isOnOverwatch)
 					{
 						overwatchShot = true; //set overwatch shot to true
 						shot = true; //set shot equal to true
