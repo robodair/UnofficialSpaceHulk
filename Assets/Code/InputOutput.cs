@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.9
+ * Version 28-10-14.0
  */
 
 using UnityEngine;
@@ -412,40 +412,40 @@ public class InputOutput : MonoBehaviour {
 							case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
 								Color color = Color.clear;
 								foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-									if(rend != null){
+									if(rend != null){		
 											color = rend.material.color;
 											color.a -= 0.02f;
 											rend.material.color = color;
 									}
-									}
+								}
 									
-									if (color.a <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
-										if (action.executor.sustainedFireSprite != null){
-												Destroy (action.executor.sustainedFireSprite);
-										}
-										if (action.executor.sustainedFireTargetSprite != null){
-												Destroy (action.executor.sustainedFireTargetSprite);
-										}
-										if (action.executor.overwatchSprite != null){
-												Destroy (action.executor.overwatchSprite);
-										}
-										if (action.target.sustainedFireSprite != null){
-												Destroy (action.target.sustainedFireSprite);
-										}
-										if (action.target.sustainedFireTargetSprite != null){
-												Destroy (action.target.sustainedFireTargetSprite);
-										}
-										if (action.target.overwatchSprite != null){
-												Destroy (action.target.overwatchSprite);
-										}
-										foreach(Unit unit in action.destroyedUnits){
-											Destroy (unit.gameObject);
-										}
-										attackPhaseList.RemoveAt(0); 																	// Move to the next phase
-										if(exeKilled){
-											finishAction(action);
-										}
+								if (color.a <= 0f) { 																				// If the gameobject is now fully transparent, remove it.
+									if (action.executor.sustainedFireSprite != null){
+											Destroy (action.executor.sustainedFireSprite);
 									}
+									if (action.executor.sustainedFireTargetSprite != null){
+											Destroy (action.executor.sustainedFireTargetSprite);
+									}
+									if (action.executor.overwatchSprite != null){
+											Destroy (action.executor.overwatchSprite);
+									}
+									if (action.target.sustainedFireSprite != null){
+											Destroy (action.target.sustainedFireSprite);
+									}
+									if (action.target.sustainedFireTargetSprite != null){
+											Destroy (action.target.sustainedFireTargetSprite);
+									}
+									if (action.target.overwatchSprite != null){
+											Destroy (action.target.overwatchSprite);
+									}
+									foreach(Unit unit in action.destroyedUnits){
+										Destroy (unit.gameObject);
+									}
+									attackPhaseList.RemoveAt(0); 																	// Move to the next phase
+									if(exeKilled){
+										finishAction(action);
+									}
+								}
 								break;
 
 							case (AttackPhase.MoveBack):																			// Move the executor gameobject back to it's original position
@@ -841,16 +841,12 @@ public class InputOutput : MonoBehaviour {
 		selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
 		setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
 		// if (Debug.isDebugBuild) Debug.Log("Unit selected");
-		// store color of the unit
-		//if (Debug.isDebugBuild) Debug.LogWarning ("ABOUT TO STORE THEN CHANGE HIGHLIGHT COLOR OF A UNIT");
-		//if (Debug.isDebugBuild) Debug.Log ("Pre color: " + selectedUnit.gameObject.renderer.material.color);
-		preSelectionColor = new Color(selectedUnit.gameObject.renderer.material.color.r, selectedUnit.gameObject.renderer.material.color.g, selectedUnit.gameObject.renderer.material.color.b, selectedUnit.gameObject.renderer.material.color.a);
-
-		//colour the selectedUnit unit
-		selectedUnit.gameObject.renderer.material.color = new Color ();
-		selectedUnit.gameObject.renderer.material.color = Color.cyan;
-		//if (Debug.isDebugBuild) Debug.Log ("Changed color: " + selectedUnit.gameObject.renderer.material.color);
-		//if (Debug.isDebugBuild) Debug.Log ("Pre color recheck: " + preSelectionColor);
+		if (selectedUnit.unitType == Game.EntityType.GS){
+			particleToggle(selectedUnit.gameObject.GetComponentsInChildren<ParticleSystem>()[0], true);						// Turn the particle emittor on
+		}
+		else{
+			particleToggle(selectedUnit.gameObject.GetComponent<ParticleSystem>(), true);									// Turn the particle emittor on
+		}
 		//update the GUI actionst 
 		updateGUIActions(actions);
 
@@ -880,12 +876,15 @@ public class InputOutput : MonoBehaviour {
 			if(susFireOnlyOnSelection){
 				removeSusFire(selectedUnit);
 			}
-			//if (Debug.isDebugBuild) Debug.LogWarning("ABOUT TO SET COLOR BACK ON DESELECTED UNIT");
-			//if (Debug.isDebugBuild) Debug.Log ("Current (Selected) color: " + selectedUnit.gameObject.renderer.material.color);
-			//if (Debug.isDebugBuild) Debug.Log ("Color To be: " + preSelectionColor);
-			selectedUnit.gameObject.collider.enabled = true;																	// Renable the collider so that the unit can be clicked on again
-			selectedUnit.gameObject.renderer.material.color = preSelectionColor;
-			//if (Debug.isDebugBuild) Debug.Log ("After Set: " + selectedUnit.gameObject.renderer.material.color);
+
+			selectedUnit.gameObject.collider.enabled = true;																	// Renable the collider so that the unit can be clicked on again 
+
+			if (selectedUnit.unitType == Game.EntityType.GS){
+				particleToggle(selectedUnit.gameObject.GetComponentsInChildren<ParticleSystem>()[0], false);						// Turn the particle emittor off
+			}
+			else{
+				particleToggle(selectedUnit.gameObject.GetComponent<ParticleSystem>(), false);										// Turn the particle emittor off
+			}
 
 			selectedUnit = null;
 
@@ -959,6 +958,7 @@ public class InputOutput : MonoBehaviour {
 					
 				case Game.EntityType.Blip:
 					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing), Game.EntityType.Blip)); //Create the blip object
+					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
 					refreshBlipCounts();
 					break;
 				default:
@@ -972,10 +972,12 @@ public class InputOutput : MonoBehaviour {
 				
 				case Game.EntityType.Blip:
 					unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the blip object above the floor object
+					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top	
 					break;
 					
 				case Game.EntityType.Door:
 					unit.gameObject = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(unit.position, unitElevation, unit.facing, false), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the closed door object above the floor object
+					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
 					mapClass.getSquare(unit.position).door.gameObject = unit.gameObject; //Pass reference to the gameobject back to the square
 					break;
 					
@@ -985,6 +987,7 @@ public class InputOutput : MonoBehaviour {
 					
 				case Game.EntityType.SM:
 					unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor object
+					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
 					break;
 				default:
 					if (Debug.isDebugBuild) Debug.LogError("There was not a valid unit to place");
@@ -1914,4 +1917,21 @@ public class InputOutput : MonoBehaviour {
 			if (Debug.isDebugBuild) Debug.Log("PEANUT BUTTER REMOVED");
 	}
 
+	/// <summary>
+	/// Enables or disables the specified particle system
+	/// </summary>
+	/// <param name="partSys">Particle system to enable.</param>
+	/// <param name="toggle">If set to <c>true</c> system will be enabled.</param>
+	void particleToggle(ParticleSystem partSys, bool toggle){
+		if (toggle){
+			partSys.enableEmission = toggle;
+			partSys.Simulate(3);
+			partSys.Play();
+		}
+		else {
+			partSys.Stop();
+			partSys.Clear();
+		}
+
+	}
 }
