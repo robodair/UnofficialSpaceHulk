@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.7
+ * Version 27-10-14.8
  */
 
 using UnityEngine;
@@ -184,7 +184,7 @@ public class InputOutput : MonoBehaviour {
 					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
 					}
 				Action action = showActionsList[0];
-				//if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
+				if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
@@ -341,6 +341,18 @@ public class InputOutput : MonoBehaviour {
 							foreach(Unit un in action.destroyedUnits){
 								//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
 								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());								// Get all the renderer gameobject components that need to be faded
+								if(un.jammedUnitSprite!=null) {
+									renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
+								if(un.overwatchSprite != null){																		// If there is a jam sprite for the unit, add it to be faded when the unit dies
+									renderers.Add(un.overwatchSprite.renderer);
+								}
+								if(un.sustainedFireSprite != null){
+									renderers.Add(un.sustainedFireSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
+								if (un.sustainedFireTargetSprite != null){
+									renderers.Add(un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
 							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
@@ -1719,7 +1731,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 
-			if (entry.Value != null && entry.Value != null){												// Destroy the old sprite and create a new one (the piece may have changed position)
+			if (entry.Value != null && entry.Value.gameObject != null){												// Destroy the old sprite and create a new one (the piece may have changed position)
 				Destroy (entry.Key.sustainedFireTargetSprite);
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
