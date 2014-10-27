@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.6
+ * Version 27-10-14.7
  */
 
 using UnityEngine;
@@ -56,6 +56,7 @@ public class InputOutput : MonoBehaviour {
 	public bool susFireOnlyOnSelection;
 		// Placement
 	public float unitElevation;
+	public float floorReduction;
 
 		// SCRIPT FEEDBACKS //
 		// Bullets finished their path
@@ -706,7 +707,7 @@ public class InputOutput : MonoBehaviour {
 			float xPos = positionV2.x;
 			float zPos = positionV2.y;
 
-			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (-0.5f), zPos), Quaternion.identity); //Create the game object in the scene
+			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), Quaternion.identity); //Create the game object in the scene
 			square.model = floorPiece; //Pass reference to the gameobject back to the square
 
 			//Added Alisdair 11/9/2014 This are for passing the unit reference back to the square (if needed)
@@ -767,7 +768,7 @@ public class InputOutput : MonoBehaviour {
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
 				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
-				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, -0.5f, zPos), depAreaFacing); //Create the game object in the scene
+				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), depAreaFacing); //Create the game object in the scene
 				Vector3 position = depArea.model.transform.GetChild(0).transform.position;
 				Vector3 newPosition = new Vector3 (position.x, 1.6f, position.z);
 				depArea.model.transform.GetChild(0).transform.position = newPosition;
