@@ -68,11 +68,11 @@ public class ActionManager {
 		}
 		else if (actionUsed == Game.ActionType.ToggleDoor) {
 			removeAP (unit, UnitData.getAPCost (actionUsed));
-			toggleDoorMethod(); //if action is toggling a door
+			toggleDoorMethod(unit); //if action is toggling a door
 		}
 		else if (actionUsed == Game.ActionType.Overwatch) {
 			removeAP (unit, UnitData.getAPCost (actionUsed));
-			overwatchMethod(); //if action is setting a unit to overwatch
+			overwatchMethod(unit); //if action is setting a unit to overwatch
 		} else
 			Debug.Log ("Error with action type , ActionManager");
 		//error message and catching
@@ -89,11 +89,11 @@ public class ActionManager {
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
-					if(marines[i].currentLoS[q] == unit.position && marines[i].isOnOverwatch)
+					if(marines[i].currentLoS[q] == executor.position && marines[i].isOnOverwatch)
 					{
 						overwatchShot = true; //set overwatch shot to true
 						shot = true; //set shot equal to true
-						shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+						shootMethod (marines[i], executor); //And run a shoot action against the genestealer
 						shot = false;
 						overwatchShot = false; //set overwatch shot to false
 					}
@@ -373,12 +373,12 @@ public class ActionManager {
 		postAction ();
 	}
 
-	private void toggleDoorMethod()//Created by Nick Lee 18-9-14, modified 26-9-14
+	private void toggleDoorMethod(Unit exe)//Created by Nick Lee 18-9-14, modified 26-9-14
 	{
 		Movement = Game.MoveType.Forward;
 		moving = (Vector2)game.moveTransform[Movement][0]; //gets the object from the dictionary and converts to a vector2
-		moving = game.facingDirection[unit.facing] * moving;
-		moving = unit.position + moving; //gets final position
+		moving = game.facingDirection[exe.facing] * moving;
+		moving = exe.position + moving; //gets final position
 
 		if (game.gameMap.hasDoor (moving)) {
 			if (game.gameMap.isDoorOpen (moving))
@@ -389,14 +389,14 @@ public class ActionManager {
 		else
 			Debug.Log ("no door in front of unit, actionManager, toggledoor");
 		//error catching and message
-		update(Game.ActionType.ToggleDoor, unit);
+		update(Game.ActionType.ToggleDoor, exe);
 		postAction ();
 	}
 
-	private void overwatchMethod()//Created by Nick Lee 18-9-14, modified 25-9-14
+	private void overwatchMethod(Unit exe)//Created by Nick Lee 18-9-14, modified 25-9-14
 	{
-		unit.isOnOverwatch = true; //sets overwatch to true
-		update (Game.ActionType.Overwatch, unit);
+		exe.isOnOverwatch = true; //sets overwatch to true
+		update (Game.ActionType.Overwatch, exe);
 		postAction ();
 	}
 
@@ -421,6 +421,7 @@ public class ActionManager {
 
 	private void makeActions(Game.ActionType actionMade, Unit exe) //Created by Nick Lee 23-9-14, modified 13-10-14
 	{
+		executor = exe;
 		actionType = actionMade; //gets action made
 		finishLoS ();
 		//gets the updated LoS for all marines
@@ -429,19 +430,15 @@ public class ActionManager {
 			APCost = 0;
 
 		if (actionType == Game.ActionType.Move) {
-			executor = exe;
-			voidOverwatch(executor);
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
 			APCost = UnitData.getMoveSet(executor.unitType)[Movement]; //APCost depends on type of movement
 			unitJams = false; //cant jam
-			destroyedUnits.Clear(); //nothing can be killed by movement
 			voidSustainedFire(executor);
-			dieRolled.Clear(); //no dice rolling required
+			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Attack) {
-			executor = exe;
 			voidOverwatch(executor);
 			voidOverwatch(target);
 			executie = target; //target of the attack
@@ -449,24 +446,22 @@ public class ActionManager {
 			moveFacing = executor.facing; //no facing change
 			voidSustainedFire(executor);
 			voidSustainedFire(executie);
+			unitJams = false;
 		}
 		else if (actionType == Game.ActionType.Shoot) {
 			movePosition = executor.position; //position unchanged
 			moveFacing = executor.facing; //facing unchanged
 		}
 		else if (actionType == Game.ActionType.ToggleDoor) {
-			executor = exe;
 			voidSustainedFire(executor);
 			voidOverwatch(executor);
+			unitJams = false;
 		}
 		else if (actionType == Game.ActionType.Overwatch) {
-			executor = exe;
 			executie = null; //no target unit
 			movePosition = executor.position; //no change movement
 			moveFacing = executor.facing; //no change in facing
 			unitJams = false; //no jamming
-			destroyedUnits.Clear(); //nothing destroyed
-			dieRolled.Clear();
 		} else
 			Debug.Log ("Error with action type , ActionManager, makeActions");
 		//error message and catching
