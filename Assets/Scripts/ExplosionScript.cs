@@ -3,7 +3,7 @@
 /// Fully self-contatined, the explosion object script starts fading the object as soon as it is instantiated
 /// 
 /// Created by Alisdair Robertson 15/10/14
-/// v28-10-14.0
+/// v28-10-14.1
 /// </summary>
 /// 
 using UnityEngine;
@@ -15,7 +15,6 @@ public class ExplosionScript : MonoBehaviour {
 	/// Update this instance.
 	/// </summary>
 	void Update () {											// Update is called once per frame
-		particleSystem.renderer.sortingOrder = 0;				// Show this on top of everything else
 		Color color = this.gameObject.renderer.material.color;	// Get the material color
 		color.a -= 0.03f;										// Make it slightly more transparent
 		this.gameObject.renderer.material.color = color;		// Reassign the color to the material

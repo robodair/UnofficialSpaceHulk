@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 28-10-14.0
+ * Version 28-10-14.1
  */
 
 using UnityEngine;
@@ -958,7 +958,7 @@ public class InputOutput : MonoBehaviour {
 					
 				case Game.EntityType.Blip:
 					unit.gameObject = (GameObject) Instantiate(BlipPrefab, new Vector3(xPos, unitElevation, zPos), makeRotation(makeFacing(unit.facing), Game.EntityType.Blip)); //Create the blip object
-					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
+
 					refreshBlipCounts();
 					break;
 				default:
@@ -972,12 +972,12 @@ public class InputOutput : MonoBehaviour {
 				
 				case Game.EntityType.Blip:
 					unit.gameObject = (GameObject) Instantiate(BlipPrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the blip object above the floor object
-					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top	
+						
 					break;
 					
 				case Game.EntityType.Door:
 					unit.gameObject = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(unit.position, unitElevation, unit.facing, false), makeRotation(makeFacing(unit.facing), Game.EntityType.Door)); //Create the closed door object above the floor object
-					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
+					
 					mapClass.getSquare(unit.position).door.gameObject = unit.gameObject; //Pass reference to the gameobject back to the square
 					break;
 					
@@ -987,7 +987,7 @@ public class InputOutput : MonoBehaviour {
 					
 				case Game.EntityType.SM:
 					unit.gameObject = (GameObject) Instantiate(SpaceMarinePrefab, makePosition(unit.position, unitElevation), makeRotation(makeFacing(unit.facing), Game.EntityType.SM)); //Create the blip object above the floor object
-					unit.gameObject.renderer.sortingOrder = -1;																// Set the gameobject sorting order so particles appear on top
+					
 					break;
 				default:
 					if (Debug.isDebugBuild) Debug.LogError("There was not a valid unit to place");
