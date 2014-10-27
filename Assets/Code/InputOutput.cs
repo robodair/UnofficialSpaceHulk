@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 28-10-14.1
+ * Version 28-10-14.2
  */
 
 using UnityEngine;
@@ -832,34 +832,32 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="unit">Unit.</param>
 	/// <param name="actions">Actions.</param>
 	public void selectUnit (Unit unit, Game.ActionType[] actions){ //Filled by Alisdair 11/9/2014
-		/*
-		 * Set the display to be appropriate to the selection of this unit, as well as showing/enabling the buttons for the action types.
-		 */
-
 		deselect ();
-		selectedUnit = unit;
-		selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
-		setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
-		// if (Debug.isDebugBuild) Debug.Log("Unit selected");
-		if (selectedUnit.unitType == Game.EntityType.GS){
-			particleToggle(selectedUnit.gameObject.GetComponentsInChildren<ParticleSystem>()[0], true);						// Turn the particle emittor on
-		}
-		else{
-			particleToggle(selectedUnit.gameObject.GetComponent<ParticleSystem>(), true);									// Turn the particle emittor on
-		}
-		//update the GUI actionst 
-		updateGUIActions(actions);
+		if (unit != null){																										// Check first to see that we have been passed a valid unit
+			selectedUnit = unit;
+			selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
+			setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
+			// if (Debug.isDebugBuild) Debug.Log("Unit selected");
+			if (selectedUnit.unitType == Game.EntityType.GS){
+				particleToggle(selectedUnit.gameObject.GetComponentsInChildren<ParticleSystem>()[0], true);						// Turn the particle emittor on
+			}
+			else{
+				particleToggle(selectedUnit.gameObject.GetComponent<ParticleSystem>(), true);									// Turn the particle emittor on
+			}
+			//update the GUI actionst 
+			updateGUIActions(actions);
 
-		//get and show the AP and CP for the unit
-		currentAP = unit.AP;
-		currentCP = gameClass.remainingCP;
-		//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
-		updateCPAP(0);
+			//get and show the AP and CP for the unit
+			currentAP = unit.AP;
+			currentCP = gameClass.remainingCP;
+			//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP SELECTUNIT with AP: " + 0);
+			updateCPAP(0);
 
 
-		// Show the sustained fire sprites if the unit has any
-		if(susFireOnlyOnSelection){
-			showSusFire(unit);
+			// Show the sustained fire sprites if the unit has any
+			if(susFireOnlyOnSelection){
+				showSusFire(unit);
+			}
 		}
 	}
 
