@@ -105,6 +105,10 @@ public class Game : MonoBehaviour {
 	//Changed the resetAP method so that it would give AP to blips
 	//Changed the deployBlip method so that it would set the blip's AP and noOfGS values.
 
+	//Ian Mallett 27.10/14
+	//Fixed triggers so that the Space Marine would lose if they didn't
+	//have enough Space Marines left to win
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -236,7 +240,7 @@ public class Game : MonoBehaviour {
 			lastAction.winner = PlayerType.SM;
 			Debug.Log ("YOU WIN! Have a cookie.");
 		}
-		else if (gameMap.getUnits(EntityType.SM).Count == 0)
+		else if (gameMap.getUnits(EntityType.SM).Count + SMEscaped < 2)
 		{
 			lastAction.gameOver = true;
 			lastAction.winner = PlayerType.GS;
