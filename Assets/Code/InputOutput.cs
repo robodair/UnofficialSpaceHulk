@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.3
+ * Version 27-10-14.4
  */
 
 using UnityEngine;
@@ -1707,8 +1707,8 @@ public class InputOutput : MonoBehaviour {
 	void showSusFire(Dictionary<Unit, Unit> sustainedFireChanged){
 		foreach(KeyValuePair<Unit, Unit> entry in sustainedFireChanged)
 		{
-			//Make a new sprite only if there is not already one in existance
-			if (entry.Key.sustainedFireSprite == null){
+			//Make a new sprite only if there is not already one in existance and if the unit gameobject still exists
+			if (entry.Key.sustainedFireSprite == null && entry.Key.gameObject != null){
 				Vector3 spritePosition = entry.Key.gameObject.transform.position;							// Create the sprites in the correct locations
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
@@ -1718,7 +1718,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 
-			if (entry.Value != null){																		// Destroy the old sprite and create a new one (the piece may have changed position)
+			if (entry.Value != null && entry.Value != null){												// Destroy the old sprite and create a new one (the piece may have changed position)
 				Destroy (entry.Key.sustainedFireTargetSprite);
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
