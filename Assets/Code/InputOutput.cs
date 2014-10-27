@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.5
+ * Version 27-10-14.6
  */
 
 using UnityEngine;
@@ -860,7 +860,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method removes the mesh renderer tint on the selected unit
 		 */
 		//set the render colour on the selected object back to what it was before selection
-		if (selectedUnit.gameObject != null) {
+		if (selectedUnit!= null && selectedUnit.gameObject != null) {
 			// Hide the sustained fire sprites for the unit
 			if(susFireOnlyOnSelection){
 				removeSusFire(selectedUnit);
