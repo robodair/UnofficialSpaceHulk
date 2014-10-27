@@ -199,7 +199,7 @@ public class ActionManager {
 		List<int> attDie = new List<int> (); //attackers dice rolls
 
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
-			if(attacker.name == attacker.name)
+			if(attacker.name == "Nrick")
 			{
 				for(int k = 0; k < UnitData.getMeleeDice(attacker.unitType); k++) {
 					attDie.Add (diceRoll ());
@@ -213,7 +213,7 @@ public class ActionManager {
 		attDie.Sort (); //sorts the attackers dice
 
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
-			if(defender.name == defender.name)
+			if(defender.name == "Nrick")
 			{
 				for(int k = 0; k < UnitData.getMeleeDice(defender.unitType); k++) {
 					defDie.Add (diceRoll ());
@@ -310,7 +310,7 @@ public class ActionManager {
 		executie = shootie;
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			if(executor.name == executor.name && overwatchShot)
+			if(executor.name == "Nrick" && overwatchShot)
 			{
 				for(int k = 0; k < UnitData.getRangedDiceCount(shooter.unitType); k++) {
 					Dice.Add (diceRoll ());
