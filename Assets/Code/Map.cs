@@ -54,6 +54,8 @@ public class Map : MonoBehaviour {
 	//Fixed a bug where the areLinked method did not deal with
 	//deployment areas correctly
 
+	//Ian Mallett 27.10.14
+	//Fixed a null error in getUnit method.
 
 	/* Map Class
 	 * The map class is the class that represents the map of the game.
@@ -248,7 +250,7 @@ public class Map : MonoBehaviour {
 					return map[i].occupant;
 				}
 			}
-			if (map[i].door.gameObject.Equals(model))
+			if (map[i].door != null && map[i].door.gameObject.Equals(model))
 			{
 				return map[i].door;
 			}
