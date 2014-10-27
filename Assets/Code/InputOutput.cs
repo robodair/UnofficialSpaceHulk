@@ -29,6 +29,7 @@ public class InputOutput : MonoBehaviour {
 	OpenDoorPrefab, 
 	ClosedDoorPrefab, 
 	BlipDeploymentPiecePrefab, 
+	escapeParticleSystem,
 		// UI
 	UICanvas,
 	endGameUI,
@@ -741,6 +742,9 @@ public class InputOutput : MonoBehaviour {
 			}
 
 		}
+
+		Instantiate (escapeParticleSystem, makePosition(gameClass.escapePosition, unitElevation-floorReduction), escapeParticleSystem.transform.rotation);
+
 
 		/*
 		 * The second part of the generateMap method deals with generating the deployment points (these are not real parts of the map)
