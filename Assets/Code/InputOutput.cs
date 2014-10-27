@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.8
+ * Version 27-10-14.9
  */
 
 using UnityEngine;
@@ -84,7 +84,9 @@ public class InputOutput : MonoBehaviour {
 	sMDie2, 
 	gSDie1, 
 	gSDie2, 
-	gSDie3;
+	gSDie3,
+		// UI
+	uiCanvas;
 
 		// BUTTONS //
 	Button 
@@ -184,7 +186,7 @@ public class InputOutput : MonoBehaviour {
 					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
 					}
 				Action action = showActionsList[0];
-				if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
+				// if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
@@ -641,7 +643,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method creates the UI and then links the buttons to the code here
 		 */ 
 
-		Instantiate (UICanvas);//Instantiate the canvas
+		uiCanvas = (GameObject) Instantiate (UICanvas);//Instantiate the canvas
 
 		//Assign the buttons (and make then not interactable)
 		btnAttackGO = GameObject.Find ("BtnAttack");
@@ -1394,7 +1396,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
-		if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
+		//if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
 			if (unit.overwatchSprite != null)
 				Destroy(unit.overwatchSprite);
@@ -1697,12 +1699,22 @@ public class InputOutput : MonoBehaviour {
 			foreach( Unit unit in action.triggerRemoved){
 				Destroy (unit.gameObject);																// Destroy the gameobjects that are to be removed
 			}
-			
-			Instantiate(endGameUI);																		// Show the End Game UI components
-			if (action.winner == gameClass.thisPlayer)
-				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
-			else
-				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
+
+			Destroy (uiCanvas);
+			uiCanvas = (GameObject) Instantiate(endGameUI);																		// Show the End Game UI components
+			if (action.winner == Game.PlayerType.SM){
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "SPACE MARINES WIN!";
+				Color color = Color.red;
+				color.a = 0.5f;
+				GameObject.Find("EndGamePanel").renderer.material.color = color;
+			}
+			else{
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "GENESTEALERS WIN!";
+				Color color = Color.magenta;
+				color.a = 0.5f;
+				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+			}
+				
 		}
 		else {																							// Even if the game has not ended, remove the units that have been removed by the trigger
 			foreach( Unit unit in action.triggerRemoved){
