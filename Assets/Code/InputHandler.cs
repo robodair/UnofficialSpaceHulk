@@ -174,7 +174,7 @@ public class InputHandler : MonoBehaviour {
 	public void attack()
 	{
 		//gameController.changeGameState(Game.GameState.AttackSelection);
-		gameController.selectUnit (gameController.selectedUnit.gameObject);
+		//gameController.selectUnit (gameController.selectedUnit.gameObject);
 		Unit potentialTarget = mapController.getOccupant(gameController.selectedUnit.position + 
 		                                                 ((Vector2)(gameController.facingDirection[gameController.selectedUnit.facing]*Vector2.up)));
 		if (potentialTarget != null)
@@ -188,7 +188,7 @@ public class InputHandler : MonoBehaviour {
 	public void shoot()
 	{
 		gameController.changeGameState(Game.GameState.AttackSelection);
-		gameController.selectUnit (gameController.selectedUnit.gameObject);
+		//gameController.selectUnit (gameController.selectedUnit.gameObject);
 	}
 
 	public void shooting()
