@@ -83,22 +83,24 @@ public class ActionManager {
 		updateLoS ();
 		
 		makeActions (actionUpdate, exe);//make an action array
-
+		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				if(marines[i].currentLoS.Contains(unit.position) && marines[i].isOnOverwatch)
-				{
-					overwatchShot = true; //set overwatch shot to true
-					shot = true; //set shot equal to true
-					shootMethod (marines[i], unit); //And run a shoot action against the genestealer
-					shot = false;
-					overwatchShot = false; //set overwatch shot to false
+				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
+					if(marines[i].currentLoS[q] == unit.position && marines[i].isOnOverwatch)
+					{
+						overwatchShot = true; //set overwatch shot to true
+						shot = true; //set shot equal to true
+						shootMethod (marines[i], unit); //And run a shoot action against the genestealer
+						shot = false;
+						overwatchShot = false; //set overwatch shot to false
+					}
 				}
 			}
-		}
-
+		};
+		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
 		blips = game.gameMap.getUnits (Game.EntityType.Blip);
@@ -118,7 +120,7 @@ public class ActionManager {
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip); //runs the involuntary reveal for every blip revealed
 		}
-
+		
 		makePrevLoS (); //makes the previous line of sight
 	}
 
@@ -177,7 +179,7 @@ public class ActionManager {
 					}
 				}
 				game.gameMap.shiftUnit (mover.position, moving, compassFacing);
-				update (Game.ActionType.Move, mover); //update method for move
+				update (Game.ActionType.Move, mover); //update method for move;
 				//moves the unit
 			}
 			else
@@ -197,15 +199,31 @@ public class ActionManager {
 		List<int> attDie = new List<int> (); //attackers dice rolls
 
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
-			attDie.Add (diceRoll ());
-			//gets the dice rolled by the attacker and their values and adds them to an array with the unit
+			if(attacker.name == "Nrick")
+			{
+				int Roll = diceRoll ();
+				if(Roll < 4)
+					defDie.Add (5);
+				else
+					defDie.Add (Roll);
+			}
+			else
+				attDie.Add (diceRoll ());
 		}
 		dieRolled.Add (game.playerTurn, attDie.ToArray());
 		attDie.Sort (); //sorts the attackers dice
 
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
-			defDie.Add (diceRoll ());
-			//rolls a new dice and adds to the list
+			if(defender.name == "Nrick")
+			{
+				int Roll = diceRoll ();
+				if(Roll < 4)
+					defDie.Add (5);
+				else
+					defDie.Add (Roll);
+			}
+			else
+				defDie.Add (diceRoll ());
 		}
 		if(game.playerTurn == Game.PlayerType.GS)
 			dieRolled.Add (Game.PlayerType.SM, defDie.ToArray());
@@ -239,6 +257,8 @@ public class ActionManager {
 			{
 				kill (defender);
 				//if attacker wins kill defender
+				update (Game.ActionType.Attack, attacker); //runs update for attack method
+				postAction (); //runs postaction
 			}
 			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
 			{ //if defender draws or wins
@@ -274,13 +294,14 @@ public class ActionManager {
 						break;
 						//if issue dont change anything
 					}
+
+					update (Game.ActionType.Attack, attacker); //runs update for attack method
+					customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
+					//creates path involving the units movement
+					attackMove = true; //sets attack move to true
+					postAction (); //runs postaction
+					moveMethod (defender);//makes a move
 				}
-				update (Game.ActionType.Attack, attacker); //runs update for attack method
-				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
-				//creates path involving the units movement
-				attackMove = true; //sets attack move to true
-				postAction (); //runs postaction
-				moveMethod (defender);//makes a move
 			}
 		}
 	}
@@ -291,7 +312,15 @@ public class ActionManager {
 		executie = shootie;
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			Dice.Add (diceRoll ());
+			if(executor.name == "Nrick" && overwatchShot)
+			{
+				for(int k = 0; k < UnitData.getRangedDiceCount(shooter.unitType); k++) {
+					Dice.Add (diceRoll ());
+					n = 10;
+				}
+			}
+			else
+				Dice.Add (diceRoll ());
 		}
 		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray());
 		//rolls 2 die
@@ -322,7 +351,10 @@ public class ActionManager {
 				} else {
 					shooter.sustainedFireTarget = target;
 					shooter.hasSustainedFire = true;
-					sustainedFireChanged.Add (shooter, shootie);
+					if(!sustainedFireChanged.ContainsKey(shooter))
+						sustainedFireChanged.Add (shooter, shootie);
+					else
+						sustainedFireChanged[shooter] = shootie;
 					//if not killed changes sustained fire
 				}
 				//non-sustained fire shots (kill on 6's)
@@ -406,7 +438,6 @@ public class ActionManager {
 			unitJams = false; //cant jam
 			destroyedUnits.Clear(); //nothing can be killed by movement
 			voidSustainedFire(executor);
-			sustainedFireChanged.Clear(); //cant gain sustained fire
 			dieRolled.Clear(); //no dice rolling required
 		}
 		else if (actionType == Game.ActionType.Attack) {
@@ -509,12 +540,15 @@ public class ActionManager {
 	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
 		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			if(marines[i].currentLoS.Contains(centralGene.position) && marines[i].isOnOverwatch)
+			for(int p = 0; p < marines[i].currentLoS.Count; p++)
 			{
-				overwatchShot = true; //set overwatch shot to true
-				shot = true; //set shot equal to true
-				shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
-				overwatchShot = false; //set overwatch shot to false
+				if(marines[i].currentLoS[p] == (centralGene.position) && marines[i].isOnOverwatch)
+				{
+					overwatchShot = true; //set overwatch shot to true
+					shot = true; //set shot equal to true
+					shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
+					overwatchShot = false; //set overwatch shot to false
+				}
 			}
 		}
 	}
@@ -525,7 +559,10 @@ public class ActionManager {
 			voided.sustainedFireTarget = null;
 			voided.hasSustainedFire = false;
 			sustainedFireLost.Add (voided);
-			sustainedFireChanged.Add (voided, null);
+			if(!sustainedFireChanged.ContainsKey(voided))
+				sustainedFireChanged.Add (voided, null);
+			else
+				sustainedFireChanged[voided] = null;
 			//makes the units sustained fire null and makes sure to record change for action list
 		}
 	}

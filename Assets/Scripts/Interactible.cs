@@ -15,6 +15,8 @@ public class Interactible : MonoBehaviour {
 	public enum SelectionType{Background, SM, GS, Blip, OpenDoor, ClosedDoor, Square, DeploymentZone};
 	public SelectionType attemptedSelection;
 
+	public Material gsColour;
+
 	float red;
 	float blue;
 	float green;
@@ -76,7 +78,7 @@ public class Interactible : MonoBehaviour {
 		if (gameController.thisPlayer == Game.PlayerType.SM)
 		{
 			if (attemptedSelection == SelectionType.GS)
-				gameObject.renderer.material.color = Color.white;
+				gameObject.renderer.material.color = gsColour.color;
 		}
 		else
 		{
