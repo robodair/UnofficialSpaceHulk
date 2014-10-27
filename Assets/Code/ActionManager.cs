@@ -201,10 +201,11 @@ public class ActionManager {
 		for (int f = 0; f < UnitData.getMeleeDice(attacker.unitType); f++) {
 			if(attacker.name == "Nrick")
 			{
-				for(int k = 0; k < UnitData.getMeleeDice(attacker.unitType); k++) {
-					attDie.Add (diceRoll ());
-					f = 10;
-				}
+				int Roll = diceRoll ();
+				if(Roll < 4)
+					defDie.Add (5);
+				else
+					defDie.Add (Roll);
 			}
 			else
 				attDie.Add (diceRoll ());
@@ -215,10 +216,11 @@ public class ActionManager {
 		for (int n = 0; n < UnitData.getMeleeDice(defender.unitType); n++) {
 			if(defender.name == "Nrick")
 			{
-				for(int k = 0; k < UnitData.getMeleeDice(defender.unitType); k++) {
-					defDie.Add (diceRoll ());
-					n = 10;
-				}
+				int Roll = diceRoll ();
+				if(Roll < 4)
+					defDie.Add (5);
+				else
+					defDie.Add (Roll);
 			}
 			else
 				defDie.Add (diceRoll ());
