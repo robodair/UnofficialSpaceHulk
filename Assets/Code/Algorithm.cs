@@ -53,15 +53,20 @@ public class Algorithm : MonoBehaviour {
 	//Add blip revealing
 	//Allowed blips to open doors that the Space Marine can see
 
+	//Ian Mallett 27.10.14
+	//Added yield at regular intervals through AI to remove fps lag
+	//Refactored parts of the AI to improve efficiency
+
 	public Game game;
 	public Map map;
 
 	private List<Game.MoveType> moveOrder;
+	private ShortestPaths shortestPaths;
 
 
 
 
-	void Awake()
+	void Start()
 	{
 		moveOrder = new List<Game.MoveType> ();
 
@@ -92,6 +97,9 @@ public class Algorithm : MonoBehaviour {
 		moveOrder.Add (Game.MoveType.BackLeftTurnLeft);
 		moveOrder.Add (Game.MoveType.BackRightTurnLeft);
 		moveOrder.Add (Game.MoveType.BackLeftTurnRight);
+
+
+		fillShortestPaths ();
 	}
 
 	//This method finds the path with the least AP cost from the inital position and
@@ -117,6 +125,15 @@ public class Algorithm : MonoBehaviour {
 						 Dictionary<Game.MoveType, int> moveSet, bool canMoveIntoVision,
 	                     bool ignoreDoors, bool ignoreGenestealers, bool ignoreSpaceMarines)
 	{
+		bool movingToDeploymentArea = false;
+		int deploymentAreaIndex = 0;
+		if (targetSquare.x < -0.1f)
+		{
+			movingToDeploymentArea = true;
+			deploymentAreaIndex = -1 - Mathf.RoundToInt (targetSquare.x);
+			targetSquare = map.otherAreas[deploymentAreaIndex].adjacentPosition;
+			targetFacing = (Game.Facing)((((int)map.otherAreas[deploymentAreaIndex].relativePosition) + 2)%4);
+		}
 		//Create the set of visited positions
 		List<Path> completedPositions = new List<Path>();
 
@@ -126,8 +143,7 @@ public class Algorithm : MonoBehaviour {
 
 		Path bestPath = null;
 		bool pathComplete = false;
-
-
+		
 		//Check whether the best path is to go nowhere
 		if (initialSquare == targetSquare &&
 		    initialFacing == targetFacing)
@@ -211,7 +227,6 @@ public class Algorithm : MonoBehaviour {
 							}
 						}
 
-
 						//If the destination doesn't already exist, the unit is allowed to move to
 						//the target position, add the new path to the current positions
 						if (!destinationExists)
@@ -280,6 +295,14 @@ public class Algorithm : MonoBehaviour {
 			{
 				pathComplete = true;
 			}
+		}
+
+		if (movingToDeploymentArea)
+		{
+			bestPath.APCost += moveSet[Game.MoveType.Forward];
+			bestPath.finalSquare = new Vector2(-1 - deploymentAreaIndex, map.otherAreas.Length);
+			bestPath.finalFacing = map.otherAreas[deploymentAreaIndex].relativePosition;
+			bestPath.path.Add (Game.MoveType.Forward);
 		}
 
 		return bestPath;
@@ -638,12 +661,19 @@ public class Algorithm : MonoBehaviour {
 	public void AITurn()
 	{
 		Debug.Log ("MY TURN!");
-		placeBlips ();
-		revealBlips();
+		StartCoroutine ("AITurnWaiting");
+	}
+
+	private IEnumerator AITurnWaiting()
+	{
+		fillShortestPaths ();
+		yield return StartCoroutine ("placeBlips");
+		yield return StartCoroutine ("revealBlips");
+		fillShortestPaths ();
 		continueAI ();
 	}
 
-	private void placeBlips()
+	private IEnumerator placeBlips()
 	{
 		List<int> deploymentAreaIndexes = new List<int>();
 		for (int i = 0; i < map.otherAreas.Length; i++)
@@ -665,8 +695,13 @@ public class Algorithm : MonoBehaviour {
 						deploymentAreaIndexes[i] = j;
 					}
 				}
+				//Pause for a frame
+				yield return null;
 			}
 		}
+
+		//Pause for a frame
+		yield return null;
 
 		while (deploymentAreaIndexes.Contains (-1))
 		{
@@ -697,11 +732,13 @@ public class Algorithm : MonoBehaviour {
 				{
 					game.deployBlip(deploymentAreaIndexes[i % deploymentAreaIndexes.Count], 3);
 				}
+				//Pause for a frame per blip
+				yield return null;
 			}
 		}
 	}
 
-	private void revealBlips()
+	private IEnumerator revealBlips()
 	{
 		foreach (Unit blip in map.getUnits (Game.EntityType.Blip))
 		{
@@ -710,6 +747,8 @@ public class Algorithm : MonoBehaviour {
 			{
 				revealBlip(blip);
 			}
+			//Pause one frame per blip
+			yield return null;
 		}
 	}
 
@@ -754,7 +793,8 @@ public class Algorithm : MonoBehaviour {
 					}
 					else
 					{
-						if (distanceToSM(placePosition) < distanceToSM(nearestPositions[j]))
+						if (findNearestSM (placePosition, Game.Facing.North, true, true, true, orthoSet ()).APCost <
+						    findNearestSM(nearestPositions[j], Game.Facing.North, true, true, true, orthoSet ()).APCost)
 						{
 							nearestPositions.Insert(j, placePosition);
 							break;
@@ -809,32 +849,42 @@ public class Algorithm : MonoBehaviour {
 	
 	public void continueAI()
 	{
+		StartCoroutine ("continueAIWait");
+	}
+
+	private IEnumerator continueAIWait()
+	{
 		//Find the next unit
 		Unit activeUnit = nextUnit (Game.EntityType.GS);
+		yield return null;
 		if (activeUnit == null)
 		{
 			activeUnit = nextUnit (Game.EntityType.Blip);
+			yield return null;
 		}
 		//If no next unit, end turn
 		if (activeUnit == null)
 		{
 			game.setTurn (Game.PlayerType.SM);
-
+			
 		}
 		else
 		{
 			bool actionPerformed = false;
 			//If it can attack, attack
+			yield return null;
 			if (canAttack(activeUnit))
 			{
 				actionPerformed = attackForward (activeUnit);
 			}
+
 			//If it can reach a Space Marine avoiding Genestealers, do so
 			else if (canReachSM(activeUnit))
 			{
 				//Attempt to go to a position cardinally adjacent to the nearest SM. If this is impossible
 				//(which it shouldn't ever be), use the path to the target.
-				Path path = goToCardinal (activeUnit, nearestSM(activeUnit, true, false, true).position, true, false, true);
+				Path path = goToCardinal (activeUnit, shortestPaths.get (activeUnit.position).finalSquare, true, false, true);
+				yield return null;
 				if (path != null)
 				{
 					actionPerformed = nextAction(activeUnit, path);
@@ -857,21 +907,23 @@ public class Algorithm : MonoBehaviour {
 			{
 				//Attempt to go to a position cardinally adjacent to the nearest SM. If this is impossible,
 				//use the path to the target.
-				Path path = goToCardinal (activeUnit, nearestSM (activeUnit, true, true, true).position , true, true, true);
+				yield return null;
+				Path path = goToCardinal (activeUnit, shortestPaths.get (activeUnit.position).finalSquare, true, true, true);
+				yield return null;
 				if (path != null)
 				{
 					actionPerformed = nextAction (activeUnit, path);
 				}
 				else
 				{
-					path = findNearestSM(activeUnit, true, false, true);
+					path = findNearestSM(activeUnit, true, true, true);
 					if (path != null)
 					{
 						actionPerformed = nextAction (activeUnit, path);
 					}
 				}
 			}
-
+			
 			//If no action was performed, remove the unit from the available units and retry
 			if (!actionPerformed)
 			{
@@ -963,6 +1015,7 @@ public class Algorithm : MonoBehaviour {
 			if (executor.unitType != Game.EntityType.Blip ||
 			    !isInVision (nextPos.finalSquare))
 			{
+				moveShortestPaths(executor, nextPos.finalSquare);
 				return move (executor, nextPos);
 				
 			}
@@ -992,21 +1045,15 @@ public class Algorithm : MonoBehaviour {
 
 	private int distanceToSM(Vector2 position)
 	{
-		Game.Facing facing = Game.Facing.North;
-		//If it starts in a deployment area
-		if (position.x < 0)
+		Path returnPath = shortestPaths.get (position);
+		if (returnPath != null)
 		{
-			if (map.otherAreas.Length > -1 - (int)position.x)
-			{
-				facing = map.otherAreas[-1 - (int)position.x].relativePosition;
-			}
+			return returnPath.APCost;
 		}
-		Path toSM = findNearestSM (position, facing, true, true, true, orthoSet());
-		if (toSM != null)
+		else 
 		{
-			return toSM.APCost;
+			return 0;
 		}
-		return 0;
 	}
 
 	private Unit nearestSM(Unit unit, bool ignoreDoors, bool ignoreGS, bool ignoreSM)
@@ -1053,6 +1100,116 @@ public class Algorithm : MonoBehaviour {
 		return shortestPath;
 	}
 
+	private void fillShortestPaths()
+	{
+		shortestPaths = new ShortestPaths ();
+		List<Vector2> GSPlayerUnits = new List<Vector2>();
+		foreach (Unit unit in map.getUnits (Game.EntityType.GS))
+		{
+			GSPlayerUnits.Add (unit.position);
+		}
+
+		foreach (Unit unit in map.getUnits (Game.EntityType.Blip))
+		{
+			GSPlayerUnits.Add (unit.position);
+		}
+
+		//Add Deployment area positions
+		for (int i = 0; i < map.otherAreas.Length; i++)
+		{
+			bool posExists = false;
+			foreach (Vector2 position in GSPlayerUnits)
+			{
+				if (position == new Vector2(-1 - i, 0))
+				{
+					posExists = true;
+					break;
+				}
+			}
+			if (!posExists)
+			{
+				GSPlayerUnits.Add (new Vector2(-1 - i, 0));
+			}
+		}
+
+		foreach (Vector2 position in GSPlayerUnits)
+		{
+			shortestPaths.define (position);
+		}
+
+		//For each Space Marine, find which Genestealers it is closest to
+		foreach (Unit SM in map.getUnits(Game.EntityType.SM))
+		{
+			foreach (Vector2 position in GSPlayerUnits)
+			{
+				Game.Facing facing = Game.Facing.North;
+				//Test whether the unit is in a deployment area
+				if (position.x < -0.1f)
+				{
+					if (map.otherAreas.Length > -1 - Mathf.RoundToInt (position.x))
+					{
+						facing = map.otherAreas[-1 - Mathf.RoundToInt (position.x)].relativePosition;
+					}
+				}
+
+				//Find the shortest path between SM and GS
+				Path testPath = getPath (position, facing, SM.position, facing, orthoSet(), true, true, true, true);
+				Path currentPath = shortestPaths.get (position);
+				if (currentPath != null && testPath != null)
+				{
+					if (testPath.APCost < currentPath.APCost)
+					{
+						shortestPaths.set(position, testPath);
+					}
+				}
+				else
+				{
+					shortestPaths.set (position, testPath);
+				}
+			}
+		}
+	}
+
+	private void moveShortestPaths(Unit executor, Vector2 moveTarget)
+	{
+		if (executor.position != moveTarget)
+		{
+			//Check whether the unit was in a deployment area
+			if (executor.position.x < -0.1f)
+			{
+				shortestPaths.add (moveTarget, findNearestSM(executor, true, true, true));
+			}
+			else
+			{
+				shortestPaths.add (moveTarget, shortestPaths.get(executor.position));
+				shortestPaths.remove (executor.position);
+			}
+		}
+	}
+
+	private void attackShortestPaths(Unit target)
+	{
+		//Check whether the unit is still alive
+		if (!map.isOccupied (target.position))
+		{
+			foreach (Vector2 position in shortestPaths.positions)
+			{
+				if (shortestPaths.get (position).finalSquare == target.position)
+				{
+					Game.Facing facing = Game.Facing.North;
+					if (position.x < -0.1f)
+					{
+						if (map.otherAreas.Length > -1 - Mathf.RoundToInt (position.x))
+						{
+							facing = map.otherAreas[-1 - Mathf.RoundToInt (position.x)].relativePosition;
+						}
+					}
+					shortestPaths.set (position, findNearestSM(position, facing, true, true, true, orthoSet()));
+				}
+			}
+		}
+	}
+
 	private Dictionary<Game.MoveType, int> orthoSet()
 	{
 		Dictionary<Game.MoveType, int> moveSet = new Dictionary<Game.MoveType, int> ();
@@ -1097,6 +1254,7 @@ public class Algorithm : MonoBehaviour {
 			ActionManager attack = new ActionManager(unit, Game.ActionType.Attack);
 			attack.target = potentialTarget;
 			attack.performAction ();
+			attackShortestPaths(potentialTarget);
 			return true;
 		}
 		else
@@ -1127,15 +1285,15 @@ public class Algorithm : MonoBehaviour {
 
 	private bool canReachSM(Unit unit)
 	{
-		Path testPath = findNearestSM(unit, true, false, true);
-		if (testPath != null)
+		if (distanceToSM(unit.position) <= unit.AP)
 		{
-			return testPath.APCost <= unit.AP;
+			Path testPath = findNearestSM(unit, true, false, true);
+			if (testPath != null)
+			{
+				return testPath.APCost <= unit.AP;
+			}
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 
 	//Method to find the shortest path to a position next to the
@@ -1146,17 +1304,26 @@ public class Algorithm : MonoBehaviour {
 		for (int i = 0; i < 4; i++)
 		{
 			Vector2 testPosition = targetPosition + (Vector2)(game.facingDirection[(Game.Facing)i]*Vector2.up);
-			Path testPath = getPath (unit.position, unit.facing, testPosition, (Game.Facing)((i + 2)%4), UnitData.getMoveSet (unit.unitType),
-			                         true, ignoreDoors, ignoreGS, ignoreSM);
-			if (testPath != null)
+			if (map.hasSquare (testPosition) &&
+				(!map.isOccupied (testPosition) || (map.isOccupied (testPosition) &&
+				 ((!ignoreDoors && map.getOccupant(testPosition).unitType == Game.EntityType.Door) ||
+			 	  (!ignoreGS && (map.getOccupant(testPosition).unitType == Game.EntityType.GS ||
+								 map.getOccupant(testPosition).unitType == Game.EntityType.Blip)) ||
+			 	  (!ignoreSM && (map.getOccupant(testPosition).unitType == Game.EntityType.SM))))))
 			{
-				if (shortestPath == null)
+				Path testPath = getPath (unit.position, unit.facing, testPosition, (Game.Facing)((i + 2)%4), UnitData.getMoveSet (unit.unitType),
+				                         true, ignoreDoors, ignoreGS, ignoreSM);
+			
+				if (testPath != null)
 				{
-					shortestPath = testPath;
-				}
-				else if (testPath.APCost < shortestPath.APCost)
-				{
-					shortestPath = testPath;
+					if (shortestPath == null)
+					{
+						shortestPath = testPath;
+					}
+					else if (testPath.APCost < shortestPath.APCost)
+					{
+						shortestPath = testPath;
+					}
 				}
 			}
 		}
