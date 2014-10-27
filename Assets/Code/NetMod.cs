@@ -42,6 +42,8 @@ public class NetMod : MonoBehaviour {
 				s.Connect(IP, 139);
 				Debug.Log("it worked???");
 
+				bool  temp = PingHost(destIP);
+				Debug.Log(temp);
 			}
 			catch (Exception ex)
 			{

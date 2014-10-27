@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 27-10-14.6
+ * Version 27-10-14.9
  */
 
 using UnityEngine;
@@ -56,6 +56,7 @@ public class InputOutput : MonoBehaviour {
 	public bool susFireOnlyOnSelection;
 		// Placement
 	public float unitElevation;
+	public float floorReduction;
 
 		// SCRIPT FEEDBACKS //
 		// Bullets finished their path
@@ -83,7 +84,9 @@ public class InputOutput : MonoBehaviour {
 	sMDie2, 
 	gSDie1, 
 	gSDie2, 
-	gSDie3;
+	gSDie3,
+		// UI
+	uiCanvas;
 
 		// BUTTONS //
 	Button 
@@ -183,7 +186,7 @@ public class InputOutput : MonoBehaviour {
 					gameClass.changeGameState(Game.GameState.ShowAction);						//Change the state to showaction state
 					}
 				Action action = showActionsList[0];
-				//if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
+				// if (Debug.isDebugBuild) Debug.Log ("The action is of type: " + action.actionType);
 				
 				// Executor pos and rot
 				Unit exeUnit = action.executor;
@@ -340,6 +343,18 @@ public class InputOutput : MonoBehaviour {
 							foreach(Unit un in action.destroyedUnits){
 								//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
 								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer>());								// Get all the renderer gameobject components that need to be faded
+								if(un.jammedUnitSprite!=null) {
+									renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
+								if(un.overwatchSprite != null){																		// If there is a jam sprite for the unit, add it to be faded when the unit dies
+									renderers.Add(un.overwatchSprite.renderer);
+								}
+								if(un.sustainedFireSprite != null){
+									renderers.Add(un.sustainedFireSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
+								if (un.sustainedFireTargetSprite != null){
+									renderers.Add(un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
+								}
 							}
 							rotationBefore = new Quaternion(exeRot.z, exeRot.y, exeRot.z, exeRot.w); 								// Store the initial rotation
 							
@@ -628,7 +643,7 @@ public class InputOutput : MonoBehaviour {
 		 * This method creates the UI and then links the buttons to the code here
 		 */ 
 
-		Instantiate (UICanvas);//Instantiate the canvas
+		uiCanvas = (GameObject) Instantiate (UICanvas);//Instantiate the canvas
 
 		//Assign the buttons (and make then not interactable)
 		btnAttackGO = GameObject.Find ("BtnAttack");
@@ -706,7 +721,7 @@ public class InputOutput : MonoBehaviour {
 			float xPos = positionV2.x;
 			float zPos = positionV2.y;
 
-			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (-0.5f), zPos), Quaternion.identity); //Create the game object in the scene
+			GameObject floorPiece = (GameObject) Instantiate(FloorPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), Quaternion.identity); //Create the game object in the scene
 			square.model = floorPiece; //Pass reference to the gameobject back to the square
 
 			//Added Alisdair 11/9/2014 This are for passing the unit reference back to the square (if needed)
@@ -767,7 +782,7 @@ public class InputOutput : MonoBehaviour {
 
 				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
 				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
-				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, -0.5f, zPos), depAreaFacing); //Create the game object in the scene
+				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), depAreaFacing); //Create the game object in the scene
 				Vector3 position = depArea.model.transform.GetChild(0).transform.position;
 				Vector3 newPosition = new Vector3 (position.x, 1.6f, position.z);
 				depArea.model.transform.GetChild(0).transform.position = newPosition;
@@ -1381,7 +1396,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="units">Units.</param>
 	void removeOverwatch(List <Unit> units){
-		if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
+		//if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing overwatch");
 		foreach (Unit unit in units){
 			if (unit.overwatchSprite != null)
 				Destroy(unit.overwatchSprite);
@@ -1684,12 +1699,22 @@ public class InputOutput : MonoBehaviour {
 			foreach( Unit unit in action.triggerRemoved){
 				Destroy (unit.gameObject);																// Destroy the gameobjects that are to be removed
 			}
-			
-			Instantiate(endGameUI);																		// Show the End Game UI components
-			if (action.winner == gameClass.thisPlayer)
-				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
-			else
-				GameObject.Find("EndGameText").GetComponent<Text>().text = "YOU WON!";
+
+			Destroy (uiCanvas);
+			uiCanvas = (GameObject) Instantiate(endGameUI);																		// Show the End Game UI components
+			if (action.winner == Game.PlayerType.SM){
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "SPACE MARINES WIN!";
+				Color color = Color.red;
+				color.a = 0.5f;
+				GameObject.Find("EndGamePanel").renderer.material.color = color;
+			}
+			else{
+				GameObject.Find("EndGameText").GetComponent<Text>().text = "GENESTEALERS WIN!";
+				Color color = Color.magenta;
+				color.a = 0.5f;
+				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+			}
+				
 		}
 		else {																							// Even if the game has not ended, remove the units that have been removed by the trigger
 			foreach( Unit unit in action.triggerRemoved){
@@ -1718,7 +1743,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 
-			if (entry.Value != null && entry.Value != null){												// Destroy the old sprite and create a new one (the piece may have changed position)
+			if (entry.Value != null && entry.Value.gameObject != null){												// Destroy the old sprite and create a new one (the piece may have changed position)
 				Destroy (entry.Key.sustainedFireTargetSprite);
 				Vector3 spritePosition = entry.Value.gameObject.transform.position;
 				spritePosition.y += 2f;
