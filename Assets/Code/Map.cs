@@ -250,9 +250,11 @@ public class Map : MonoBehaviour {
 					return map[i].occupant;
 				}
 			}
-			if (map[i].door != null && map[i].door.gameObject.Equals(model))
-			{
-				return map[i].door;
+			if (map[i].door != null){
+				if (map[i].door.gameObject.Equals(model)
+				{
+					return map[i].door;
+				}
 			}
 		}
 
