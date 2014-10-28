@@ -16,6 +16,9 @@ public class Interactible : MonoBehaviour {
 	public SelectionType attemptedSelection;
 
 	public Material gsColour;
+	public Material smColour;
+	public Material doorColour;
+	public Material floorColour;
 
 	float red;
 	float blue;
@@ -83,11 +86,11 @@ public class Interactible : MonoBehaviour {
 		else
 		{
 			if(attemptedSelection == SelectionType.SM)
-				gameObject.renderer.material.color = Color.white;
+				gameObject.renderer.material.color = smColour.color;
 		}
 
 		if (attemptedSelection == SelectionType.ClosedDoor)
-			gameObject.renderer.material.color = Color.yellow;
+			gameObject.renderer.material.color = doorColour.color;
 
 		//RB 8.10.14 Redone to support highlighting of all available squares in movement
 		if (attemptedSelection == SelectionType.Square)
@@ -103,7 +106,7 @@ public class Interactible : MonoBehaviour {
 					gameObject.renderer.material.color = Color.white;
 				else if (gameObject.renderer.material.color != Color.green)
 				{
-					gameObject.renderer.material.color = Color.white;
+					gameObject.renderer.material.color = floorColour.color;
 				}
 			}
 			else if(Mathf.Approximately(red, 0.68f) && Mathf.Approximately(green, 0.51f) && Mathf.Approximately(blue, 0.69f))
