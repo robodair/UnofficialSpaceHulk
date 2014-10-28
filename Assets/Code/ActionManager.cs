@@ -233,8 +233,7 @@ public class ActionManager {
 			Debug.Log ("error in determining player action melee, actionManager attackMethod");
 		//adds the unit type in term of player type and adds to dierolled dictionary
 		defDie.Sort (); //sorts the defenders dice
-
-		defender.isOnOverwatch = false; //sets defenders overwatch to false
+		
 		Quaternion defDirection = game.facingDirection[defender.facing];
 		Quaternion attDirection = game.facingDirection[attacker.facing];
 		//gets the facing of the units
@@ -262,6 +261,7 @@ public class ActionManager {
 			}
 			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
 			{ //if defender draws or wins
+				//Debug.Log (attacker.facing);
 				switch(attacker.facing)
 				{
 					case Game.Facing.North:
@@ -294,14 +294,13 @@ public class ActionManager {
 						break;
 						//if issue dont change anything
 					}
-
-					update (Game.ActionType.Attack, attacker); //runs update for attack method
-					customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
-					//creates path involving the units movement
-					attackMove = true; //sets attack move to true
-					postAction (); //runs postaction
-					moveMethod (defender);//makes a move
 				}
+				update (Game.ActionType.Attack, attacker); //runs update for attack method
+				customPath = game.algorithm.getPath (defender.position, defender.facing, defender.position, defFacing, UnitData.getMoveSet(defender.unitType));
+				//creates path involving the units movement
+				attackMove = true; //sets attack move to true
+				postAction (); //runs postaction
+				moveMethod (defender);//makes a move
 			}
 		}
 	}
