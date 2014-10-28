@@ -251,8 +251,7 @@ public class Map : MonoBehaviour {
 				}
 			}
 			if (map[i].door != null){
-				if (map[i].door.gameObject.Equals(model)
-				{
+				if (map[i].door.gameObject.Equals(model)){
 					return map[i].door;
 				}
 			}
