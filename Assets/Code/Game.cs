@@ -465,7 +465,6 @@ public class Game : MonoBehaviour {
 			//Select the unit
 			selectedUnit = unit;
 			unitSelected = true;
-			Debug.Log ("Selecting Unit");
 			ioModule.selectUnit(unit, availableActions.ToArray());
 		}
 		//The unit doesn't exist
