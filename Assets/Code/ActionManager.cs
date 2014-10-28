@@ -315,12 +315,12 @@ public class ActionManager {
 
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			if(executor.name == "Nrick" && overwatchShot)
+			if(shooter.name == "Nrick" && overwatchShot)
 			{
-				for(int k = 0; k < UnitData.getRangedDiceCount(shooter.unitType); k++) {
-					Dice.Add (diceRoll ());
-					n = 10;
-				}
+				int jamDice = diceRoll ();
+				Dice.Add (jamDice);
+				Dice.Add (jamDice);
+				n = 10;
 			}
 			else
 			{
