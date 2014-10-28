@@ -30,6 +30,7 @@ public class ActionManager {
 	private Game.ActionType actionType;
 	private Unit executor;
 	private Unit executie;
+	private Unit preExecutor;
 	private Vector2 movePosition; 
 	private Game.Facing moveFacing;
 	private int APCost;
@@ -93,13 +94,15 @@ public class ActionManager {
 					{
 						overwatchShot = true; //set overwatch shot to true
 						shot = true; //set shot equal to true
+						preExecutor = executor;
 						shootMethod (marines[i], executor); //And run a shoot action against the genestealer
+						executor = preExecutor;
 						shot = false;
 						overwatchShot = false; //set overwatch shot to false
 					}
 				}
 			}
-		};
+		}
 		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
@@ -309,6 +312,7 @@ public class ActionManager {
 	{
 		executor = shooter;
 		executie = shootie;
+
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
 			if(executor.name == "Nrick" && overwatchShot)
@@ -319,11 +323,13 @@ public class ActionManager {
 				}
 			}
 			else
+			{
 				Dice.Add (diceRoll ());
+			}
 		}
 		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray());
 		//rolls 2 die
-
+		
 		if (!shooter.isJammed) {
 			//makes sure they are not jammed
 			if (shooter.sustainedFireTarget == shootie) {
@@ -348,7 +354,7 @@ public class ActionManager {
 					}
 					//if criteria met kills unit
 				} else {
-					shooter.sustainedFireTarget = target;
+					shooter.sustainedFireTarget = shootie;
 					shooter.hasSustainedFire = true;
 					if(!sustainedFireChanged.ContainsKey(shooter))
 						sustainedFireChanged.Add (shooter, shootie);
