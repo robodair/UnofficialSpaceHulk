@@ -57,6 +57,9 @@ public class Algorithm : MonoBehaviour {
 	//Added yield at regular intervals through AI to remove fps lag
 	//Refactored parts of the AI to improve efficiency
 
+	//Ian Mallett 29.10.14
+	//Fixed a null reference error in the nearestSM method
+
 	public Game game;
 	public Map map;
 
@@ -254,6 +257,11 @@ public class Algorithm : MonoBehaviour {
 												if (bestPath != null)
 												{
 													if (newPath.APCost < bestPath.APCost)
+													{
+														bestPath = newPath;
+													}
+													else if (newPath.APCost == bestPath.APCost &&
+													         newPath.path.Count > bestPath.path.Count)
 													{
 														bestPath = newPath;
 													}
@@ -1084,7 +1092,7 @@ public class Algorithm : MonoBehaviour {
 			                        moveSet, true,
 			                        ignoreDoors, ignoreGS, ignoreSM);
 
-			if (shortestPath != null)
+			if (shortestPath != null && newPath != null)
 			{
 				if (shortestPath.APCost > newPath.APCost)
 				{

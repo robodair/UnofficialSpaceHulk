@@ -44,10 +44,11 @@ public static class UnitData{
 		}
 	}//untested
 
-	public static Dictionary<Game.MoveType, int> getMoveSet(Game.EntityType unitType) // contents modified by Nick Lee, 25-10-2014
+	public static Dictionary<Game.MoveType, int> getMoveSet(Game.EntityType unitType) // contents modified by Nick Lee, 25-10-2014, Ian Mallett 29.10.14
 	{//Gets and returns the movement set of each specific unit type
 		if (unitType == Game.EntityType.Blip) {
 			Dictionary<Game.MoveType, int> BlipMovements = new Dictionary<Game.MoveType, int>();
+			//Ian Mallett 29.10.14 Removed 0 AP cost turning
 			BlipMovements.Add (Game.MoveType.Forward, 1);
 			BlipMovements.Add (Game.MoveType.Left, 1);
 			BlipMovements.Add (Game.MoveType.Right, 1);
@@ -56,9 +57,6 @@ public static class UnitData{
 			BlipMovements.Add (Game.MoveType.FrontLeft, 1);
 			BlipMovements.Add (Game.MoveType.BackRight, 1);
 			BlipMovements.Add (Game.MoveType.BackLeft, 1);
-			BlipMovements.Add (Game.MoveType.TurnRight, 0);
-			BlipMovements.Add (Game.MoveType.TurnLeft, 0);
-			BlipMovements.Add (Game.MoveType.TurnBack, 0);
 			BlipMovements.Add (Game.MoveType.ForwardTurnRight, 1);
 			BlipMovements.Add (Game.MoveType.ForwardTurnLeft, 1);
 			BlipMovements.Add (Game.MoveType.FrontRightTurnRight, 1);
