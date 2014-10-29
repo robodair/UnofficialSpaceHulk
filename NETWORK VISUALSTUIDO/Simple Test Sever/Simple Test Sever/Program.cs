@@ -14,7 +14,7 @@ namespace Simple_Test_Sever
         {
             int recv;
             byte[] data = new byte[1024];
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 139);
+            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 137);
 
 
             Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
