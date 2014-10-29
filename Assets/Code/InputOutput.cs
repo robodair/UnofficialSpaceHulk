@@ -44,6 +44,9 @@ public class InputOutput : MonoBehaviour {
 	bulletPrefab, 
 	explosionPrefab;
 
+		//AUDIOCLIPS //
+	public AudioClip clickSound;
+
 		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
 	public Game gameClass; //Added 11/9/2014 Alisdair 
@@ -1103,6 +1106,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Attack Button is clicked
 	/// </summary>
 	public void btnAttackClicked(){ //Added By Alisdair 14/9/14
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.attack ();
 	}
 
@@ -1110,6 +1114,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Move Button is clicked
 	/// </summary>
 	public void btnMoveClicked(){ //Added By Alisdair 14/9/14
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.movement ();//RB 18/9/14
 	}
 
@@ -1117,6 +1122,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Overwatch Button is clicked
 	/// </summary>
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.overwatchClicked();
 	}
 
@@ -1127,6 +1133,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if (Debug.isDebugBuild) Debug.LogWarning ("Reveal Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 	}
 
@@ -1137,6 +1144,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		setDoorCollidersEnabled(true);											//Set the door collider so that they can be shot at if needed
 		inputHandlerController.shoot ();
 	}
@@ -1148,6 +1156,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.toggleDoor ();
 	}
 
@@ -1203,6 +1212,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas north button is pressed
 	/// </summary>
 	public void btnFaceNorth(){
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.North);
@@ -1218,6 +1228,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas east button is pressed
 	/// </summary>
 	public void btnFaceEast(){
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.East);
@@ -1234,6 +1245,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas South button is pressed
 	/// </summary>
 	public void btnFaceSouth(){
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.South);
@@ -1250,6 +1262,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas west button is pressed
 	/// </summary>
 	public void btnFaceWest(){
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.West);
@@ -1337,7 +1350,7 @@ public class InputOutput : MonoBehaviour {
 	/// (Playerturn protection not needed here, as the button will not be active at all if it is not the client player's turn.
 	/// </summary>
 	void btnEndTurnClicked(){
-
+		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		switch (gameClass.playerTurn){
 			case (Game.PlayerType.GS):
 				gameClass.setTurn(Game.PlayerType.SM);
