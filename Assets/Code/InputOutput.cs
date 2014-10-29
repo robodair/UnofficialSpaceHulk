@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 29-10-14.0
+ * Version 29-10-14.1
  */
 
 using UnityEngine;
@@ -437,7 +437,7 @@ public class InputOutput : MonoBehaviour {
 		case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
 			Color color = Color.clear;
 			foreach (Renderer rend in renderers) { 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-				if (rend != null) {		
+				if (rend != null && rend.material.HasProperty("_Color")) {		
 					color = rend.material.color;
 					color.a -= 0.02f;
 					rend.material.color = color;
@@ -608,7 +608,7 @@ public class InputOutput : MonoBehaviour {
 			if (renderers.Count > 0){
 				Color color;
 				foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-					if (rend != null){
+					if (rend != null && rend.material.HasProperty("_Color")){
 						color = rend.material.color;
 						color.a -= 0.02f;
 						alphaLevel = color.a;
