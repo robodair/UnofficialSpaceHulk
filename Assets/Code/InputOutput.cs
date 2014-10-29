@@ -253,6 +253,401 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Actions A move Action
+	/// </summary>
+	/// <param name="action">Action.</param>
+	void moveAction(Action action){
+		if (isFirstLoopofAction){
+			isFirstLoopofAction = false;
+			return;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
+		}
+		//if (Debug.isDebugBuild) Debug.Log("Update entered Move action sector of switch");
+		
+		// Create aim pos and rot
+		Vector3 aimPos = makePosition(action.movePosition, unitElevation);
+		//if (Debug.isDebugBuild) Debug.Log ("Aim position is " + aimPos);
+		aimRot = makeRotation(makeFacing(action.moveFacing), action.executor.unitType);
+		//if (Debug.isDebugBuild) Debug.Log ("Aim Rotation is: " + aimRot);
+		
+		// Make part of the movements
+		action.executor.gameObject.transform.position = Vector3.MoveTowards(action.executor.gameObject.transform.position, aimPos, stepMoveAmmount*Time.deltaTime);
+		action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime);
+		
+		// Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
+		// also update the unit AP and CP fields
+		if (action.executor.gameObject.transform.position == aimPos){
+			//if (Debug.isDebugBuild) Debug.Log("PositionEqual");
+			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
+				finishAction(action);
+			}
+			else{
+				//if (Debug.isDebugBuild) Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
+			}
+		}
+		else {
+			//if (Debug.isDebugBuild) Debug.Log ("Position not Equal, Position target is: " + aimPos);
+		}
+	}
+	
+	/// <summary>
+	/// Actions an Overwatch Action
+	/// </summary>
+	/// <param name="action">Action.</param>
+	void overwatchAction(Action action){
+		isFirstLoopofAction = false;
+		// determine the position the sprite
+		Vector3 spritePosition = action.executor.gameObject.transform.position;
+		spritePosition.y += 1.5f;
+		
+		//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
+		if (action.executor.overwatchSprite == null){
+			//if (Debug.isDebugBuild) Debug.LogWarning("Creating a new Overwatch Sprite!");
+			action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
+		}
+		
+		finishAction(action);
+	}
+	
+	/// <summary>
+	/// Actions A toggle Door Action
+	/// </summary>
+	/// <param name="action">Action.</param>
+	void toggleDoorAction(Action action){
+		if(isFirstLoopofAction){
+			isFirstLoopofAction = false;
+			return;															// Skip The first frame of a action, ensures smooth movement (no jumps due to processing lag)
+		}
+		// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
+		//if (Debug.isDebugBuild) Debug.Log("Exe pos:" + action.executor.gameObject.transform.position);
+		Vector2 doorMapPosition = new Vector2 (action.executor.gameObject.transform.position.x, action.executor.gameObject.transform.position.z);
+		//if (Debug.isDebugBuild) Debug.Log ("converted to a pos in map: " + doorMapPosition);
+		//if (Debug.isDebugBuild) Debug.LogError(action.executor.facing);
+		switch (action.executor.facing){
+		case (Game.Facing.North):
+			doorMapPosition.y++;
+			break;
+			
+		case (Game.Facing.East):
+			doorMapPosition.x++;
+			break;
+			
+		case (Game.Facing.South):
+			doorMapPosition.y--;
+			break;
+			
+		case (Game.Facing.West):;
+			doorMapPosition.x--;
+			break;
+		}
+		//if (Debug.isDebugBuild) Debug.Log ("Final Door Position: " + doorMapPosition);
+		//if (Debug.isDebugBuild) Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
+		
+		// Check if the position has a door, Get the door (unit), Toggle the door 
+		Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
+		Unit doorToToggle;
+		// Check that the door is there, then assign the variables for use in toggling
+		//if (Debug.isDebugBuild) Debug.Log ("DOES POSITION HAVE DOOR?: " + mapClass.hasDoor(doorMapPosition));
+		if (mapClass.hasDoor(doorMapPosition)){
+			doorToToggle = mapClass.getOccupant(doorMapPosition);
+			//target unit variables being assigned
+			action.target = doorToToggle;
+			
+			//If the door is open (in the map class, which is up to date), make it an open door
+			if (mapClass.isDoorOpen(doorMapPosition)){
+				GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, true), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
+				Destroy(mapSquareWithDoor.door.gameObject);
+				mapSquareWithDoor.door.gameObject = newDoor;
+			}
+			
+			else { //if the door is closed in the map class, show this also
+				GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, false), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
+				Destroy(action.target.gameObject);
+				mapSquareWithDoor.door.gameObject = newDoor;
+			}
+			
+			//Finish the action and update the AP
+			finishAction(action);
+		}
+		
+	}
+	
+	/// <summary>
+	/// Actions an Attack Action
+	/// </summary>
+	/// <param name="action">Action object</param>
+	void attackAction(Action action){
+		if (isFirstLoopofAction) {
+			isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
+			renderers.Clear ();
+			foreach (Unit un in action.destroyedUnits) {
+				//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
+				renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer> ());								// Get all the renderer gameobject components that need to be faded
+				if (un.jammedUnitSprite != null) {
+					renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+				}
+				if (un.overwatchSprite != null) {																		// If there is a jam sprite for the unit, add it to be faded when the unit dies
+					renderers.Add (un.overwatchSprite.renderer);
+				}
+				if (un.sustainedFireSprite != null) {
+					renderers.Add (un.sustainedFireSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+				}
+				if (un.sustainedFireTargetSprite != null) {
+					renderers.Add (un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
+				}
+			}
+			
+			exeUnitAttackPos = Vector3.MoveTowards (action.executor.gameObject.transform.position, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
+			
+			attackPhaseList.Add (AttackPhase.MoveTowards); 															// Add the moving toward phase
+			
+			bool addEndPhases = true;																				// Bool set to determine if the end phases are needed or not
+			if (action.destroyedUnits.Count > 0) { 																	// Determine if the attack was successful (for use when creating bullets)
+				attackSuccessful = true;
+				//if (Debug.isDebugBuild) Debug.LogWarning("Melee attack to be successful");
+				attackPhaseList.Add (AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
+				//Check to see if the executor is the one that dies (if it is, do not add the move back and rotate back phases
+				exeKilled = false;
+				foreach (Unit unit in action.destroyedUnits) {
+					if (unit == action.executor) {
+						addEndPhases = false;
+						exeKilled = true;
+						break;
+					}
+				}
+				
+				
+			}
+			if (addEndPhases) {
+				attackPhaseList.Add (AttackPhase.MoveBack); 															// Add the stage for moving back after the attack action
+			}
+			return;																									// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
+		}
+		
+		switch (attackPhaseList [0]) { 																				// Use a switch for actioning the phases
+			
+		case (AttackPhase.MoveTowards): 																		// Moving the executor towards the aim position
+			action.executor.gameObject.transform.position = Vector3.MoveTowards (action.executor.gameObject.transform.position, exeUnitAttackPos, stepMoveAmmount * Time.deltaTime);
+			
+			if (action.executor.gameObject.transform.position == exeUnitAttackPos) {
+				attackPhaseList.RemoveAt (0); 																	// Move to the next phase
+			}	
+			break;
+			
+		case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
+			Color color = Color.clear;
+			foreach (Renderer rend in renderers) { 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
+				if (rend != null) {		
+					color = rend.material.color;
+					color.a -= 0.02f;
+					rend.material.color = color;
+				}
+			}
+			
+			if (color.a <= 0f) { 																				// If the gameobject is now fully transparent, remove it.
+				if (action.executor.sustainedFireSprite != null) {
+					Destroy (action.executor.sustainedFireSprite);
+				}
+				if (action.executor.sustainedFireTargetSprite != null) {
+					Destroy (action.executor.sustainedFireTargetSprite);
+				}
+				if (action.executor.overwatchSprite != null) {
+					Destroy (action.executor.overwatchSprite);
+				}
+				if (action.target.sustainedFireSprite != null) {
+					Destroy (action.target.sustainedFireSprite);
+				}
+				if (action.target.sustainedFireTargetSprite != null) {
+					Destroy (action.target.sustainedFireTargetSprite);
+				}
+				if (action.target.overwatchSprite != null) {
+					Destroy (action.target.overwatchSprite);
+				}
+				foreach (Unit unit in action.destroyedUnits) {
+					Destroy (unit.gameObject);
+				}
+				attackPhaseList.RemoveAt (0); 																	// Move to the next phase
+				if (exeKilled) {
+					finishAction (action);
+				}
+			}
+			break;
+			
+		case (AttackPhase.MoveBack):																			// Move the executor gameobject back to it's original position
+			action.executor.gameObject.transform.position = Vector3.MoveTowards (action.executor.gameObject.transform.position, exeInitPos, stepMoveAmmount * Time.deltaTime);
+			
+			if (action.executor.gameObject.transform.position == exeInitPos) {
+				attackPhaseList.RemoveAt (0); 																	// remove this phase
+				finishAction (action);																			// End the action
+			}
+			break;
+			
+		}
+	}
+	
+	/// <summary>
+	/// Actions a Shoot action
+	/// </summary>
+	/// <param name="action">Action object</param>
+	void shootAction(Action action){ 
+		if (isFirstLoopofAction){
+			isFirstLoopofAction = false;
+			
+			// ================================================================================== SHOOT ACTION ROTATION CALCULATIONS
+			
+			float offset = getBearing(action.executor.position, action.executor.facing, action.target.position);
+			// if (Debug.isDebugBuild) Debug.LogWarning("Offset rotation IS: " + offset);
+			rotationBefore = Quaternion.Euler(new Vector3(action.executor.gameObject.transform.rotation.eulerAngles.x, action.executor.gameObject.transform.rotation.eulerAngles.y, action.executor.gameObject.transform.rotation.eulerAngles.z)); 	// Store the initial rotation
+			aimRot = new Quaternion();																				// Calculate the aim rotation
+			aimRot = Quaternion.Euler(new Vector3 (rotationBefore.eulerAngles.x, rotationBefore.eulerAngles.y + offset, rotationBefore.eulerAngles.z));
+			// if (Debug.isDebugBuild) Debug.LogWarning("Exe Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
+			// if (Debug.isDebugBuild) Debug.LogWarning("Beginning Rotation: " + rotationBefore.eulerAngles);
+			// if (Debug.isDebugBuild) Debug.LogWarning("Aim Rotation: " + aimRot.eulerAngles);
+			
+			// ==================================================================================
+			
+			
+			if (action.target.gameObject!= null){
+				foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
+					renderers.Add (rend);																				// Get all the renderer gameobject components that need to be faded
+				}
+			}
+			
+			
+			isFirstLoopofAction = false; 																		// Set that it is no longer the first loop
+			shootPhaseList.Add(ShootPhase.RotateTowards); 														// Add the rotation phase
+			shootPhaseList.Add(ShootPhase.CreateBullets); 														// Add the phase for creating the bullets
+			shootPhaseList.Add(ShootPhase.BulletsMoving); 														// Add the bullet moving phase
+			
+			if (action.destroyedUnits.Count > 0){ 																//Determine if the attack was successful (for use when creating bullets)
+				attackSuccessful = true;
+				//if (Debug.isDebugBuild) Debug.LogWarning("Shoot attack to be successful");
+				shootPhaseList.Add(ShootPhase.UnitDeath); 														//If it is successful add the phase for unit death for the lineup
+			}
+			
+			shootPhaseList.Add(ShootPhase.RotateBack); 															//Finally add the stage for rotating back after the shoot action
+			return;																									// Set that it is no longer the first loop
+		}
+		
+		switch (shootPhaseList[0]){ 																				// Use a switch for actioning the phases
+			
+		case (ShootPhase.RotateTowards): 																		// Rotating the SM to face the GS
+			
+			action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
+			
+			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
+				shootPhaseList.RemoveAt(0); 															// Move to the next phase
+			}
+			break;
+			
+		case (ShootPhase.CreateBullets): 																		// Creating the bullets
+			//if (Debug.isDebugBuild) Debug.LogWarning("Creating the bullets");
+			
+			Vector3 bulStart = makePosition(action.executor.position, unitElevation + 1.0f);							// Create the Vector3 positions for the bullets to start and end at
+			Vector3 bulEnd = makePosition(action.target.position, unitElevation + 0.8f);
+			
+			if (!attackSuccessful){ 																			// If the attack is not successful make the bullets miss
+				//if (Debug.isDebugBuild) Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
+				int rand = Random.Range(1, 4);
+				switch (rand){
+				case 1: 																					// make the bullets miss above
+					if (action.target.unitType == Game.EntityType.Door)											// If the unit is a door, make the miss higher
+						bulEnd.y += 0.5f;
+					bulEnd.y += 1;
+					break;
+				case 2: 																					// make the bullets miss below
+					bulEnd.y -= 1;
+					break;
+				case 3: 																					// make the bullets miss to the left
+					if (action.target.facing == Game.Facing.North || action.target.facing == Game.Facing.South)			
+						bulEnd.x += 0.6f;
+					else if (action.target.facing == Game.Facing.West || action.target.facing == Game.Facing.East)			
+						bulEnd.z += 0.6f;
+					else
+						bulEnd.y -= 1;
+					break;
+				case 4: 																					// make the bullets miss to the right
+					if (action.target.facing == Game.Facing.North || action.target.facing == Game.Facing.South)			
+						bulEnd.x -= 0.6f;
+					else if (action.target.facing == Game.Facing.West || action.target.facing == Game.Facing.East)			
+						bulEnd.z -= 0.6f;
+					else
+						bulEnd.y -= 1;
+					break; 
+				}
+			}
+			
+			createBullet(bulStart, bulEnd, attackSuccessful, 0.0f);												// Create a bullet
+			createBullet(bulStart, bulEnd, attackSuccessful, 0.2f);												// Create a bullet
+			createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
+			createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
+			createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
+			
+			if(action.unitJams){																				// If the unit jammed in this action, display the jammed sprite
+				showJam(action.executor);
+			}
+			
+			shootPhaseList.RemoveAt(0); 																		// Move to the next phase
+			break;
+			
+		case (ShootPhase.BulletsMoving): 																		// Waiting for the bullets to finish moving
+			if (bulletsComplete){
+				shootPhaseList.RemoveAt(0); 																	// Move to the next phase if all of the bullets have finished
+				bulletsComplete = false; 																		// Reset the variable ready for the next shoot action
+			}
+			break;
+			
+		case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
+			float alphaLevel = 255;
+			
+			if(action.executor.sustainedFireSprite != null)														// Add the renderers of the sustained fire sprites to be faded if they exist
+				renderers.AddRange(action.executor.sustainedFireSprite.GetComponentsInChildren<Renderer>());
+			if (action.executor.sustainedFireTargetSprite != null)
+				renderers.AddRange(action.executor.sustainedFireTargetSprite.GetComponentsInChildren<Renderer>());
+			
+			if (renderers.Count > 0){
+				Color color;
+				foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
+					if (rend != null){
+						color = rend.material.color;
+						color.a -= 0.02f;
+						alphaLevel = color.a;
+						rend.material.color = color;
+					}
+				}
+				
+				if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+					if(action.executor.sustainedFireTargetSprite != null){
+						Destroy (action.executor.sustainedFireTargetSprite);
+					}		
+					Destroy (action.target.gameObject);
+					shootPhaseList.RemoveAt(0); 																	// Move to the next phase
+				}
+			}
+			else {
+				shootPhaseList.RemoveAt(0); 																	// Move to the next phase
+			}
+			
+			break;
+			
+		case(ShootPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
+			// if (Debug.isDebugBuild) Debug.LogWarning("RotateBack Phase");
+			action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, rotationBefore, stepRotateAmmount*Time.deltaTime); // Increment the rotation
+			
+			if(action.executor.gameObject.transform.rotation.eulerAngles.y == rotationBefore.eulerAngles.y){ 											// If the rotation back has completed, end the action
+				finishAction(action);
+			}
+			
+			break;
+		}
+	}
+	
+	void involuntaryRevealAction(Action action){
+		letActionsPlay = false;
+		finishAction(action);
+		GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.executor.position, actionManagers[0], previousAction.prevLoS); 	
+	}
+
 
 	/// =======================================
 	/// Methods for Instantiating the map and UI
@@ -1114,10 +1509,7 @@ public class InputOutput : MonoBehaviour {
 	/// <returns>Bearing in degrees from Home position to Target Position on the y axis</returns>
 	/// <param name="homePosition">Home position.</param>
 	/// <param name="targetPosition">Target position.</param>
-	float getBearing(GameObject home, Game.Facing homeFacing, GameObject target) {
-
-		Vector2 homePosition = new Vector2(home.transform.position.x, home.transform.position.z);
-		Vector2 targetPosition = new Vector2(target.transform.position.x, target.transform.position.z); // Convert to Vector2 values for simplicity
+	float getBearing(Vector2 homePosition, Game.Facing homeFacing, Vector2 targetPosition) {
 
 		float acuteAngle = Vector2.Angle(gameClass.facingDirection[homeFacing]*Vector2.up, targetPosition-homePosition); // Find the acute angle between the two vectors
 		Debug.Log ("Acute Angle: " + acuteAngle);
@@ -1126,19 +1518,19 @@ public class InputOutput : MonoBehaviour {
 		string quadrant = ""; 
 		if (targetPosition.y >= homePosition.y){ // If the target is to the north
 			quadrant = "N";
-			Debug.Log(quadrant);
+			if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		else if (targetPosition.y <= homePosition.y) { // If the target is to the south
 			quadrant = "S";
-			Debug.Log(quadrant);
+			if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		if (targetPosition.x >= homePosition.x) { // If the target is to the east
 			quadrant = quadrant + "E";
-			Debug.Log(quadrant);
+			if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		else if (targetPosition.x <= homePosition.x){ // If the target is to the west
 			quadrant = quadrant + "W";
-			Debug.Log(quadrant);
+			if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 
 		switch(homeFacing){	// Switch to determine the direction to rotate (+ or -) and then return the value based on the current facing of the gameobject
@@ -1229,7 +1621,7 @@ public class InputOutput : MonoBehaviour {
 				case("SE"):
 					return -180+acuteAngle;		// West to SE is negative
 				case("SW"):
-					return -180+acuteAngle;		// West to SW is negative
+					return -acuteAngle;		// West to SW is negative
 				default:
 					if (Debug.isDebugBuild) Debug.LogError("You literally shot yourself in the foot, how'd you even manage that?");
 					return 0f;					// For shooting yourself in the foot you don't need to change rotation
@@ -1573,371 +1965,4 @@ public class InputOutput : MonoBehaviour {
 		}
 
 	}
-
-	void moveAction(Action action){
-			if (isFirstLoopofAction){
-				isFirstLoopofAction = false;
-				return;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
-			}
-			//if (Debug.isDebugBuild) Debug.Log("Update entered Move action sector of switch");
-			
-			// Create aim pos and rot
-			Vector3 aimPos = makePosition(action.movePosition, unitElevation);
-			//if (Debug.isDebugBuild) Debug.Log ("Aim position is " + aimPos);
-			aimRot = makeRotation(makeFacing(action.moveFacing), action.executor.unitType);
-			//if (Debug.isDebugBuild) Debug.Log ("Aim Rotation is: " + aimRot);
-			
-			// Make part of the movements
-			action.executor.gameObject.transform.position = Vector3.MoveTowards(action.executor.gameObject.transform.position, aimPos, stepMoveAmmount*Time.deltaTime);
-			action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime);
-			
-			// Check to see if the unit is in the correct place and rotation, if so, finish the action and remove the action from the list
-			// also update the unit AP and CP fields
-			if (action.executor.gameObject.transform.position == aimPos){
-				//if (Debug.isDebugBuild) Debug.Log("PositionEqual");
-				if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
-					finishAction(action);
-				}
-				else{
-					//if (Debug.isDebugBuild) Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
-				}
-			}
-			else {
-				//if (Debug.isDebugBuild) Debug.Log ("Position not Equal, Position target is: " + aimPos);
-			}
-		}
-
-	void overwatchAction(Action action){
-			isFirstLoopofAction = false;
-			// determine the position the sprite
-			Vector3 spritePosition = action.executor.gameObject.transform.position;
-			spritePosition.y += 1.5f;
-			
-			//instantiate the sprite at the position & give reference to the unit if the unit does not already have an overwatch sprite
-			if (action.executor.overwatchSprite == null){
-				//if (Debug.isDebugBuild) Debug.LogWarning("Creating a new Overwatch Sprite!");
-				action.executor.overwatchSprite = (GameObject) Instantiate(overwatchSprite, spritePosition, Quaternion.identity);
-			}
-			
-			finishAction(action);
-	}
-
-	void toggleDoorAction(Action action){
-			if(isFirstLoopofAction){
-				isFirstLoopofAction = false;
-				return;															// Skip The first frame of a action, ensures smooth movement (no jumps due to processing lag)
-			}
-			// Get the position that the door would be at based off the unit's position and rotation Alisdair 14-10-14
-			//if (Debug.isDebugBuild) Debug.Log("Exe pos:" + action.executor.gameObject.transform.position);
-			Vector2 doorMapPosition = new Vector2 (action.executor.gameObject.transform.position.x, action.executor.gameObject.transform.position.z);
-			//if (Debug.isDebugBuild) Debug.Log ("converted to a pos in map: " + doorMapPosition);
-			//if (Debug.isDebugBuild) Debug.LogError(action.executor.facing);
-			switch (action.executor.facing){
-			case (Game.Facing.North):
-				doorMapPosition.y++;
-				break;
-				
-			case (Game.Facing.East):
-				doorMapPosition.x++;
-				break;
-				
-			case (Game.Facing.South):
-				doorMapPosition.y--;
-				break;
-				
-			case (Game.Facing.West):;
-				doorMapPosition.x--;
-				break;
-			}
-			//if (Debug.isDebugBuild) Debug.Log ("Final Door Position: " + doorMapPosition);
-			//if (Debug.isDebugBuild) Debug.Log ("Therefore door pos = " + makePosition(doorMapPosition, 2000));
-			
-			// Check if the position has a door, Get the door (unit), Toggle the door 
-			Square mapSquareWithDoor = mapClass.getSquare(doorMapPosition);
-			Unit doorToToggle;
-			// Check that the door is there, then assign the variables for use in toggling
-			//if (Debug.isDebugBuild) Debug.Log ("DOES POSITION HAVE DOOR?: " + mapClass.hasDoor(doorMapPosition));
-			if (mapClass.hasDoor(doorMapPosition)){
-				doorToToggle = mapClass.getOccupant(doorMapPosition);
-				//target unit variables being assigned
-				action.target = doorToToggle;
-				
-				//If the door is open (in the map class, which is up to date), make it an open door
-				if (mapClass.isDoorOpen(doorMapPosition)){
-					GameObject newDoor = (GameObject) Instantiate(OpenDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, true), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
-					Destroy(mapSquareWithDoor.door.gameObject);
-					mapSquareWithDoor.door.gameObject = newDoor;
-				}
-				
-				else { //if the door is closed in the map class, show this also
-					GameObject newDoor = (GameObject) Instantiate(ClosedDoorPrefab, makePositionDoor(doorMapPosition, unitElevation, mapSquareWithDoor.door.facing, false), makeRotation(makeFacing(mapSquareWithDoor.door.facing), Game.EntityType.Door));
-					Destroy(action.target.gameObject);
-					mapSquareWithDoor.door.gameObject = newDoor;
-				}
-				
-				//Finish the action and update the AP
-				finishAction(action);
-			}
-
-		}
-
-	void attackAction(Action action){
-				if (isFirstLoopofAction) {
-						isFirstLoopofAction = false; 																			// Set that it is no longer the first loop
-						renderers.Clear ();
-						foreach (Unit un in action.destroyedUnits) {
-								//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
-								renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer> ());								// Get all the renderer gameobject components that need to be faded
-								if (un.jammedUnitSprite != null) {
-										renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
-								}
-								if (un.overwatchSprite != null) {																		// If there is a jam sprite for the unit, add it to be faded when the unit dies
-										renderers.Add (un.overwatchSprite.renderer);
-								}
-								if (un.sustainedFireSprite != null) {
-										renderers.Add (un.sustainedFireSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
-								}
-								if (un.sustainedFireTargetSprite != null) {
-										renderers.Add (un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
-								}
-						}
-			
-						exeUnitAttackPos = Vector3.MoveTowards (action.executor.gameObject.transform.position, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
-			
-						attackPhaseList.Add (AttackPhase.MoveTowards); 															// Add the moving toward phase
-			
-						bool addEndPhases = true;																				// Bool set to determine if the end phases are needed or not
-						if (action.destroyedUnits.Count > 0) { 																	// Determine if the attack was successful (for use when creating bullets)
-								attackSuccessful = true;
-								//if (Debug.isDebugBuild) Debug.LogWarning("Melee attack to be successful");
-								attackPhaseList.Add (AttackPhase.UnitDeath); 														// If it is successful add the phase for unit death for the lineup
-								//Check to see if the executor is the one that dies (if it is, do not add the move back and rotate back phases
-								exeKilled = false;
-								foreach (Unit unit in action.destroyedUnits) {
-										if (unit == action.executor) {
-												addEndPhases = false;
-												exeKilled = true;
-												break;
-										}
-								}
-				
-				
-						}
-						if (addEndPhases) {
-								attackPhaseList.Add (AttackPhase.MoveBack); 															// Add the stage for moving back after the attack action
-						}
-						return;																									// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
-				}
-		
-				switch (attackPhaseList [0]) { 																				// Use a switch for actioning the phases
-			
-				case (AttackPhase.MoveTowards): 																		// Moving the executor towards the aim position
-						action.executor.gameObject.transform.position = Vector3.MoveTowards (action.executor.gameObject.transform.position, exeUnitAttackPos, stepMoveAmmount * Time.deltaTime);
-			
-						if (action.executor.gameObject.transform.position == exeUnitAttackPos) {
-								attackPhaseList.RemoveAt (0); 																	// Move to the next phase
-						}	
-						break;
-			
-				case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
-						Color color = Color.clear;
-						foreach (Renderer rend in renderers) { 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-								if (rend != null) {		
-										color = rend.material.color;
-										color.a -= 0.02f;
-										rend.material.color = color;
-								}
-						}
-			
-						if (color.a <= 0f) { 																				// If the gameobject is now fully transparent, remove it.
-								if (action.executor.sustainedFireSprite != null) {
-										Destroy (action.executor.sustainedFireSprite);
-								}
-								if (action.executor.sustainedFireTargetSprite != null) {
-										Destroy (action.executor.sustainedFireTargetSprite);
-								}
-								if (action.executor.overwatchSprite != null) {
-										Destroy (action.executor.overwatchSprite);
-								}
-								if (action.target.sustainedFireSprite != null) {
-										Destroy (action.target.sustainedFireSprite);
-								}
-								if (action.target.sustainedFireTargetSprite != null) {
-										Destroy (action.target.sustainedFireTargetSprite);
-								}
-								if (action.target.overwatchSprite != null) {
-										Destroy (action.target.overwatchSprite);
-								}
-								foreach (Unit unit in action.destroyedUnits) {
-										Destroy (unit.gameObject);
-								}
-								attackPhaseList.RemoveAt (0); 																	// Move to the next phase
-								if (exeKilled) {
-										finishAction (action);
-								}
-						}
-						break;
-			
-				case (AttackPhase.MoveBack):																			// Move the executor gameobject back to it's original position
-						action.executor.gameObject.transform.position = Vector3.MoveTowards (action.executor.gameObject.transform.position, exeInitPos, stepMoveAmmount * Time.deltaTime);
-			
-						if (action.executor.gameObject.transform.position == exeInitPos) {
-								attackPhaseList.RemoveAt (0); 																	// remove this phase
-								finishAction (action);																			// End the action
-						}
-						break;
-
-				}
-		}
-		
-		void shootAction(Action action){ 
-			if (isFirstLoopofAction){
-				isFirstLoopofAction = false;
-				
-				// ================================================================================== SHOOT ACTION ROTATION CALCULATIONS
-				
-				float offset = getBearing(action.executor.gameObject, action.executor.facing, action.target.gameObject);
-				// if (Debug.isDebugBuild) Debug.LogWarning("Offset rotation IS: " + offset);
-				rotationBefore = Quaternion.Euler(new Vector3(action.executor.gameObject.transform.rotation.eulerAngles.x, action.executor.gameObject.transform.rotation.eulerAngles.y, action.executor.gameObject.transform.rotation.eulerAngles.z)); 	// Store the initial rotation
-				aimRot = new Quaternion();																				// Calculate the aim rotation
-				aimRot = Quaternion.Euler(new Vector3 (rotationBefore.eulerAngles.x, rotationBefore.eulerAngles.y + offset, rotationBefore.eulerAngles.z));
-				// if (Debug.isDebugBuild) Debug.LogWarning("Exe Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
-				// if (Debug.isDebugBuild) Debug.LogWarning("Beginning Rotation: " + rotationBefore.eulerAngles);
-				// if (Debug.isDebugBuild) Debug.LogWarning("Aim Rotation: " + aimRot.eulerAngles);
-				
-				// ==================================================================================
-				
-				
-				foreach(Renderer rend in action.target.gameObject.GetComponentsInChildren<Renderer>()){
-					renderers.Add (rend);																				// Get all the renderer gameobject components that need to be faded
-				}
-				
-				isFirstLoopofAction = false; 																		// Set that it is no longer the first loop
-				shootPhaseList.Add(ShootPhase.RotateTowards); 														// Add the rotation phase
-				shootPhaseList.Add(ShootPhase.CreateBullets); 														// Add the phase for creating the bullets
-				shootPhaseList.Add(ShootPhase.BulletsMoving); 														// Add the bullet moving phase
-				
-				if (action.destroyedUnits.Count > 0){ 																//Determine if the attack was successful (for use when creating bullets)
-					attackSuccessful = true;
-					//if (Debug.isDebugBuild) Debug.LogWarning("Shoot attack to be successful");
-					shootPhaseList.Add(ShootPhase.UnitDeath); 														//If it is successful add the phase for unit death for the lineup
-				}
-				
-				shootPhaseList.Add(ShootPhase.RotateBack); 															//Finally add the stage for rotating back after the shoot action
-				return;																									// Set that it is no longer the first loop
-			}
-			
-			switch (shootPhaseList[0]){ 																				// Use a switch for actioning the phases
-				
-			case (ShootPhase.RotateTowards): 																		// Rotating the SM to face the GS
-				
-				action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
-				
-				if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
-					shootPhaseList.RemoveAt(0); 															// Move to the next phase
-				}
-				break;
-				
-			case (ShootPhase.CreateBullets): 																		// Creating the bullets
-				//if (Debug.isDebugBuild) Debug.LogWarning("Creating the bullets");
-				
-				Vector3 bulStart = new Vector3(action.executor.gameObject.transform.position.x, unitElevation + 1.0f, action.executor.gameObject.transform.position.z);							// Create the Vector3 positions for the bullets to start and end at
-				Vector3 bulEnd = new Vector3(action.target.gameObject.transform.position.x, unitElevation + 0.8f, action.target.gameObject.transform.position.z);
-				
-				if (!attackSuccessful){ 																			// If the attack is not successful make the bullets miss
-					//if (Debug.isDebugBuild) Debug.Log("ATTACK NOT SUCCESSFUL, MAKING BULLETS MISS");
-					int rand = Random.Range(1, 4);
-					switch (rand){
-					case 1: 																					// make the bullets miss above
-						if (action.target.unitType == Game.EntityType.Door)											// If the unit is a door, make the miss higher
-							bulEnd.y += 0.5f;
-						bulEnd.y += 1;
-						break;
-					case 2: 																					// make the bullets miss below
-						bulEnd.y -= 1;
-						break;
-					case 3: 																					// make the bullets miss to the left
-						if (action.target.facing == Game.Facing.North || action.target.facing == Game.Facing.South)			
-							bulEnd.x += 0.6f;
-						else if (action.target.facing == Game.Facing.West || action.target.facing == Game.Facing.East)			
-							bulEnd.z += 0.6f;
-						else
-							bulEnd.y -= 1;
-						break;
-					case 4: 																					// make the bullets miss to the right
-						if (action.target.facing == Game.Facing.North || action.target.facing == Game.Facing.South)			
-							bulEnd.x -= 0.6f;
-						else if (action.target.facing == Game.Facing.West || action.target.facing == Game.Facing.East)			
-							bulEnd.z -= 0.6f;
-						else
-							bulEnd.y -= 1;
-						break; 
-					}
-				}
-				
-				createBullet(bulStart, bulEnd, attackSuccessful, 0.0f);												// Create a bullet
-				createBullet(bulStart, bulEnd, attackSuccessful, 0.2f);												// Create a bullet
-				createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
-				createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
-				createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
-				
-				if(action.unitJams){																				// If the unit jammed in this action, display the jammed sprite
-					showJam(action.executor);
-				}
-				
-				shootPhaseList.RemoveAt(0); 																		// Move to the next phase
-				break;
-				
-			case (ShootPhase.BulletsMoving): 																		// Waiting for the bullets to finish moving
-				if (bulletsComplete){
-					shootPhaseList.RemoveAt(0); 																	// Move to the next phase if all of the bullets have finished
-					bulletsComplete = false; 																		// Reset the variable ready for the next shoot action
-				}
-				break;
-				
-			case(ShootPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
-				float alphaLevel = 255;
-				
-				if(action.executor.sustainedFireSprite != null)														// Add the renderers of the sustained fire sprites to be faded if they exist
-					renderers.AddRange(action.executor.sustainedFireSprite.GetComponentsInChildren<Renderer>());
-				if (action.executor.sustainedFireTargetSprite != null)
-					renderers.AddRange(action.executor.sustainedFireTargetSprite.GetComponentsInChildren<Renderer>());
-				
-				Color color;
-				foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
-					if (rend != null){
-						color = rend.material.color;
-						color.a -= 0.02f;
-						alphaLevel = color.a;
-						rend.material.color = color;
-					}
-				}
-				
-				if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
-					if(action.executor.sustainedFireTargetSprite != null){
-						Destroy (action.executor.sustainedFireTargetSprite);
-					}		
-					Destroy (action.target.gameObject);
-					shootPhaseList.RemoveAt(0); 																	// Move to the next phase
-				}
-				
-				break;
-				
-			case(ShootPhase.RotateBack): 																			// Rotate the unit back to the position that it originally was at
-				// if (Debug.isDebugBuild) Debug.LogWarning("RotateBack Phase");
-				action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, rotationBefore, stepRotateAmmount*Time.deltaTime); // Increment the rotation
-				
-				if(action.executor.gameObject.transform.rotation.eulerAngles.y == rotationBefore.eulerAngles.y){ 											// If the rotation back has completed, end the action
-					finishAction(action);
-				}
-				
-				break;
-			}
-		}
-		
-		void involuntaryRevealAction(Action action){
-			letActionsPlay = false;
-			finishAction(action);
-			GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.executor.position, actionManagers[0], previousAction.prevLoS); 	
-		}
-	}
+}
