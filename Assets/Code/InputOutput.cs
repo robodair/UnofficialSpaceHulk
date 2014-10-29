@@ -1518,19 +1518,19 @@ public class InputOutput : MonoBehaviour {
 		string quadrant = ""; 
 		if (targetPosition.y >= homePosition.y){ // If the target is to the north
 			quadrant = "N";
-			if (Debug.isDebugBuild) Debug.Log(quadrant);
+			//if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		else if (targetPosition.y <= homePosition.y) { // If the target is to the south
 			quadrant = "S";
-			if (Debug.isDebugBuild) Debug.Log(quadrant);
+			//if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		if (targetPosition.x >= homePosition.x) { // If the target is to the east
 			quadrant = quadrant + "E";
-			if (Debug.isDebugBuild) Debug.Log(quadrant);
+			//if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 		else if (targetPosition.x <= homePosition.x){ // If the target is to the west
 			quadrant = quadrant + "W";
-			if (Debug.isDebugBuild) Debug.Log(quadrant);
+			//if (Debug.isDebugBuild) Debug.Log(quadrant);
 		}
 
 		switch(homeFacing){	// Switch to determine the direction to rotate (+ or -) and then return the value based on the current facing of the gameobject
