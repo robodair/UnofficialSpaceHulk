@@ -415,7 +415,7 @@ public class InputOutput : MonoBehaviour {
 
 			}
 			
-			exeUnitAttackPos = Vector3.MoveTowards (action.executor.gameObject.transform.position, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
+			exeUnitAttackPos = Vector3.MoveTowards (action.executor.gameObject.transform.position, action.target.gameObject.transform.position, 0.7f); 		// Get the position the unit will be when the attack occurs
 			
 			attackPhaseList.Add (AttackPhase.MoveTowards); 															// Add the moving toward phase
 			
@@ -1457,8 +1457,9 @@ public class InputOutput : MonoBehaviour {
 			case (Game.EntityType.Door): // Door case added Alisdair 14-10-14
 				returnQuaternion = Quaternion.Euler(reference.eulerAngles.x + 90, reference.eulerAngles.y, reference.eulerAngles.z);
 				return returnQuaternion;
-
-
+			case (Game.EntityType.GS):
+				returnQuaternion = Quaternion.Euler(reference.eulerAngles.x, reference.eulerAngles.y + 180, reference.eulerAngles.z);
+			return returnQuaternion;
 			default:
 				returnQuaternion = reference;
 				return returnQuaternion;
