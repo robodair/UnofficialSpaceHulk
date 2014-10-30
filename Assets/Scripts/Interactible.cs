@@ -123,7 +123,7 @@ public class Interactible : MonoBehaviour {
 			//th first if statement checks to see if the click is meant for the UI
 			if (isSelectable ())
 			{
-				gameController.audio.PlayOneShot(ioController.clickSound);
+				//gameController.audio.PlayOneShot(ioController.clickSound);
 				if (gameController.gameState == Game.GameState.AttackSelection)
 	            {
 					//Added RB 25.9.14
