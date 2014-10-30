@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 29-10-14.1
+ * Version 30-10-14.0
  */
 
 using UnityEngine;
@@ -45,7 +45,20 @@ public class InputOutput : MonoBehaviour {
 	explosionPrefab;
 
 		//AUDIOCLIPS //
-	public AudioClip clickSound;
+	public AudioClip 
+	clickSound,
+	click_error,
+	game_start,
+	gs_Death_Explosion,
+	piece_Movement,
+	sm_Death,
+	sm_Escape,
+	sm_Fire_1,
+	sm_Fire_2,
+	sm_Gunfire,
+	sm_Jam,
+	sm_Killed_GS,
+	sm_Scream;
 
 		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
@@ -147,6 +160,7 @@ public class InputOutput : MonoBehaviour {
 	Action previousAction;
 		// Pausing and playing
 	bool letActionsPlay = true;
+	bool soundsFirstPass = true;
 
 	/// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	/// BEGIN METHODS
@@ -260,6 +274,7 @@ public class InputOutput : MonoBehaviour {
 	void moveAction(Action action){
 		if (isFirstLoopofAction){
 			isFirstLoopofAction = false;
+			action.executor.gameObject.audio.PlayOneShot(piece_Movement);
 			return;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
 		}
 		//if (Debug.isDebugBuild) Debug.Log("Update entered Move action sector of switch");
@@ -365,7 +380,9 @@ public class InputOutput : MonoBehaviour {
 				Destroy(action.target.gameObject);
 				mapSquareWithDoor.door.gameObject = newDoor;
 			}
-			
+			// Play the sliding sound effect
+			mapSquareWithDoor.door.gameObject.audio.PlayOneShot(piece_Movement);
+
 			//Finish the action and update the AP
 			finishAction(action);
 		}
@@ -382,19 +399,20 @@ public class InputOutput : MonoBehaviour {
 			renderers.Clear ();
 			foreach (Unit un in action.destroyedUnits) {
 				//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
-				renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer> ());								// Get all the renderer gameobject components that need to be faded
+				renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer> ());							// Get all the renderer gameobject components that need to be faded
 				if (un.jammedUnitSprite != null) {
 					renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
-				if (un.overwatchSprite != null) {																		// If there is a jam sprite for the unit, add it to be faded when the unit dies
+				if (un.overwatchSprite != null) {																	// If there is a jam sprite for the unit, add it to be faded when the unit dies
 					renderers.Add (un.overwatchSprite.renderer);
 				}
 				if (un.sustainedFireSprite != null) {
-					renderers.Add (un.sustainedFireSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+					renderers.Add (un.sustainedFireSprite.renderer);												// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
 				if (un.sustainedFireTargetSprite != null) {
 					renderers.Add (un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
+
 			}
 			
 			exeUnitAttackPos = Vector3.MoveTowards (action.executor.gameObject.transform.position, action.target.gameObject.transform.position, 0.5f); 		// Get the position the unit will be when the attack occurs
@@ -434,7 +452,18 @@ public class InputOutput : MonoBehaviour {
 			}	
 			break;
 			
-		case(AttackPhase.UnitDeath): 																			// Fade the GS gameobject out and then remove it
+		case(AttackPhase.UnitDeath): 
+			if (soundsFirstPass){
+				if(!exeKilled){
+					action.executor.gameObject.audio.PlayOneShot(sm_Death);
+					action.executor.gameObject.audio.PlayOneShot(sm_Scream);
+				}
+				if(exeKilled){
+					action.executor.gameObject.audio.PlayOneShot(sm_Death);
+				}
+
+			}
+			// Fade the gameobject out and then remove it
 			Color color = Color.clear;
 			foreach (Renderer rend in renderers) { 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
 				if (rend != null && rend.material.HasProperty("_Color")) {		
@@ -536,6 +565,7 @@ public class InputOutput : MonoBehaviour {
 			action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
 			
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
+				action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
 				shootPhaseList.RemoveAt(0); 															// Move to the next phase
 			}
 			break;
@@ -582,9 +612,11 @@ public class InputOutput : MonoBehaviour {
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
-			
+			action.executor.gameObject.audio.PlayOneShot(sm_Gunfire);											// Play the gunshots
+
 			if(action.unitJams){																				// If the unit jammed in this action, display the jammed sprite
 				showJam(action.executor);
+				action.executor.gameObject.audio.PlayOneShot(sm_Jam);											// Play jam audio
 			}
 			
 			shootPhaseList.RemoveAt(0); 																		// Move to the next phase
@@ -625,6 +657,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 			else {
+				action.executor.gameObject.audio.PlayOneShot(sm_Killed_GS);										// Play the successful kill sound
 				shootPhaseList.RemoveAt(0); 																	// Move to the next phase
 			}
 			
@@ -767,49 +800,51 @@ public class InputOutput : MonoBehaviour {
 		 * The second part of the generateMap method deals with generating the deployment points (these are not real parts of the map)
 		 * Added By Alisdair 11/9/2014
 		 */
-			for (int i = 0 ; i < mapClass.otherAreas.Length; i++){//Iterate through map list
-				DeploymentArea depArea = mapClass.otherAreas[i]; //extract square object
-				Vector2 adjPos = depArea.adjacentPosition; //get position of adjecent piece
-				
-				//Converting Vector2 to Vector3
-				//Vector2 y = Vector3 z (North/South)
-				//Vector2 x = Vector3 x (East/West)
-				//Vector3 y is vertical (leave at constant value)
-				float xPos = adjPos.x;
-				float zPos = adjPos.y;
+		for (int i = 0 ; i < mapClass.otherAreas.Length; i++){//Iterate through map list
+			DeploymentArea depArea = mapClass.otherAreas[i]; //extract square object
+			Vector2 adjPos = depArea.adjacentPosition; //get position of adjecent piece
+			
+			//Converting Vector2 to Vector3
+			//Vector2 y = Vector3 z (North/South)
+			//Vector2 x = Vector3 x (East/West)
+			//Vector3 y is vertical (leave at constant value)
+			float xPos = adjPos.x;
+			float zPos = adjPos.y;
 
-				//determine the position of the deployment area based on the facing 
-				switch (depArea.relativePosition){
+			//determine the position of the deployment area based on the facing 
+			switch (depArea.relativePosition){
 
-					case Game.Facing.North:
-						zPos--;
-						break;
+				case Game.Facing.North:
+					zPos--;
+					break;
 
-					case Game.Facing.East:
-						xPos--;
-						break;
+				case Game.Facing.East:
+					xPos--;
+					break;
 
-					case Game.Facing.South:
-						zPos++;
-						break;
+				case Game.Facing.South:
+					zPos++;
+					break;
 
-					case Game.Facing.West:
-						xPos++;
-						break;
-					default:
-						if (Debug.isDebugBuild) Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
-						break;
-				}
-
-				Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
-				//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
-				depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), depAreaFacing); //Create the game object in the scene
-				Vector3 position = depArea.model.transform.GetChild(0).transform.position;
-				Vector3 newPosition = new Vector3 (position.x, 1.6f, position.z);
-				depArea.model.transform.GetChild(0).transform.position = newPosition;
-
+				case Game.Facing.West:
+					xPos++;
+					break;
+				default:
+					if (Debug.isDebugBuild) Debug.LogError("No valid relative position assigned to deployment piece adjacent to xPos: " + xPos + " zPos: " + zPos);
+					break;
 			}
 
+			Quaternion depAreaFacing = Quaternion.Euler(0,0,0);
+			//Added passing of reference to deployment area gameobjects back to the game class. Alisdair 26-9-2014
+			depArea.model = (GameObject) Instantiate(BlipDeploymentPiecePrefab, new Vector3(xPos, (unitElevation - floorReduction), zPos), depAreaFacing); //Create the game object in the scene
+			Vector3 position = depArea.model.transform.GetChild(0).transform.position;
+			Vector3 newPosition = new Vector3 (position.x, 1.6f, position.z);
+			depArea.model.transform.GetChild(0).transform.position = newPosition;
+
+		}
+
+		//Play the game start sound
+		gameClass.audio.PlayOneShot(game_start);
 
 	}
 
@@ -1023,6 +1058,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="position">Position of the object to remove.</param>
 	public void removeUnit(Vector2 position){
 		if (mapClass.getSquare(position).isOccupied)
+			mapClass.getSquare(position).model.audio.PlayOneShot(sm_Escape);
 			Destroy(mapClass.getSquare(position).occupant.gameObject);
 	}
 
@@ -1696,6 +1732,7 @@ public class InputOutput : MonoBehaviour {
 		showActionsList.RemoveAt(0);
 		attackSuccessful = false;
 		isFirstLoopofAction = true;
+		soundsFirstPass = true;																			// Allow sounds to play again
 		renderers.Clear();
 
 		refreshBlipCounts();																			// Display the new blip counts

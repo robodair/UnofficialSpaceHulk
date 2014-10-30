@@ -11,6 +11,12 @@ using System.Collections;
 
 public class ExplosionScript : MonoBehaviour {
 
+	public AudioClip gs_Death_Explosion;
+	float wait = 3.0f; // Wait timer so sound can finish
+
+	void Start(){
+		audio.PlayOneShot(gs_Death_Explosion);
+	}
 	/// <summary>
 	/// Update this instance.
 	/// </summary>
@@ -20,7 +26,9 @@ public class ExplosionScript : MonoBehaviour {
 		this.gameObject.renderer.material.color = color;		// Reassign the color to the material
 		
 		if (color.a <= 0) { 									// If the gameobject is now fully transparent, remove it.
-			Destroy (this.gameObject);
+			if(wait <= 0){
+				Destroy (this.gameObject);
+			}
 		}
 	}
 }
