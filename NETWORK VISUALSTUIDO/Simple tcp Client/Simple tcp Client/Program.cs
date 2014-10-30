@@ -13,9 +13,23 @@ namespace Simple_tcp_Client
         static void Main(string[] args)
         {
 
+
+
+            //Find own local IP address
+            IPHostEntry host;
+            string localIP = "";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    localIP = ip.ToString();
+                    break;
+                }
+            }
             byte[] data = new byte[1024];
             string input, stringData;
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("172.26.187.8"), 137);
+            IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("172.26.186.29"), 137);
 
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -39,15 +53,25 @@ namespace Simple_tcp_Client
 
             while (true)
             {
+                Console.Write(localIP+": ");
                 input = Console.ReadLine();
-                if (input == "exit")
+                if (input == "\\exit")
                     break;
                 server.Send(Encoding.ASCII.GetBytes(input));
                 data = new byte[1024];
-                recv = server.Receive(data);
-                stringData = Encoding.ASCII.GetString(data, 0, recv);
-                Console.WriteLine(stringData);
+                try
+                {
+                    recv = server.Receive(data);
 
+                    stringData = Encoding.ASCII.GetString(data, 0, recv);
+                    Console.WriteLine(ipep.Address + ": " + stringData);
+                }
+                catch
+                {
+                    Console.WriteLine("Server disconnected.");
+                    Console.ReadLine();
+                    break;
+                }
 
             }
             Console.WriteLine("Disconnecting from server");

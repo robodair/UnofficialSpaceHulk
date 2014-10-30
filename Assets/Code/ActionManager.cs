@@ -605,16 +605,17 @@ public class ActionManager {
 
 	private void kill(Unit killed) //created by Nick Lee 21-10-14
 	{
-		game.gameMap.removeUnit (killed.position);
-		destroyedUnits.Add (killed);
-		//removes the unit
+		if (killed != null) {
+			game.gameMap.removeUnit (killed.position);
+			destroyedUnits.Add (killed);
+			//removes the unit
 
-		marines = game.gameMap.getUnits (Game.EntityType.SM);
-		for (int i = 0; i < marines.Count; i++) 
-		{ //then for each marine
-			if(marines[i].sustainedFireTarget == killed)
-				voidSustainedFire(marines[i]);
-			//removes sustained fire from the target for any marines that had sustained fire on it
+			marines = game.gameMap.getUnits (Game.EntityType.SM);
+			for (int i = 0; i < marines.Count; i++) { //then for each marine
+				if (marines [i].sustainedFireTarget == killed)
+						voidSustainedFire (marines [i]);
+				//removes sustained fire from the target for any marines that had sustained fire on it
+			}
 		}
 	}
 }

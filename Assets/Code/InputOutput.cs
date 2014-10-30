@@ -1092,8 +1092,8 @@ public class InputOutput : MonoBehaviour {
 		GameObject[] gameObjects = GameObject.FindObjectsOfType(typeof(GameObject)) as GameObject[]; //Get an array of all the gameobjects
 
 		foreach(GameObject gameObject in gameObjects)
-		{;
-			if (gameObject.layer == 9){
+		{
+			if (gameObject.layer == 10){
 				Destroy(gameObject); //If the gameobject is part of the map representation layer, destroy it. (otherwise leave it)
 			}
 		}
@@ -1736,6 +1736,11 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="action">The Action object.</param>
 	void finishAction(Action action){
+		foreach(Square square in mapClass.map)															// Deactivate any holograms on the map
+		{
+				square.model.GetComponentInChildren<ParticleSystem>().enableEmission = false;
+		}
+
 		setDoorCollidersEnabled(false);																	// Disable the door colliders to make it easy to click squares behind them
 		previousAction = showActionsList[0];															// Reset all the variables ready for the next action
 		updateCPAP(action.APCost);

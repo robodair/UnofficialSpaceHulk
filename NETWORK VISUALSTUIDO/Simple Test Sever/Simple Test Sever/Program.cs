@@ -12,8 +12,26 @@ namespace Simple_Test_Sever
     {
         static void Main(string[] args)
         {
+
+            //Find own local IP address
+            IPHostEntry host;
+            string localIP = "";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    localIP = ip.ToString();
+                    break;
+                }
+            }
+
+
+            
             int recv;
             byte[] data = new byte[1024];
+            byte[] msg = new byte[1024];
+            string stMsg;
             IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 137);
 
 
@@ -27,21 +45,32 @@ namespace Simple_Test_Sever
 
             Console.WriteLine("Connected with {0} at port {1}", clientep.Address, clientep.Port);
 
-            string Welcome = "welcome to my test Server";
+            string Welcome = "welcome to my test Server Biatch";
             data = Encoding.ASCII.GetBytes(Welcome);
             client.Send(data, data.Length, SocketFlags.None);
 
             while (true)
             {
                 data = new byte[1024];
-
-                recv = client.Receive(data);
-                if (recv == 0)
+                try
+                {
+                    recv = client.Receive(data);
+                    if (recv == 0)
+                        break;
+                }
+                catch
+                {
                     break;
+                }
 
 
-                Console.WriteLine(Encoding.ASCII.GetString(data, 0, recv));
-                client.Send(data, recv, SocketFlags.None);
+                Console.WriteLine(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
+                Console.Write(localIP + ": ");
+
+                msg = new byte[1024];
+                stMsg = Console.ReadLine();
+                msg = Encoding.ASCII.GetBytes(stMsg);
+                client.Send(msg, msg.Length, SocketFlags.None);
             }
 
             Console.WriteLine("Disconnected from client {0}", clientep.Address);
@@ -49,6 +78,7 @@ namespace Simple_Test_Sever
             client.Close();
             newsock.Close();
             Console.ReadLine();
+             
         }
     }
 }
