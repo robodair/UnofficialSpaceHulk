@@ -24,6 +24,9 @@ public class CameraController : MonoBehaviour {
 	//Added functionality to prevent the camera from creeping along
 	//a boundary
 
+	//Ian Mallett 1.11.14
+	//Made the initial looking position variable, so that the camera can be centred on a specific point.
+
 	//This class handles all the controls for the movement of the camera.
 	//WASD or Arrow keys and moving the mouse to the edge of the game screen
 	//will move the camera within a set of bounds, and Q and E will orbit
@@ -39,6 +42,7 @@ public class CameraController : MonoBehaviour {
 	public float maxZoom;
 	public float zoomCurvatureFactor;
 	public int mouseMovementPadding;
+	public Vector3 initialLookingPosition;
 	
 	private Vector2 minBounds;
 	private Vector2 maxBounds;
@@ -58,8 +62,8 @@ public class CameraController : MonoBehaviour {
 	void Start()
 	{
 		//Set the initial data
-		lookingPosition = new Vector3 (0, 0, 0);
-		lateralOffset = new Vector3 (gameObject.transform.position.x, 0, gameObject.transform.position.z);
+		lookingPosition = initialLookingPosition;
+		lateralOffset = new Vector3 (gameObject.transform.position.x, 0, gameObject.transform.position.z) - lookingPosition;
 		verticalOffset = new Vector3 (0, gameObject.transform.position.y, 0);
 		rotatingToAngle = gameObject.transform.rotation.eulerAngles.y;
 		depression = gameObject.transform.rotation.eulerAngles.x;
