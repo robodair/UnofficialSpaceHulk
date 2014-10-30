@@ -20,6 +20,9 @@ public class Interactible : MonoBehaviour {
 	public Material doorColour;
 	public Material floorColour;
 
+	Vector2 particleSquare;
+	bool particleSquareBool = false;
+
 	float red;
 	float blue;
 	float green;
@@ -50,18 +53,23 @@ public class Interactible : MonoBehaviour {
 			{
 				if(gameController.gameState != Game.GameState.Reveal)
 				{
-					if(gameController.unitSelected)
-					{
-						if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
-					                                                        	gameObject.transform.position.z))){
-							gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
-							gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; // Show the emission effect Alisdair
+					if(!inputHandlerController.facingInProgress)
+					{	
+						if(gameController.unitSelected)
+						{
+							if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
+						                                                        	gameObject.transform.position.z))){
+								gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
+								gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; // Show the emission effect Alisdair
+								particleSquareBool = true;
+								particleSquare = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
+							}
+							else
+								gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 						}
 						else
 							gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 					}
-					else
-						gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 				}
 			}
 		}
@@ -104,7 +112,10 @@ public class Interactible : MonoBehaviour {
 			{
 				if(gameObject.renderer.material.color == Color.blue){
 					gameObject.renderer.material.color = Color.green;
-					gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
+					if(particleSquareBool){
+						gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
+						particleSquareBool = false;
+					}
 				}
 				if (!inputHandlerController.coloursSet)
 					gameObject.renderer.material.color = Color.white;
@@ -181,6 +192,8 @@ public class Interactible : MonoBehaviour {
 					{
 						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
+					if (!particleSquareBool)
+						gameController.gameMap.getSquare(particleSquare).model.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
 					inputHandlerController.hideAvailableSquares();
 					gameController.deselect ();
 				}
@@ -214,8 +227,9 @@ public class Interactible : MonoBehaviour {
 		else if (gameController.gameState == Game.GameState.MoveSelection ||//Exception 2
 		         gameController.gameState == Game.GameState.Reveal) //Exception 3
 		{
-			if (attemptedSelection == SelectionType.Square)
-				return true;
+			if(!inputHandlerController.facingInProgress)
+				if (attemptedSelection == SelectionType.Square)
+					return true;
 		}
 
 		else if (gameController.gameState != Game.GameState.ShowAction)
