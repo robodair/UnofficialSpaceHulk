@@ -458,13 +458,11 @@ public class InputOutput : MonoBehaviour {
 					action.executor.gameObject.audio.PlayOneShot(sm_Death);
 				}
 				else if(exeKilled){
-					action.target.gameObject.audio.PlayOneShot(sm_Fire_2);
+					//action.target.gameObject.audio.PlayOneShot(sm_Fire_2);
+					if(Debug.isDebugBuild) Debug.Log("SHOULD PLAY GS SCREAM");
 					action.target.gameObject.audio.PlayOneShot(gs_Scream);
 				}
-				else{
-
-				}
-
+				soundsFirstPass = false;
 			}
 			// Fade the gameobject out and then remove it
 			Color color = Color.clear;
@@ -568,7 +566,9 @@ public class InputOutput : MonoBehaviour {
 			action.executor.gameObject.transform.rotation = Quaternion.RotateTowards(action.executor.gameObject.transform.rotation, aimRot, stepRotateAmmount*Time.deltaTime); // Increment the rotation
 			
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
-				action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
+				if(!action.unitJams){
+					action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
+				}
 				shootPhaseList.RemoveAt(0); 															// Move to the next phase
 			}
 			break;
@@ -1554,7 +1554,7 @@ public class InputOutput : MonoBehaviour {
 	float getBearing(Vector2 homePosition, Game.Facing homeFacing, Vector2 targetPosition) {
 
 		float acuteAngle = Vector2.Angle(gameClass.facingDirection[homeFacing]*Vector2.up, targetPosition-homePosition); // Find the acute angle between the two vectors
-		Debug.Log ("Acute Angle: " + acuteAngle);
+		//if(Debug.isDebugBuild) Debug.Log ("Acute Angle: " + acuteAngle);
 		
 		// Determine the quadrant of the target
 		string quadrant = ""; 
@@ -1783,7 +1783,7 @@ public class InputOutput : MonoBehaviour {
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "SPACE MARINES WIN!";
 				Color color = Color.red;
 				color.a = 0.5f;
-				GameObject.Find("EndGamePanel").renderer.material.color = color;
+				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
 			}
 			else{
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "GENESTEALERS WIN!";
