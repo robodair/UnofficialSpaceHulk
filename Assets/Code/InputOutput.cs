@@ -44,6 +44,12 @@ public class InputOutput : MonoBehaviour {
 	bulletPrefab, 
 	explosionPrefab;
 
+		// MESHES //
+	public Mesh 
+	genestealerMesh,
+	spaceMarineMesh;
+
+
 		//AUDIOCLIPS //
 	public AudioClip 
 	clickSound,
