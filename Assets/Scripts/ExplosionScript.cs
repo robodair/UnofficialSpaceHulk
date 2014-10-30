@@ -3,7 +3,7 @@
 /// Fully self-contatined, the explosion object script starts fading the object as soon as it is instantiated
 /// 
 /// Created by Alisdair Robertson 15/10/14
-/// v28-10-14.1
+/// v30-10-14.0
 /// </summary>
 /// 
 using UnityEngine;
