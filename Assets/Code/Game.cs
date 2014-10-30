@@ -105,9 +105,12 @@ public class Game : MonoBehaviour {
 	//Changed the resetAP method so that it would give AP to blips
 	//Changed the deployBlip method so that it would set the blip's AP and noOfGS values.
 
-	//Ian Mallett 27.10/14
+	//Ian Mallett 27.10.14
 	//Fixed triggers so that the Space Marine would lose if they didn't
 	//have enough Space Marines left to win
+
+	//Ian Mallett 30.10.14
+	//Removed the assignation of the escape position, as this is done in the inspector
 
 
 	/* Game Class
@@ -213,7 +216,6 @@ public class Game : MonoBehaviour {
 		
 		//Triggers
 		SMEscaped = 0;
-		escapePosition = new Vector2(17, 7);
 
 	}
 
