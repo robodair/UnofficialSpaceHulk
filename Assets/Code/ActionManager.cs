@@ -605,8 +605,10 @@ public class ActionManager {
 
 	private void kill(Unit killed) //created by Nick Lee 21-10-14
 	{
-		game.gameMap.removeUnit (killed.position);
-		destroyedUnits.Add (killed);
+		if (killed != null) {
+			game.gameMap.removeUnit (killed.position);
+			destroyedUnits.Add (killed);
+		}
 		//removes the unit
 
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
