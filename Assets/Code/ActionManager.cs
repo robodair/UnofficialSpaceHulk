@@ -18,6 +18,7 @@ public class ActionManager {
 	private List<Unit> marines = new List<Unit> ();//Created by Nick Lee 18-9-14
 	private List<Unit> blips = new List<Unit> ();//Created by Nick Lee 15-10-14
 	private List<Unit> blipsRevealed = new List<Unit> ();//Created by Nick Lee 15-10-14
+	private List<Unit> marinesShot = new List<Unit> ();//Created by Nick Lee 31-10-14
 	private bool shot = false;//Created by Nick Lee 18-9-14
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
@@ -90,12 +91,13 @@ public class ActionManager {
 		if (executor.unitType == Game.EntityType.GS && !shot) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
 				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
-					if(marines[i].currentLoS[q] == executor.position && marines[i].isOnOverwatch)
+					if(marines[i].currentLoS[q] == executor.position && marines[i].isOnOverwatch && !marinesShot.Contains(marines[i]))
 					{
 						overwatchShot = true; //set overwatch shot to true
 						shot = true; //set shot equal to true
 						preExecutor = executor;
 						shootMethod (marines[i], executor); //And run a shoot action against the genestealer
+						marinesShot.Add (marines[i]);
 						executor = preExecutor;
 						shot = false;
 						overwatchShot = false; //set overwatch shot to false
@@ -103,6 +105,7 @@ public class ActionManager {
 				}
 			}
 		}
+		marinesShot.Clear ();
 		
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
