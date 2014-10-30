@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 30-10-14.0
+ * Version 30-10-14.1
  */
 
 using UnityEngine;
@@ -58,7 +58,7 @@ public class InputOutput : MonoBehaviour {
 	sm_Gunfire,
 	sm_Jam,
 	sm_Killed_GS,
-	sm_Scream;
+	gs_Scream;
 
 		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
@@ -456,10 +456,13 @@ public class InputOutput : MonoBehaviour {
 			if (soundsFirstPass){
 				if(!exeKilled){
 					action.executor.gameObject.audio.PlayOneShot(sm_Death);
-					action.executor.gameObject.audio.PlayOneShot(sm_Scream);
 				}
-				if(exeKilled){
-					action.executor.gameObject.audio.PlayOneShot(sm_Death);
+				else if(exeKilled){
+					action.target.gameObject.audio.PlayOneShot(sm_Fire_2);
+					action.target.gameObject.audio.PlayOneShot(gs_Scream);
+				}
+				else{
+
 				}
 
 			}
@@ -1057,9 +1060,12 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="position">Position of the object to remove.</param>
 	public void removeUnit(Vector2 position){
-		if (mapClass.getSquare(position).isOccupied)
-			mapClass.getSquare(position).model.audio.PlayOneShot(sm_Escape);
+		if (mapClass.getSquare(position).isOccupied){
+			if(position == gameClass.escapePosition && mapClass.getSquare(position).occupant.unitType == Game.EntityType.SM){
+				mapClass.getSquare(position).model.audio.PlayOneShot(sm_Escape);
+			}
 			Destroy(mapClass.getSquare(position).occupant.gameObject);
+		}
 	}
 
 	/// ==================
