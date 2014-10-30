@@ -581,6 +581,7 @@ public class ActionManager {
 
 	private void resetVariables() //created by Nick Lee 21-10-14
 	{
+		unitJams = false;
 		movePosition = new Vector2(); 
 		destroyedUnits = new List<Unit> ();
 		sustainedFireLost = new List<Unit> ();
