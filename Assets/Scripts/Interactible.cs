@@ -53,8 +53,10 @@ public class Interactible : MonoBehaviour {
 					if(gameController.unitSelected)
 					{
 						if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
-					                                                        	gameObject.transform.position.z)))
+					                                                        	gameObject.transform.position.z))){
 							gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
+							gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; // Show the emission effect Alisdair
+						}
 						else
 							gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
 					}
@@ -100,8 +102,10 @@ public class Interactible : MonoBehaviour {
 			blue = gameObject.renderer.material.color.b;
 			if(gameController.gameState != Game.GameState.Reveal)
 			{
-				if(gameObject.renderer.material.color == Color.blue)
+				if(gameObject.renderer.material.color == Color.blue){
 					gameObject.renderer.material.color = Color.green;
+					gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
+				}
 				if (!inputHandlerController.coloursSet)
 					gameObject.renderer.material.color = Color.white;
 				else if (gameObject.renderer.material.color != Color.green)

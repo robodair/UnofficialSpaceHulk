@@ -74,6 +74,7 @@ public class InputOutput : MonoBehaviour {
 		// Placement
 	public float unitElevation;
 	public float floorReduction;
+	public float fadeSpeed;
 
 		// SCRIPT FEEDBACKS //
 		// Bullets finished their path
@@ -459,7 +460,7 @@ public class InputOutput : MonoBehaviour {
 				}
 				else if(exeKilled){
 					//action.target.gameObject.audio.PlayOneShot(sm_Fire_2);
-					if(Debug.isDebugBuild) Debug.Log("SHOULD PLAY GS SCREAM");
+					//if(Debug.isDebugBuild) Debug.Log("SHOULD PLAY GS SCREAM");
 					action.target.gameObject.audio.PlayOneShot(gs_Scream);
 				}
 				soundsFirstPass = false;
@@ -469,7 +470,7 @@ public class InputOutput : MonoBehaviour {
 			foreach (Renderer rend in renderers) { 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
 				if (rend != null && rend.material.HasProperty("_Color")) {		
 					color = rend.material.color;
-					color.a -= 0.02f;
+					color.a -= fadeSpeed;
 					rend.material.color = color;
 				}
 			}
@@ -645,7 +646,7 @@ public class InputOutput : MonoBehaviour {
 				foreach (Renderer rend in renderers){ 																// Decrease the alpha level on all of the child renderers (to fade out the gameobject)
 					if (rend != null && rend.material.HasProperty("_Color")){
 						color = rend.material.color;
-						color.a -= 0.02f;
+						color.a -= fadeSpeed;
 						alphaLevel = color.a;
 						rend.material.color = color;
 					}

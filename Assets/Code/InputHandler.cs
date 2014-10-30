@@ -138,7 +138,7 @@ public class InputHandler : MonoBehaviour {
 			foreach (Square square in availableSquares.Keys)
 			{
 				square.model.renderer.material.color = Color.green;
-				square.model.GetComponentInChildren<ParticleSystem>().enableEmission = true; // Show the emission effect Alisdair
+
 			}
 			coloursSet = true;
 		}
@@ -152,7 +152,6 @@ public class InputHandler : MonoBehaviour {
 			foreach (Square square in availableSquares.Keys)
 			{
 				square.model.renderer.material.color = Color.white;
-				square.model.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Hide the emission effect Alisdair
 			}
 			coloursSet = false;
 		}
