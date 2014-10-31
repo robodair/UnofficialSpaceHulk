@@ -307,6 +307,8 @@ public class InputOutput : MonoBehaviour {
 			//if (Debug.isDebugBuild) Debug.Log("PositionEqual");
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
 				finishAction(action);
+				if(action.executor.position == gameClass.escapePosition)
+					gameObject.audio.PlayOneShot(sm_Escape);
 			}
 			else{
 				//if (Debug.isDebugBuild) Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
@@ -1079,9 +1081,6 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="position">Position of the object to remove.</param>
 	public void removeUnit(Vector2 position){
 		if (mapClass.getSquare(position).isOccupied){
-			if(position == gameClass.escapePosition && mapClass.getSquare(position).occupant.unitType == Game.EntityType.SM){
-				mapClass.getSquare(position).model.audio.PlayOneShot(sm_Escape);
-			}
 			Destroy(mapClass.getSquare(position).occupant.gameObject);
 		}
 	}
