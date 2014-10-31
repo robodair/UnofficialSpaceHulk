@@ -64,9 +64,15 @@ public class Interactible : MonoBehaviour {
 
 								//if(Debug.isDebugBuild)Debug.Log ("Not allowed to show new Hologram?: " + inputHandlerController.keepHologram);
 								if (!inputHandlerController.keepHologram){															// If allowed to, show the hologram for the square
-									gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; 						// Show the emission effect Alisdair
+									foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+										ps.enableEmission = true; 																	// Show the emission effect Alisdair
+									}
 								}
-
+								foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+									ps.emissionRate = ioController.normalEmissionRate;
+																																	// Show the emission effect Alisdair
+								}
+								
 								// =======================================
 							}
 							else
@@ -74,6 +80,11 @@ public class Interactible : MonoBehaviour {
 						}
 						else
 							gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+					}
+				}
+				else{
+					foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+						ps.emissionRate = ioController.normalEmissionRate; 																	// Show the emission effect Alisdair
 					}
 				}
 			}
@@ -91,7 +102,7 @@ public class Interactible : MonoBehaviour {
 				gameObject.renderer.material.color = Color.red;
 		}
 	}
-
+	
 	void OnMouseExit(){
 		if (gameController.thisPlayer == Game.PlayerType.SM)
 		{
@@ -122,7 +133,9 @@ public class Interactible : MonoBehaviour {
 
 					//if(Debug.isDebugBuild)Debug.Log ("Not Allowed To Remove Hologram?: " + inputHandlerController.keepHologram);
 					if(!inputHandlerController.keepHologram){										// Remove the hologram on exit if allowed to Alisdair
-						gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Stop the particle emission Alisdair
+						foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+							ps.enableEmission = false; // Stop the particle emission Alisdair
+						}
 					}
 
 					// =======================================
@@ -134,9 +147,28 @@ public class Interactible : MonoBehaviour {
 					gameObject.renderer.material.color = floorColour.color;
 				}
 			}
+
 			else if(Mathf.Approximately(red, 0.68f) && Mathf.Approximately(green, 0.51f) && Mathf.Approximately(blue, 0.69f))
 	        {
 				gameObject.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
+			}
+
+			if (gameController.gameState == Game.GameState.Reveal){
+				if (ioController.selectFacingCanvasExists){
+					if(new Vector2(ioController.currentFacingSelectionCanvas.transform.position.x, ioController.currentFacingSelectionCanvas.transform.position.z) != 
+					   new Vector2(gameObject.transform.position.x, gameObject.transform.position.z)){
+						foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+
+								ps.emissionRate = ioController.lowEmissionRate;
+						}
+					}
+				}
+				else {
+					foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
+						
+						ps.emissionRate = ioController.lowEmissionRate;
+					}
+				}
 			}
 		}
 	}
@@ -194,17 +226,25 @@ public class Interactible : MonoBehaviour {
 				{
 					if(gameController.gameState == Game.GameState.MoveSelection)
 					{
-						Destroy(ioController.currentFacingSelectionCanvas);
+						if (ioController.selectFacingCanvasExists){
+							Destroy(ioController.currentFacingSelectionCanvas);
+							ioController.selectFacingCanvasExists = false;
+						}
 
 						// ====== Hologram Removal = Alisdair ===
 
 						//if(Debug.isDebugBuild)Debug.Log ("Keep Hologram becasue Facing Selection Destroyed: " + inputHandlerController.keepHologram);
 						inputHandlerController.keepHologram = false;																			// Allow removal of the hologram
-						if (ioController.currentFacingSelectionCanvas != null){																	// Remove the hologram from the square that it was on
-							gameController.gameMap.getSquare(new Vector2(
-												ioController.currentFacingSelectionCanvas.transform.position.x, 
-							                    ioController.currentFacingSelectionCanvas.transform.position.z))
-												.model.GetComponentInChildren<ParticleSystem>().enableEmission = false; 							
+						if (ioController.selectFacingCanvasExists){																	// Remove the hologram from the square that it was on
+							Debug.Log (gameObject.transform.position.x);
+							Debug.Log (gameObject.transform.position.z);
+							foreach (ParticleSystem ps in gameController.gameMap.getSquare(new Vector2(
+												ioController.facingSelectionCanvas.transform.position.x, 
+												ioController.facingSelectionCanvas.transform.position.z))
+												.model.GetComponentsInChildren<ParticleSystem>()){
+								ps.emissionRate = ioController.normalEmissionRate;
+								ps.enableEmission = false; 							
+							}
 						}
 
 						// =======================================
