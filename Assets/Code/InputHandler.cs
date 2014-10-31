@@ -243,11 +243,29 @@ public class InputHandler : MonoBehaviour {
 		selectableRevealPositions = selectableSquares;
 		showSelectableRevealSquares ();
 		mapController.getSquare (revealPosition).model.renderer.material.color = Color.cyan;
+
+		// === Show Hologram = Alisdair ==
+
+		foreach(ParticleSystem ps in mapController.getSquare(revealPosition).model.GetComponentsInChildren<ParticleSystem>()){
+			ps.emissionRate = ioController.normalEmissionRate;
+			ps.enableEmission = true;
+		}
+		// ===============================
+
 		ioController.instantiateFacingSelection (revealPosition);
 	}
 
 	public void revealOrientationClicked(Game.Facing facing)
 	{
+		// === Remove Hologram = Alisdair ==
+		
+		foreach(ParticleSystem ps in mapController.getSquare(revealPosition).model.GetComponentsInChildren<ParticleSystem>()){
+			ps.emissionRate = ioController.normalEmissionRate;
+			ps.enableEmission = false;
+		}
+
+		// ===============================
+
 		hideSelectableRevealSquares ();
 		mapController.getSquare (revealPosition).model.renderer.material.color = Color.white;
 		revealManager.place (revealPosition, facing);
@@ -270,6 +288,14 @@ public class InputHandler : MonoBehaviour {
 		foreach (Vector2 position in selectableRevealPositions)
 		{
 	        mapController.getSquare(position).model.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
+
+			// === Show Hologram = Alisdair ==
+
+			foreach(ParticleSystem ps in mapController.getSquare(position).model.GetComponentsInChildren<ParticleSystem>()){
+				ps.emissionRate = ioController.lowEmissionRate;
+				ps.enableEmission = true;
+			}
+			// ===============================
 		}
 	}
 
@@ -277,8 +303,17 @@ public class InputHandler : MonoBehaviour {
 	{
 		foreach (Vector2 position in selectableRevealPositions)
 		{
-			if(mapController.getSquare (position).model.renderer.material.color != Color.white)
+			if(mapController.getSquare (position).model.renderer.material.color != Color.white){
 				mapController.getSquare(position).model.renderer.material.color = Color.white;
+			}
+			// === Remove Hologram = Alisdair ==
+			
+			foreach(ParticleSystem ps in mapController.getSquare(position).model.GetComponentsInChildren<ParticleSystem>()){
+				ps.emissionRate = ioController.normalEmissionRate;
+				ps.enableEmission = false;
+			}
+			
+			// ===============================
 		}
 	}
 }
