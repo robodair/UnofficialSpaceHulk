@@ -103,6 +103,10 @@ public class InputOutput : MonoBehaviour {
 	btnOverwatchGO, 
 	btnRevealGO,
 	btnEndTurnGO,
+		// Menu Buttons
+	btnExitGO,
+	btnMenuGO,
+	btnInfoGO,
 		// Text
 	unitAPText, 
 	playerCPText,
@@ -124,6 +128,10 @@ public class InputOutput : MonoBehaviour {
 	btnToggleDoor, 
 	btnOverwatch, 
 	btnReveal,
+		// Menu Buttons
+	btnExit,
+	btnMenu,
+	btnInfo,
 		// Turn Button
 	btnEndTurn;
 
@@ -744,6 +752,18 @@ public class InputOutput : MonoBehaviour {
 		btnReveal.onClick.AddListener(() => {btnRevealClicked();});
 		btnReveal.interactable = false;
 
+		//Assign the Menu Buttons
+		btnExitGO = GameObject.Find ("BtnExit");
+		btnExit = btnExitGO.GetComponent<Button>();
+		btnExit.onClick.AddListener(() => {btnExitClicked();});
+
+		btnMenuGO = GameObject.Find ("BtnExit");
+		btnMenu = btnMenuGO.GetComponent<Button>();
+		btnMenu.onClick.AddListener(() => {btnMenuClicked();});
+
+		btnInfoGO = GameObject.Find ("BtnExit");
+		btnInfo = btnInfoGO.GetComponent<Button>();
+		btnInfo.onClick.AddListener(() => {btnInfoClicked();});
 
 		//assign the text elements
 		unitAPText = GameObject.Find("APText");
@@ -2038,8 +2058,12 @@ public class InputOutput : MonoBehaviour {
 
 	}
 
+	// =================================================
+	// Hologram Methods
+	// =================================================
+
 	/// <summary>
-	/// Defines the hologram units (GS or SM)
+	/// Defines the hologram units to show (GS or SM)
 	/// </summary>
 	public void defineHologram(){
 		switch (gameClass.gameState) {
@@ -2062,6 +2086,10 @@ public class InputOutput : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Actually implements the change specified in defineHolograms
+	/// </summary>
+	/// <param name="type">UnitHolograms to Enable</param>
 	void changeHolograms(Game.EntityType type){
 		if(Debug.isDebugBuild) Debug.Log ("THERE ARE: " + hologramParticles.Count + "Holograms that are being activated/deactivated");
 		foreach (GameObject placementParticle in hologramParticles) {
@@ -2081,5 +2109,31 @@ public class InputOutput : MonoBehaviour {
 				break;
 			}	
 		}
+	}
+
+	// ===========================================
+	// MENU BUTTON CLICK METHODS
+	// ===========================================
+
+	/// <summary>
+	/// Closes the application when the exit button is clicked
+	/// </summary>
+	void btnExitClicked(){
+		if(Debug.isDebugBuild) Debug.LogWarning("APPLICATION WILL NOW CLOSE ON USER COMMAND");
+		Application.Quit();
+	}
+
+	/// <summary>
+	/// Opens the menu overlay
+	/// </summary>
+	void btnMenuClicked(){
+		
+	}
+
+	/// <summary>
+	/// Opens the Info Overlay
+	/// </summary>
+	void btnInfoClicked(){
+		
 	}
 }
