@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 3-10-14.0
+ * Version 30-10-14.1
  */
 
 using UnityEngine;
@@ -81,10 +81,13 @@ public class InputOutput : MonoBehaviour {
 	public float unitElevation;
 	public float floorReduction;
 	public float fadeSpeed;
+	public float lowEmissionRate;
+	public float normalEmissionRate;
 
 		// SCRIPT FEEDBACKS //
 		// Bullets finished their path
 	public bool bulletsComplete = false;
+	public bool selectFacingCanvasExists = false;
 
 		/// +++++++++++++++++
 		/// Private Variables
@@ -140,6 +143,8 @@ public class InputOutput : MonoBehaviour {
 	List <AttackPhase> attackPhaseList = new List<AttackPhase>();
 		// Renderers
 	List<Renderer> renderers = new List<Renderer>();
+		// Holograms
+	List<GameObject> hologramParticles = new List<GameObject>();
 
 		// ENUMERATED TYPES //
 		// Phases
@@ -852,6 +857,12 @@ public class InputOutput : MonoBehaviour {
 			depArea.model.transform.GetChild(0).transform.position = newPosition;
 
 		}
+		// Fill the list of hologram particles
+		foreach (GameObject holo in FindObjectsOfType<GameObject>()) {
+			if (holo.layer == 12) {
+				hologramParticles.Add(holo);
+			}
+		}
 
 		//Play the game start sound
 		gameClass.audio.PlayOneShot(game_start);
@@ -1247,6 +1258,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="south">If set to <c>true</c> south is active.</param>
 	/// <param name="west">If set to <c>true</c> west is active.</param>
 	public void instantiateFacingSelection(Vector2 position, bool north, bool east, bool south, bool west){
+		selectFacingCanvasExists = true;
 		//Create the canvas at the position
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
 		
@@ -1287,6 +1299,7 @@ public class InputOutput : MonoBehaviour {
 			inputHandlerController.orientationClicked (Game.Facing.North);//RB 18.9.14
 		}
 		Destroy(currentFacingSelectionCanvas);
+		selectFacingCanvasExists = false;
 	}
 
 	/// <summary>
@@ -1303,6 +1316,7 @@ public class InputOutput : MonoBehaviour {
 			inputHandlerController.orientationClicked (Game.Facing.East);//RB 18.9.14
 		}
 		Destroy(currentFacingSelectionCanvas);
+		selectFacingCanvasExists = false;
 
 	}
 
@@ -1320,6 +1334,7 @@ public class InputOutput : MonoBehaviour {
 			inputHandlerController.orientationClicked (Game.Facing.South);//RB 18.9.14
 		}
 		Destroy(currentFacingSelectionCanvas);
+		selectFacingCanvasExists = false;
 		
 	}
 
@@ -1337,6 +1352,7 @@ public class InputOutput : MonoBehaviour {
 			inputHandlerController.orientationClicked (Game.Facing.West);//RB 18.9.14
 		}
 		Destroy(currentFacingSelectionCanvas);
+		selectFacingCanvasExists = false;
 		
 	}
 
@@ -2030,13 +2046,16 @@ public class InputOutput : MonoBehaviour {
 		switch (gameClass.gameState) {
 			case (Game.GameState.MoveSelection):
 				if(gameClass.thisPlayer == Game.PlayerType.SM){
+					if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO SpaceMarine");
 					changeHolograms(Game.EntityType.SM);
 				}
 				else{
-				changeHolograms(Game.EntityType.GS);
+					if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
+					changeHolograms(Game.EntityType.GS);
 				}
 				break;
 			case (Game.GameState.Reveal):
+				if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
 				changeHolograms(Game.EntityType.GS);
 				break;
 			default:
@@ -2045,7 +2064,8 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	void changeHolograms(Game.EntityType type){
-		foreach (GameObject placementParticle in GameObject.FindGameObjectsWithTag("HologramParticles")) {
+		if(Debug.isDebugBuild) Debug.Log ("THERE ARE: " + hologramParticles.Count + "Holograms that are being activated/deactivated");
+		foreach (GameObject placementParticle in hologramParticles) {
 			switch (type){
 			case(Game.EntityType.SM):
 				if(placementParticle.name == "GS_Placement_ParticleSystem")
