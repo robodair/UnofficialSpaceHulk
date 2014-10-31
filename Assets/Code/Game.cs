@@ -592,6 +592,7 @@ public class Game : MonoBehaviour {
 	public void changeGameState(GameState newState)
 	{
 		gameState = newState;
+		ioModule.defineHologram();
 		ioModule.defineEndTurnBtn();
 	}
 

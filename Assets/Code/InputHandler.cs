@@ -31,6 +31,8 @@ public class InputHandler : MonoBehaviour {
 	bool foundTarget = false;
 	public bool facingInProgress = false;//RB 2.10.14 for stopping simultaneous movements
 
+	public bool keepHologram = true; // Alisdair
+
 	//Sets the GameState to MoveSelection, enabling user to start inputting the move command
 	public void movement()
 	{
@@ -141,6 +143,8 @@ public class InputHandler : MonoBehaviour {
 
 			}
 			coloursSet = true;
+			keepHologram = false; 																					//Alisdair
+			//if(Debug.isDebugBuild)Debug.Log ("Keep Hologram becasue ShowAvaliableSquares: " + keepHologram);		//Alisdair
 		}
 	}
 
@@ -154,6 +158,8 @@ public class InputHandler : MonoBehaviour {
 				square.model.renderer.material.color = Color.white;
 			}
 			coloursSet = false;
+			keepHologram = true; 																					//Alisdair
+			//if(Debug.isDebugBuild)Debug.Log ("Keep Hologram becasue HideAvaliableSquares: " + keepHologram); 		//Alisdair
 		}
 	}
 	

@@ -21,7 +21,6 @@ public class Interactible : MonoBehaviour {
 	public Material floorColour;
 
 	Vector2 particleSquare;
-	bool particleSquareBool = false;
 
 	float red;
 	float blue;
@@ -60,9 +59,15 @@ public class Interactible : MonoBehaviour {
 							if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
 						                                                        	gameObject.transform.position.z))){
 								gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
-								gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; // Show the emission effect Alisdair
-								particleSquareBool = true;
-								particleSquare = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
+
+								// ====== Hologram Creation = Alisdair ===
+
+								//if(Debug.isDebugBuild)Debug.Log ("Not allowed to show new Hologram?: " + inputHandlerController.keepHologram);
+								if (!inputHandlerController.keepHologram){															// If allowed to, show the hologram for the square
+									gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = true; 						// Show the emission effect Alisdair
+								}
+
+								// =======================================
 							}
 							else
 								gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
@@ -112,10 +117,15 @@ public class Interactible : MonoBehaviour {
 			{
 				if(gameObject.renderer.material.color == Color.blue){
 					gameObject.renderer.material.color = Color.green;
-					if(particleSquareBool){
-						gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
-						particleSquareBool = false;
+
+					// ====== Hologram Removal = Alisdair ===
+
+					//if(Debug.isDebugBuild)Debug.Log ("Not Allowed To Remove Hologram?: " + inputHandlerController.keepHologram);
+					if(!inputHandlerController.keepHologram){										// Remove the hologram on exit if allowed to Alisdair
+						gameObject.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Stop the particle emission Alisdair
 					}
+
+					// =======================================
 				}
 				if (!inputHandlerController.coloursSet)
 					gameObject.renderer.material.color = Color.white;
@@ -185,6 +195,20 @@ public class Interactible : MonoBehaviour {
 					if(gameController.gameState == Game.GameState.MoveSelection)
 					{
 						Destroy(ioController.currentFacingSelectionCanvas);
+
+						// ====== Hologram Removal = Alisdair ===
+
+						//if(Debug.isDebugBuild)Debug.Log ("Keep Hologram becasue Facing Selection Destroyed: " + inputHandlerController.keepHologram);
+						inputHandlerController.keepHologram = false;																			// Allow removal of the hologram
+						if (ioController.currentFacingSelectionCanvas != null){																	// Remove the hologram from the square that it was on
+							gameController.gameMap.getSquare(new Vector2(
+												ioController.currentFacingSelectionCanvas.transform.position.x, 
+							                    ioController.currentFacingSelectionCanvas.transform.position.z))
+												.model.GetComponentInChildren<ParticleSystem>().enableEmission = false; 							
+						}
+
+						// =======================================
+
 						inputHandlerController.facingInProgress = false;
 						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
@@ -192,8 +216,6 @@ public class Interactible : MonoBehaviour {
 					{
 						gameController.changeGameState(Game.GameState.InactiveSelected);
 					}
-					if (!particleSquareBool)
-						gameController.gameMap.getSquare(particleSquare).model.GetComponentInChildren<ParticleSystem>().enableEmission = false; // Show the emission effect Alisdair
 					inputHandlerController.hideAvailableSquares();
 					gameController.deselect ();
 				}

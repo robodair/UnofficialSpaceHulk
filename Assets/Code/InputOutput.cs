@@ -1178,6 +1178,8 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	public void btnMoveClicked(){ //Added By Alisdair 14/9/14
 		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		inputHandlerController.keepHologram = false;	// Allow hologram creation
+		//if(Debug.isDebugBuild)Debug.Log ("DISABLED HOLOGRAM KEEPING BECAUSE MOVE CLICKED");
 		inputHandlerController.movement ();//RB 18/9/14
 	}
 
@@ -2000,7 +2002,6 @@ public class InputOutput : MonoBehaviour {
 	/// Functionality Required - IT'S EASTER EGG TIME!
 	/// </summary>
 	void removePeanutButter(){
-		if (Debug.isDebugBuild)
 			if (Debug.isDebugBuild) Debug.Log("PEANUT BUTTER REMOVED");
 	}
 
@@ -2020,5 +2021,46 @@ public class InputOutput : MonoBehaviour {
 			partSys.Clear();
 		}
 
+	}
+
+	/// <summary>
+	/// Defines the hologram units (GS or SM)
+	/// </summary>
+	public void defineHologram(){
+		switch (gameClass.gameState) {
+			case (Game.GameState.MoveSelection):
+				if(gameClass.thisPlayer == Game.PlayerType.SM){
+					changeHolograms(Game.EntityType.SM);
+				}
+				else{
+				changeHolograms(Game.EntityType.GS);
+				}
+				break;
+			case (Game.GameState.Reveal):
+				changeHolograms(Game.EntityType.GS);
+				break;
+			default:
+				break;
+		}
+	}
+
+	void changeHolograms(Game.EntityType type){
+		foreach (GameObject placementParticle in GameObject.FindGameObjectsWithTag("HologramParticles")) {
+			switch (type){
+			case(Game.EntityType.SM):
+				if(placementParticle.name == "GS_Placement_ParticleSystem")
+					placementParticle.SetActive(false);
+				else if(placementParticle.name == "SM_Placement_ParticleSystem")
+					placementParticle.SetActive(true);
+				break;
+
+			case (Game.EntityType.GS):
+				if(placementParticle.name == "GS_Placement_ParticleSystem")
+					placementParticle.SetActive(true);
+				else if(placementParticle.name == "SM_Placement_ParticleSystem")
+					placementParticle.SetActive(false);
+				break;
+			}	
+		}
 	}
 }
