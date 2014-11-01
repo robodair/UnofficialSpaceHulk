@@ -2091,16 +2091,16 @@ public class InputOutput : MonoBehaviour {
 		switch (gameClass.gameState) {
 			case (Game.GameState.MoveSelection):
 				if(gameClass.thisPlayer == Game.PlayerType.SM){
-					if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO SpaceMarine");
+					//if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO SpaceMarine");
 					changeHolograms(Game.EntityType.SM);
 				}
 				else{
-					if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
+					//if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
 					changeHolograms(Game.EntityType.GS);
 				}
 				break;
 			case (Game.GameState.Reveal):
-				if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
+				//if(Debug.isDebugBuild) Debug.Log ("ACTIVE HOLOGRAM CHANGED TO Genestealer");
 				changeHolograms(Game.EntityType.GS);
 				break;
 			default:
@@ -2113,7 +2113,7 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="type">UnitHolograms to Enable</param>
 	void changeHolograms(Game.EntityType type){
-		if(Debug.isDebugBuild) Debug.Log ("THERE ARE: " + hologramParticles.Count + "Holograms that are being activated/deactivated");
+		//if(Debug.isDebugBuild) Debug.Log ("THERE ARE: " + hologramParticles.Count + "Holograms that are being activated/deactivated");
 		foreach (GameObject placementParticle in hologramParticles) {
 			switch (type){
 			case(Game.EntityType.SM):
