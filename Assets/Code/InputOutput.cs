@@ -2040,7 +2040,7 @@ public class InputOutput : MonoBehaviour {
 	void setDoorCollidersEnabled(bool enabled){
 		//if (Debug.isDebugBuild) Debug.Log ("Setting Door Colliders to: " + enabled);
 		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
-			if (door.activeInHierarchy){
+			if (door.activeInHierarchy && door.name == "ClosedDoorPrefab"){
 				door.collider.enabled = enabled;
 			}
 		}
