@@ -66,6 +66,9 @@ public class InputOutput : MonoBehaviour {
 	sm_Killed_GS,
 	gs_Scream;
 
+		// LISTS //
+	public List<ParticleSystem> activePartSys = new List<ParticleSystem>();
+
 		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
 	public Game gameClass; //Added 11/9/2014 Alisdair 
