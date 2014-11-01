@@ -68,7 +68,7 @@ public class Interactible : MonoBehaviour {
 									foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
 										ps.enableEmission = true; 																	// Show the emission effect Alisdair
 											ioController.activePartSys.Add(ps);														// store the active Particle systems
-											Debug.Log(ioController.activePartSys.Count);
+											//if (Debug.isDebugBuild) Debug.Log(ioController.activePartSys.Count);
 									}
 									}
 									foreach (ParticleSystem ps in gameObject.GetComponentsInChildren<ParticleSystem>()){
@@ -244,15 +244,15 @@ public class Interactible : MonoBehaviour {
 						inputHandlerController.keepHologram = false;																// Allow removal of the hologram
 						if (ioController.selectFacingCanvasExists){																	// Remove the hologram and the canvas from the square that it was on
 							foreach (ParticleSystem ps in ioController.activePartSys){
-								Debug.Log ("FadingParticles");
+								//if(Debug.isDebugBuild)Debug.Log ("FadingParticles");
 								ps.enableEmission = false;
-								Debug.Log ("Emission: " + ps.enableEmission);
+								//if(Debug.isDebugBuild)Debug.Log ("Emission: " + ps.enableEmission);
 								ps.emissionRate = ioController.normalEmissionRate;
-								Debug.Log ("Emission Rate: " + ps.enableEmission);
+								//if(Debug.isDebugBuild)Debug.Log ("Emission Rate: " + ps.enableEmission);
 							}
 							Destroy(ioController.currentFacingSelectionCanvas);														// Remove the select Facing Canvas
 							ioController.selectFacingCanvasExists = false;															// Show that the canvas has been removed
-							Debug.Log(ioController.activePartSys.Count);
+							//if(Debug.isDebugBuild)Debug.Log(ioController.activePartSys.Count);
 							ioController.activePartSys.Clear();																					// Reset the active Particle systems
 						}
 

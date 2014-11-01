@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 1-11-14.0
+ * Version 1-11-14.1
  */
 
 using UnityEngine;
@@ -64,7 +64,10 @@ public class InputOutput : MonoBehaviour {
 	sm_Gunfire,
 	sm_Jam,
 	sm_Killed_GS,
-	gs_Scream;
+	gs_Scream,
+	doorClose,
+	doorOpen,
+	sm_Death_2;
 
 		// LISTS //
 	public List<ParticleSystem> activePartSys = new List<ParticleSystem>();
@@ -409,8 +412,8 @@ public class InputOutput : MonoBehaviour {
 				Destroy(action.target.gameObject);
 				mapSquareWithDoor.door.gameObject = newDoor;
 			}
-			// Play the sliding sound effect
-			mapSquareWithDoor.door.gameObject.audio.PlayOneShot(piece_Movement);
+			// Play the correct door opening sound effect
+			playDoorSound(mapSquareWithDoor.door.gameObject.audio, mapClass.isDoorOpen(doorMapPosition));
 
 			//Finish the action and update the AP
 			finishAction(action);
@@ -484,10 +487,10 @@ public class InputOutput : MonoBehaviour {
 		case(AttackPhase.UnitDeath): 
 			if (soundsFirstPass){
 				if(!exeKilled){
-					action.executor.gameObject.audio.PlayOneShot(sm_Death);
+					playSmDeath(action.executor.gameObject.audio);
 				}
 				else if(exeKilled){
-					//action.target.gameObject.audio.PlayOneShot(sm_Fire_2);
+					action.executor.gameObject.audio.PlayOneShot(sm_Fire_2);
 					//if(Debug.isDebugBuild) Debug.Log("SHOULD PLAY GS SCREAM");
 					action.target.gameObject.audio.PlayOneShot(gs_Scream);
 				}
@@ -596,7 +599,12 @@ public class InputOutput : MonoBehaviour {
 			
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
 				if(!action.unitJams){
-					action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
+					if(action.target.unitType != Game.EntityType.Door){
+						playSmBattleCry(action.executor.gameObject.audio);
+					}
+					else{
+						action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
+					}
 				}
 				shootPhaseList.RemoveAt(0); 															// Move to the next phase
 			}
@@ -2040,8 +2048,8 @@ public class InputOutput : MonoBehaviour {
 	void setDoorCollidersEnabled(bool enabled){
 		//if (Debug.isDebugBuild) Debug.Log ("Setting Door Colliders to: " + enabled);
 		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
-			if (door.activeInHierarchy && door.name == "ClosedDoorPrefab"){
-				door.collider.enabled = enabled;
+			if (door.activeInHierarchy){
+					door.collider.enabled = enabled;
 			}
 		}
 	}
@@ -2158,6 +2166,52 @@ public class InputOutput : MonoBehaviour {
 		if (Debug.isDebugBuild)
 						Debug.LogWarning ("LEVEL RELOADING!");
 		Application.LoadLevel(Application.loadedLevel);
+	}
+
+	// ==========================================
+	// MULTI AUDIO METHODS
+	// ==========================================
+
+	/// <summary>
+	/// Plays the sm death.
+	/// </summary>
+	/// <param name="audio">Audio.</param>
+	void playSmDeath(AudioSource audio){
+		int rand = Random.Range(1, 3);
+		if (rand == 1) {
+			audio.PlayOneShot(sm_Death);
+		} 
+		else {
+			audio.PlayOneShot(sm_Death_2);
+		}
+	}
+
+	/// <summary>
+	/// Plays the door sound.
+	/// </summary>
+	/// <param name="audio">Audio.</param>
+	/// <param name="isOpen">If set to <c>true</c> is open.</param>
+	void playDoorSound(AudioSource audio, bool isOpen){
+		if (isOpen) {
+			audio.PlayOneShot (doorOpen);
+		} 
+		else {
+			audio.PlayOneShot(doorClose);
+		}
+	}
+
+	/// <summary>
+	/// Plays the sm battle cry.
+	/// </summary>
+	/// <param name="audio">Audio.</param>
+	void playSmBattleCry(AudioSource audio){
+		int rand = Random.Range(1, 3);
+		if (rand == 1) {
+			audio.PlayOneShot(sm_Fire_1);
+		} 
+		else {
+			audio.PlayOneShot(sm_Fire_2);
+		}
 	}
 }
 
