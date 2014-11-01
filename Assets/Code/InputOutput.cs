@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 31-10-14.1
+ * Version 1-11-14.0
  */
 
 using UnityEngine;
@@ -107,6 +107,8 @@ public class InputOutput : MonoBehaviour {
 	btnExitGO,
 	btnMenuGO,
 	btnInfoGO,
+		// End Game Buttons
+	btnRestartGO,
 		// Text
 	unitAPText, 
 	playerCPText,
@@ -132,6 +134,8 @@ public class InputOutput : MonoBehaviour {
 	btnExit,
 	btnMenu,
 	btnInfo,
+		// End Game Buttons
+	btnRestart,
 		// Turn Button
 	btnEndTurn;
 
@@ -1841,6 +1845,13 @@ public class InputOutput : MonoBehaviour {
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
 			}
+			btnExitGO = GameObject.Find ("EndExitButton");												// Assign the exit button to work
+			btnExit = btnExitGO.GetComponent<Button>();
+			btnExit.onClick.AddListener(() => {btnExitClicked();});
+
+			btnRestartGO = GameObject.Find ("RestartButton");													// Set up the restart button to reload the current level
+			btnRestart = btnRestartGO.GetComponent<Button>();
+			btnRestart.onClick.AddListener(() => {btnRestartClicked();});
 				
 		}
 		else {																							// Even if the game has not ended, remove the units that have been removed by the trigger
@@ -2135,6 +2146,15 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	void btnInfoClicked(){
 		
+	}
+
+	/// <summary>
+	/// Reloads the current level (Effectively restarting the game)
+	/// </summary>
+	void btnRestartClicked(){
+		if (Debug.isDebugBuild)
+						Debug.LogWarning ("LEVEL RELOADING!");
+		Application.LoadLevel(Application.loadedLevel);
 	}
 }
 
