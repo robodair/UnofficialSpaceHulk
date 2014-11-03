@@ -112,6 +112,9 @@ public class Game : MonoBehaviour {
 	//Ian Mallett 30.10.14
 	//Removed the assignation of the escape position, as this is done in the inspector
 
+	//Ian Mallett 3.11.14
+	//Uncommented the reference to NetMod
+
 
 	/* Game Class
 	 * The Game class is the class that stores and manages all the abstract
@@ -181,7 +184,7 @@ public class Game : MonoBehaviour {
 
 	public Algorithm algorithm;
 
-//	public NetModule network;
+	public NetMod netMod;
 
 	public int remainingCP;
 
