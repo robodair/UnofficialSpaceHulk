@@ -318,67 +318,69 @@ public class ActionManager {
 
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
-			if(shooter.name == "Nrick" && overwatchShot)
-			{
-				int jamDice = diceRoll ();
-				Dice.Add (jamDice);
-				Dice.Add (jamDice);
-				n = 10;
-			}
-			else
-			{
-				Dice.Add (diceRoll ());
-			}
-		}
-		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray());
-		//rolls 2 die
-		
-		if (!shooter.isJammed) {
-			//makes sure they are not jammed
-			if (shooter.sustainedFireTarget == shootie) {
-				//checks for sustained fire
-				if (Dice[0] >= 5 || Dice[1] >= 5) {
-					//if kill criteria are met
-					kill (shootie);
-					voidSustainedFire(shooter);
-					if(overwatchShot){
-						movementStopped = true;
-					}
-					//removes unit being shot and changes required variable
-			}
-			//sustained fire shots (kill on 5's)
-			} else {
-			//if not sustained fire
-				if (Dice[0] >= 6 || Dice[1] >= 6) {
-					kill (shootie);
-					voidSustainedFire(shooter);
-					if(overwatchShot){
-						movementStopped = true;
-					}
-					//if criteria met kills unit
+				if (shooter.name == "Nrick" && overwatchShot) {
+						int jamDice = diceRoll ();
+						Dice.Add (jamDice);
+						Dice.Add (jamDice);
+						n = 10;
 				} else {
-					shooter.sustainedFireTarget = shootie;
-					shooter.hasSustainedFire = true;
-					if(!sustainedFireChanged.ContainsKey(shooter))
-						sustainedFireChanged.Add (shooter, shootie);
-					else
-						sustainedFireChanged[shooter] = shootie;
-					//if not killed changes sustained fire
+						Dice.Add (diceRoll ());
 				}
-				//non-sustained fire shots (kill on 6's)
-			}
-			if (overwatchShot && Dice[0] == Dice[1]) {
-				shooter.isJammed = true;
-				unitJams = true;
-				voidOverwatch(shooter);
-				voidSustainedFire(shooter);
-				//changes sustained fire and jam variables if required during overwatch
-			}
-			if (!overwatchShot)
-				voidOverwatch(shooter);
 		}
-		update (Game.ActionType.Shoot, shooter);
-		postAction ();
+		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray ());
+		//rolls 2 die
+
+		if (target != null) {
+			if (!shooter.isJammed) {
+				//makes sure they are not jammed
+				if (shooter.sustainedFireTarget == shootie) {
+					//checks for sustained fire
+					if (Dice [0] >= 5 || Dice [1] >= 5) {
+						//if kill criteria are met
+						kill (shootie);
+						voidSustainedFire (shooter);
+						if (overwatchShot) {
+								movementStopped = true;
+						}
+						//removes unit being shot and changes required variable
+					}
+					//sustained fire shots (kill on 5's)
+				} else {
+					//if not sustained fire
+					if (Dice [0] >= 6 || Dice [1] >= 6) {
+						kill (shootie);
+						voidSustainedFire (shooter);
+						if (overwatchShot) {
+								movementStopped = true;
+						}
+						//if criteria met kills unit
+					} else {
+						shooter.sustainedFireTarget = shootie;
+						shooter.hasSustainedFire = true;
+						if (!sustainedFireChanged.ContainsKey (shooter))
+								sustainedFireChanged.Add (shooter, shootie);
+						else
+								sustainedFireChanged [shooter] = shootie;
+						//if not killed changes sustained fire
+					}
+					//non-sustained fire shots (kill on 6's)
+				}
+				if (overwatchShot && Dice [0] == Dice [1]) {
+					shooter.isJammed = true;
+					unitJams = true;
+					voidOverwatch (shooter);
+					voidSustainedFire (shooter);
+					//changes sustained fire and jam variables if required during overwatch
+				}
+				if (!overwatchShot)
+						voidOverwatch (shooter);
+			}
+			update (Game.ActionType.Shoot, shooter);
+			postAction ();
+		} else {
+			update (Game.ActionType.Shoot, shooter);
+			postAction ();
+		}
 	}
 
 	private void toggleDoorMethod(Unit exe)//Created by Nick Lee 18-9-14, modified 26-9-14
