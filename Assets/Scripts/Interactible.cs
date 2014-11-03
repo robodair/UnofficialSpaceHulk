@@ -190,7 +190,7 @@ public class Interactible : MonoBehaviour {
 			//th first if statement checks to see if the click is meant for the UI
 			if (isSelectable ())
 			{
-				//gameController.audio.PlayOneShot(ioController.clickSound);
+				gameController.audio.PlayOneShot(ioController.clickSound);
 				if (gameController.gameState == Game.GameState.AttackSelection)
 	            {
 					//Added RB 25.9.14
@@ -232,6 +232,7 @@ public class Interactible : MonoBehaviour {
             {
 				//Additional checks RB 2.10.14
 				//deselect everything if not clicking on a valid selection
+				gameController.audio.PlayOneShot(ioController.click_error);
 				if (gameController.unitSelected)
 				{
 					if(gameController.gameState == Game.GameState.MoveSelection)

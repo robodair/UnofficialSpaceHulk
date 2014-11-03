@@ -218,6 +218,7 @@ public class InputHandler : MonoBehaviour {
 		}
 		else
 		{
+			gameController.audio.PlayOneShot(ioController.click_error);
 			Debug.LogWarning ("Target not in Line of Sight!");
 		}
 	}
