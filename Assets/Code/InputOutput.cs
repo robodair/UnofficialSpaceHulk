@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 1-11-14.1
+ * Version 3-11-14.0
  */
 
 using UnityEngine;
@@ -42,7 +42,10 @@ public class InputOutput : MonoBehaviour {
 	jammedUnitSprite,
 		// Projectiles
 	bulletPrefab, 
-	explosionPrefab;
+	explosionPrefab,
+		// Blood
+	sM_Blood_Particles,
+	gS_Blood_Particles;
 
 		// MESHES //
 	public Mesh 
@@ -506,7 +509,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 			
-			if (color.a <= 0f) { 																				// If the gameobject is now fully transparent, remove it.
+			if (color.a <= 0.5f) { 																				// If the gameobject is now fully transparent, remove it.
 				if (action.executor.sustainedFireSprite != null) {
 					Destroy (action.executor.sustainedFireSprite);
 				}
@@ -526,6 +529,12 @@ public class InputOutput : MonoBehaviour {
 					Destroy (action.target.overwatchSprite);
 				}
 				foreach (Unit unit in action.destroyedUnits) {
+					if (unit.unitType == Game.EntityType.GS){
+						Instantiate(gS_Blood_Particles, unit.gameObject.transform.position, unit.gameObject.transform.rotation);
+					}
+					else if (unit.unitType == Game.EntityType.SM){
+						Instantiate(sM_Blood_Particles, unit.gameObject.transform.position, unit.gameObject.transform.rotation);
+					}
 					Destroy (unit.gameObject);
 				}
 				attackPhaseList.RemoveAt (0); 																	// Move to the next phase
@@ -688,10 +697,11 @@ public class InputOutput : MonoBehaviour {
 					}
 				}
 				
-				if (alphaLevel <= 0f) { 																			// If the gameobject is now fully transparent, remove it.
+				if (alphaLevel <= 0.5f) { 																			// If the gameobject is now fully transparent, remove it.
 					if(action.executor.sustainedFireTargetSprite != null){
 						Destroy (action.executor.sustainedFireTargetSprite);
 					}		
+					Instantiate(gS_Blood_Particles, action.target.gameObject.transform.position, action.target.gameObject.transform.rotation);
 					Destroy (action.target.gameObject);
 					shootPhaseList.RemoveAt(0); 																	// Move to the next phase
 				}
