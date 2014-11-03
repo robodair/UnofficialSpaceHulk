@@ -528,6 +528,9 @@ public class InputOutput : MonoBehaviour {
 				if (action.target.overwatchSprite != null) {
 					Destroy (action.target.overwatchSprite);
 				}
+				if (action.target.jammedUnitSprite != null) {
+					Destroy (action.target.jammedUnitSprite);
+				}
 				foreach (Unit unit in action.destroyedUnits) {
 					if (unit.unitType == Game.EntityType.GS){
 						Instantiate(gS_Blood_Particles, unit.gameObject.transform.position, unit.gameObject.transform.rotation);
