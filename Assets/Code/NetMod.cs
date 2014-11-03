@@ -18,7 +18,7 @@ public class NetMod : MonoBehaviour {
 	}
 
 
-	static void Connect(string servIP,int servPort)
+	public static void Connect(string servIP,int servPort)
 	{
 
 		//Find own local IP address
