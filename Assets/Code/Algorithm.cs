@@ -671,7 +671,6 @@ public class Algorithm : MonoBehaviour {
 
 	public void AITurn()
 	{
-		Debug.Log ("MY TURN!");
 		StartCoroutine ("AITurnWaiting");
 	}
 
