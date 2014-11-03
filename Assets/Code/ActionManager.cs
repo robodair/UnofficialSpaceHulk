@@ -500,6 +500,7 @@ public class ActionManager {
 	{
 		finishLoS ();
 
+		preExecutor = executor;
 		returnAction.actionType = Game.ActionType.InvoluntaryReveal; //involuntary reveal
 		returnAction.executor = blipRevealed; //blip thats being revealed
 		returnAction.target = null; //no target
@@ -522,6 +523,7 @@ public class ActionManager {
 		actions.Add (returnAction);
 
 		resetVariables ();
+		executor = preExecutor;
 	}
 
 	private void updateLoS () //created by Nick Lee 15-10-14
@@ -544,15 +546,15 @@ public class ActionManager {
 
 	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
-		for (int i = 0; i < marines.Count; i++) { //then for each marine
-			for(int p = 0; p < marines[i].currentLoS.Count; p++)
-			{
-				if(marines[i].currentLoS[p] == (centralGene.position) && marines[i].isOnOverwatch)
-				{
-					overwatchShot = true; //set overwatch shot to true
-					shot = true; //set shot equal to true
-					shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
-					overwatchShot = false; //set overwatch shot to false
+		if (executor.unitType == Game.EntityType.Blip) {
+			for (int i = 0; i < marines.Count; i++) { //then for each marine
+				for (int p = 0; p < marines[i].currentLoS.Count; p++) {
+					if (marines [i].currentLoS [p] == (centralGene.position) && marines [i].isOnOverwatch) {
+						overwatchShot = true; //set overwatch shot to true
+						shot = true; //set shot equal to true
+						shootMethod (marines [i], centralGene); //And run a shoot action against the genestealer
+						overwatchShot = false; //set overwatch shot to false
+					}
 				}
 			}
 		}
