@@ -4,156 +4,186 @@ using System.Net.NetworkInformation;
 using System.Threading;
 using System.Collections.Generic;
 using System;
+using System.Text;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 //Created by Stephen on 13-8-14
 public class NetMod : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
-
-	//Use port 33 for connection - Stephen
-	public void connect()
+	static void Main(string[] args)
 	{
-		//Using Rory's machine as test for now 20-10-14 Stephen Rose
-		//PC Name is Lab38Highspec20
-		string destIP = "172.26.102.17";
-		
-		
-		//Connection!
-	IPAddress IP = IPAddress.Parse("127.0.0.1");
-		
-		if (IPAddress.TryParse(destIP, out IP))
-		{
-			Socket s = new Socket(AddressFamily.InterNetwork,
-			                      SocketType.Stream,
-			                      ProtocolType.Tcp);
-			
-			try
-			{
-				s.Connect(IP, 139);
-				Debug.Log("it worked???");
 
-				bool  temp = PingHost(destIP);
-				Debug.Log(temp);
-			}
-			catch (Exception ex)
+	}
+
+
+	static void Connect(string servIP,int servPort)
+	{
+
+		//Find own local IP address
+		IPHostEntry host;
+		string localIP = "";
+		host = Dns.GetHostEntry(Dns.GetHostName());
+		foreach (IPAddress ip in host.AddressList)
+		{
+			if (ip.AddressFamily == AddressFamily.InterNetwork)
 			{
-				Debug.Log(ex);
+				localIP = ip.ToString();
+				break;
 			}
 		}
-
-
-	}
-	public static bool PingHost(string nameOrAddress)
-	{
-		bool pingable = false;
-		System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping();
+		byte[] data = new byte[1024];
+		string input, stringData;
+		IPEndPoint ipep = new IPEndPoint(IPAddress.Parse(servIP), servPort);
+		
+		Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+		
 		
 		try
 		{
-			PingReply reply = pinger.Send(nameOrAddress);
 			
-			pingable = reply.Status == IPStatus.Success;
+			server.Connect(ipep);
 		}
-		catch (PingException)
+		catch (SocketException e)
 		{
-			// Discard PingExceptions and return false;
+			Console.WriteLine("Unable to connect to the server.");
+			Console.WriteLine(e.ToString());
+			
+			return;
 		}
-		Debug.Log("Ping was " + pingable.ToString());
-		return pingable;
-	}
-}
-
-
-/*TEST
-static class Module1
-{
-	private static List<System.Net.NetworkInformation.Ping> pingers = new List<System.Net.NetworkInformation.Ping>();
-	private static int instances = 0;
-	private static object @lock = new object();
-	
-	private static int result = 0;
-	private static int timeOut = 250;
-	
-	private static int ttl = 5;
-	public static void Main()
-	{
-		string baseIP = "172.26.102.";
-		Debug.Log("Step 55");
-		Debug.Log("Pinging 255 destinations of D-class in  " + baseIP.ToString());
 		
-		CreatePingers(255);
+		int recv = server.Receive(data);
+		stringData = Encoding.ASCII.GetString(data, 0, recv);
+		Console.WriteLine(stringData);
 		
-		PingOptions po = new PingOptions(ttl, true);
-		System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-		byte[] data = enc.GetBytes("abababababababababababababababab");
-		
-
-		int cnt = 1;
-		
-
-		
-		foreach (System.Net.NetworkInformation.Ping p in pingers) {
-			lock (@lock) {
-				instances += 1;
+		while (true)
+		{
+			Console.Write(localIP+": ");
+			input = Console.ReadLine();
+			if (input == "\\exit")
+				break;
+			server.Send(Encoding.ASCII.GetBytes(input));
+			data = new byte[1024];
+			try
+			{
+				recv = server.Receive(data);
+				
+				stringData = Encoding.ASCII.GetString(data, 0, recv);
+				Console.WriteLine(ipep.Address + ": " + stringData);
+			}
+			catch
+			{
+				Console.WriteLine("Server disconnected.");
+				Console.ReadLine();
+				break;
 			}
 			
-			p.SendAsync(string.Concat(baseIP, cnt.ToString()), timeOut, data, po);
-			cnt += 1;
 		}
-		
+		Console.WriteLine("Disconnecting from server");
+		server.Shutdown(SocketShutdown.Both);
+		server.Close();
+
+		}
 
 
-		
-		DestroyPingers();
-		
-		Debug.Log("Finished in {0}. Found {1} active IP-addresses. " + result.ToString());
 
-		
-	}
-	
-	public static void Ping_completed(object s, PingCompletedEventArgs e)
+	static void Server()
 	{
-		lock (@lock) {
-			instances -= 1;
+		
+		//Find own local IP address
+		IPHostEntry host;
+		string localIP = "";
+		host = Dns.GetHostEntry(Dns.GetHostName());
+		foreach (IPAddress ip in host.AddressList)
+		{
+			if (ip.AddressFamily == AddressFamily.InterNetwork)
+			{
+				localIP = ip.ToString();
+				break;
+			}
 		}
 		
-		if (e.Reply.Status == IPStatus.Success) {
-			Debug.Log(string.Concat("Active IP: ", e.Reply.Address.ToString()));
-			result += 1;
-		} else {
-			//Debug.Log(String.Concat("Non-active IP: ", e.Reply.Address.ToString()))
+		
+		int listenPort;
+		
+		Console.WriteLine("Local IP is: "+localIP);
+		Console.WriteLine("Please enter the port you wish the server to listen to and press Enter.");
+		string temp = Console.ReadLine();
+		try
+		{
+			listenPort = Convert.ToInt32(temp);
 		}
-	}
-	
-	
-	private static void CreatePingers(int cnt)
-	{
-		for (int i = 1; i <= cnt; i++) {
-			System.Net.NetworkInformation.Ping p = new System.Net.NetworkInformation.Ping();
-			p.PingCompleted += Ping_completed;
-			pingers.Add(p);
-		}
-	}
-	
-	private static void DestroyPingers()
-	{
-		foreach (System.Net.NetworkInformation.Ping p in pingers) {
-			p.PingCompleted -= Ping_completed;
-			p.Dispose();
+		catch
+		{
+			Console.WriteLine("invalid Port, Using port 137 for default");
+			listenPort = 137;
 		}
 		
-		pingers.Clear();
+		int recv;
+		IPEndPoint ipep;
+		byte[] data = new byte[1024];
+		byte[] msg = new byte[1024];
+		string stMsg;
+		try
+		{
+			ipep = new IPEndPoint(IPAddress.Any, listenPort);
+		}
+		catch
+		{
+			Console.WriteLine("An error occured on that port. Using port 137 as default.");
+			ipep = new IPEndPoint(IPAddress.Any, 137);
+		}
+		
+		
+		
+		Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+		
+		newsock.Bind(ipep);
+		newsock.Listen(10);
+		Console.WriteLine("Waiting for client....");
+		Socket client = newsock.Accept();
+		IPEndPoint clientep = (IPEndPoint)client.RemoteEndPoint;
+		
+		Console.WriteLine("Connected with {0} at port {1}", clientep.Address, clientep.Port);
+		
+		string Welcome = "welcome to my test Server Biatch";
+		data = Encoding.ASCII.GetBytes(Welcome);
+		client.Send(data, data.Length, SocketFlags.None);
+		
+		while (true)
+		{
+			data = new byte[1024];
+			try
+			{
+				recv = client.Receive(data);
+				if (recv == 0)
+					break;
+			}
+			catch
+			{
+				break;
+			}
+			
+			
+			Console.WriteLine(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
+			Console.Write(localIP + ": ");
+			
+			msg = new byte[1024];
+			stMsg = Console.ReadLine();
+			msg = Encoding.ASCII.GetBytes(stMsg);
+			client.Send(msg, msg.Length, SocketFlags.None);
+		}
+		
+		Console.WriteLine("Disconnected from client {0}", clientep.Address);
+		
+		client.Close();
+		newsock.Close();
+		Console.ReadLine();
 		
 	}
-	
-}*/
+
+
+
+
+}

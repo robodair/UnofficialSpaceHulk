@@ -27,13 +27,36 @@ namespace Simple_Test_Sever
             }
 
 
+            int listenPort;
+            Console.WriteLine("Local IP is: "+localIP);
+            Console.WriteLine("Please enter the port you wish the server to listen to and press Enter.");
+            string temp = Console.ReadLine();
+            try
+            {
+                listenPort = Convert.ToInt32(temp);
+            }
+            catch
+            {
+                Console.WriteLine("invalid Port, Using port 137 for default");
+                listenPort = 137;
+            }
             
             int recv;
+            IPEndPoint ipep;
             byte[] data = new byte[1024];
             byte[] msg = new byte[1024];
             string stMsg;
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 137);
+            try
+            {
+                 ipep = new IPEndPoint(IPAddress.Any, listenPort);
+            }
+            catch
+            {
+                Console.WriteLine("An error occured on that port. Using port 137 as default.");
+                ipep = new IPEndPoint(IPAddress.Any, 137);
+            }
 
+            
 
             Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
