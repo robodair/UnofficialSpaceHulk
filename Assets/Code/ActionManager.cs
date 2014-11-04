@@ -316,6 +316,7 @@ public class ActionManager {
 		executor = shooter;
 		executie = shootie;
 
+
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
 				if (shooter.name == "Nrick" && overwatchShot) {
@@ -330,7 +331,7 @@ public class ActionManager {
 		dieRolled.Add (Game.PlayerType.SM, Dice.ToArray ());
 		//rolls 2 die
 
-		if (target != null) {
+		if (shootie != null) {
 			if (!shooter.isJammed) {
 				//makes sure they are not jammed
 				if (shooter.sustainedFireTarget == shootie) {
@@ -546,13 +547,18 @@ public class ActionManager {
 
 	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
-		if (executor.unitType == Game.EntityType.Blip) {
+		marines = game.gameMap.getUnits (Game.EntityType.SM);
+		//makes a list of all marine units
+		if (executor.unitType == Game.EntityType.Blip) { //if action is made by a genestealer
 			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				for (int p = 0; p < marines[i].currentLoS.Count; p++) {
-					if (marines [i].currentLoS [p] == (centralGene.position) && marines [i].isOnOverwatch) {
+				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
+					if(marines[i].currentLoS[q] == centralGene.position && marines[i].isOnOverwatch && !marinesShot.Contains(marines[i]))
+					{
 						overwatchShot = true; //set overwatch shot to true
 						shot = true; //set shot equal to true
-						shootMethod (marines [i], centralGene); //And run a shoot action against the genestealer
+						shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
+						marinesShot.Add (marines[i]);
+						shot = false;
 						overwatchShot = false; //set overwatch shot to false
 					}
 				}
