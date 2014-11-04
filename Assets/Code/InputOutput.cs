@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 4-11-14.0
+ * Version 4-11-14.1
  */
 
 using UnityEngine;
@@ -733,6 +733,7 @@ public class InputOutput : MonoBehaviour {
 		letActionsPlay = false;
 		finishAction(action);
 		GameObject.Find("GameController").GetComponent<RevealManager>().involuntaryReveal(action.executor.position, actionManagers[0], previousAction.prevLoS); 	
+		actionManagers.RemoveAt(0);
 	}
 
 
