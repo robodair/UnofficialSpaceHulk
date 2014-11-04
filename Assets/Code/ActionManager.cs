@@ -119,7 +119,6 @@ public class ActionManager {
 					if(marines[i].currentLoS[u] == blips[t].position && !blipsRevealed.Contains(blips[t]))
 					{ //and the blip isnt already in the list but is within a marines LoS
 						involUnit = executor;
-						Debug.Log (involUnit.name);
 						blipsRevealed.Add (blips[t]);
 						movementStopped = true;
 						//stops any further movement
@@ -204,7 +203,7 @@ public class ActionManager {
 		postAction (); //post action method
 	}
 
-	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-10-14
+	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 5-11-14
 	{ 
 		executor = attacker;
 		executie = defender;
@@ -276,7 +275,6 @@ public class ActionManager {
 			}
 			if(defDie[defDie.Count - 1] >= attDie[attDie.Count - 1])
 			{ //if defender draws or wins
-				//Debug.Log (attacker.facing);
 				switch(attacker.facing)
 				{
 					case Game.Facing.North:
@@ -560,7 +558,6 @@ public class ActionManager {
 	{
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
-		Debug.Log (involUnit);
 		if(involUnit != null){
 			if (involUnit.unitType == Game.EntityType.Blip) { //if action is made by a genestealer
 				for (int i = 0; i < marines.Count; i++) { //then for each marine
