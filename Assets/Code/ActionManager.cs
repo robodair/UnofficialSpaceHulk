@@ -22,6 +22,7 @@ public class ActionManager {
 	private bool shot = false;//Created by Nick Lee 18-9-14
 	private bool overwatchShot = false;//Created by Nick Lee 18-9-14
 	private bool attackMove = false;//Created by Nick Lee 18-9-14
+	private bool sittingStill = false;//Created by Nick Lee 5-11-14
 	private Path customPath;//Created by Nick Lee 18-9-14
 	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
@@ -143,7 +144,7 @@ public class ActionManager {
 		//makes a new version of the actions list
 	}
 
-	private void moveMethod(Unit mover)//Created by Nick Lee 16-9-14, modified 9-10-14
+	private void moveMethod(Unit mover)//Created by Nick Lee 16-9-14, modified 5-11-14
 	{
 		Path currentPath; //makes a path variable
 		if (!attackMove) {
@@ -155,49 +156,50 @@ public class ActionManager {
 			//else sets attackmove to false and gets the path made by the attack
 		}
 		//sets the path to iterate through
+		if (currentPath.path.Count == 0) {
+			moving = mover.position;
+			compassFacing = mover.facing;
+			sittingStill = true;
+			update (Game.ActionType.Move, mover);
+		} else {
+			for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
+				if (!movementStopped) { //if the unit wasn't killed by overwatch
+					Movement = currentPath.path [i];
 
-		for (int i = 0; i < currentPath.path.Count; i++) { //iterates through all movements in the path
-			if(!movementStopped) //if the unit wasn't killed by overwatch
-			{
-				Movement = currentPath.path [i];
+					removeAP (mover, UnitData.getMoveSet (mover.unitType) [Movement]);//removes required AP from unit
+					moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
+					moving = game.facingDirection [mover.facing] * moving;
+					moving = mover.position + moving; //gets final position
 
-				removeAP (mover, UnitData.getMoveSet (mover.unitType) [Movement]);//removes required AP from unit
-				moving = (Vector2)game.moveTransform [Movement] [0]; //gets the object from the dictionary and converts to a vector2
-				moving = game.facingDirection [mover.facing] * moving;
-				moving = mover.position + moving; //gets final position
+					Quaternion direction = game.facingDirection [mover.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
+					//gets the quaternion from the current facing and the required movement
+					if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
+							compassFacing = Game.Facing.North;	//changes facing to north
+					} else if (Mathf.Abs (direction.eulerAngles.z - 270) < 0.1f) {
+							compassFacing = Game.Facing.East;	//changes facing to east
+					} else if (Mathf.Abs (direction.eulerAngles.z - 180) < 0.1f) {
+							compassFacing = Game.Facing.South;	//changes facing to south
+					} else if (Mathf.Abs (direction.eulerAngles.z - 90) < 0.1f) {
+							compassFacing = Game.Facing.West;	//changes facing to west
+					} else
+							Debug.Log ("Invalid unit facing: ActionManager, move method");
+					//error catching and message
 
-				Quaternion direction = game.facingDirection [mover.facing] * ((Quaternion)game.moveTransform [Movement] [1]);
-				//gets the quaternion from the current facing and the required movement
-				if (Mathf.Abs (direction.eulerAngles.z - 0) < 0.1f) {
-						compassFacing = Game.Facing.North;	//changes facing to north
-				} else if (Mathf.Abs (direction.eulerAngles.z - 270) < 0.1f) {
-						compassFacing = Game.Facing.East;	//changes facing to east
-				} else if (Mathf.Abs (direction.eulerAngles.z - 180) < 0.1f) {
-						compassFacing = Game.Facing.South;	//changes facing to south
-				} else if (Mathf.Abs (direction.eulerAngles.z - 90) < 0.1f) {
-						compassFacing = Game.Facing.West;	//changes facing to west
-				} else
-						Debug.Log ("Invalid unit facing: ActionManager, move method");
-				//error catching and message
-
-				if(mover.position.x < 0f)
-				{
-					if (game.gameMap.otherAreas.Length > -1 - (int) mover.position.x)
-					{
-						moving = game.gameMap.otherAreas[-1 - (int)mover.position.x].adjacentPosition;
-						compassFacing = game.gameMap.otherAreas[-1 - (int)mover.position.x].relativePosition;
+					if (mover.position.x < 0f) {
+							if (game.gameMap.otherAreas.Length > -1 - (int)mover.position.x) {
+								moving = game.gameMap.otherAreas [-1 - (int)mover.position.x].adjacentPosition;
+								compassFacing = game.gameMap.otherAreas [-1 - (int)mover.position.x].relativePosition;
+							}
 					}
+					game.gameMap.shiftUnit (mover.position, moving, compassFacing);
+					update (Game.ActionType.Move, mover); //update method for move;
+					//moves the unit
+				} else {
+						movementStopped = false;
+						break;
 				}
-				game.gameMap.shiftUnit (mover.position, moving, compassFacing);
-				update (Game.ActionType.Move, mover); //update method for move;
-				//moves the unit
-			}
-			else
-			{
-				movementStopped = false;
-				break;
-			}
 				//if the unit was killed in the middle of a movement causes movements to stop
+			}
 		}
 		postAction (); //post action method
 	}
@@ -434,7 +436,7 @@ public class ActionManager {
 			}
 	}
 
-	private void makeActions(Game.ActionType actionMade, Unit exe) //Created by Nick Lee 23-9-14, modified 13-10-14
+	private void makeActions(Game.ActionType actionMade, Unit exe) //Created by Nick Lee 23-9-14, modified 5-11-14
 	{
 		executor = exe;
 		actionType = actionMade; //gets action made
@@ -448,15 +450,21 @@ public class ActionManager {
 			executie = null; //no target unit for moving
 			movePosition = moving; //position to move to set by moving
 			moveFacing = compassFacing; //facing set by compass facing
-			APCost = UnitData.getMoveSet(executor.unitType)[Movement]; //APCost depends on type of movement
+			if(!sittingStill)
+				APCost = UnitData.getMoveSet(executor.unitType)[Movement]; //APCost depends on type of movement
+			else
+			{
+				APCost = 0;
+				sittingStill = false;
+			}
 			unitJams = false; //cant jam
 			voidSustainedFire(executor);
 			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Attack) {
-			voidOverwatch(executor);
-			voidOverwatch(target);
 			executie = target; //target of the attack
+			voidOverwatch(executor);
+			voidOverwatch(executie);
 			movePosition = executor.position; //no position change
 			moveFacing = executor.facing; //no facing change
 			voidSustainedFire(executor);
