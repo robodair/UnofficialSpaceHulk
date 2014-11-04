@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 3-11-14.0
+ * Version 4-11-14.0
  */
 
 using UnityEngine;
@@ -73,7 +73,7 @@ public class InputOutput : MonoBehaviour {
 	sm_Death_2;
 
 		// LISTS //
-	public List<ParticleSystem> activePartSys = new List<ParticleSystem>();
+	public List<GameObject> activePartSys = new List<GameObject>();
 
 		// OTHER CLASSES //
 	public Map mapClass; //Added 11/9/2014 Alisdair
@@ -94,9 +94,9 @@ public class InputOutput : MonoBehaviour {
 	public float normalEmissionRate;
 
 		// SCRIPT FEEDBACKS //
-		// Bullets finished their path
 	public bool bulletsComplete = false;
 	public bool selectFacingCanvasExists = false;
+	public bool hologramsActive = false;
 
 		/// +++++++++++++++++
 		/// Private Variables
@@ -306,6 +306,7 @@ public class InputOutput : MonoBehaviour {
 	/// <param name="action">Action.</param>
 	void moveAction(Action action){
 		if (isFirstLoopofAction){
+			deactivateHolograms();
 			isFirstLoopofAction = false;
 			action.executor.gameObject.audio.PlayOneShot(piece_Movement);
 			return;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
@@ -1801,10 +1802,8 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="action">The Action object.</param>
 	void finishAction(Action action){
-		foreach(Square square in mapClass.map)															// Deactivate any holograms on the map
-		{
-				square.model.GetComponentInChildren<ParticleSystem>().enableEmission = false;
-		}
+		deactivateHolograms();																			// Deactivate any holograms on the map
+		faceAllHolograms();																				// Face all the holograms in the same direction
 
 		setDoorCollidersEnabled(false);																	// Disable the door colliders to make it easy to click squares behind them
 		previousAction = showActionsList[0];															// Reset all the variables ready for the next action
@@ -2143,6 +2142,58 @@ public class InputOutput : MonoBehaviour {
 					placementParticle.SetActive(false);
 				break;
 			}	
+		}
+	}
+
+	/// <summary>
+	/// Faces the active holograms to the facing specified
+	/// </summary>
+	/// <param name="facing">Facing.</param>
+	public void faceHolograms(Game.Facing facing){
+		
+		foreach(GameObject hologram in activePartSys){
+			if(hologram.name == "GS_Placement_ParticleSystem"){
+				hologram.transform.rotation = makeRotation(makeFacing(facing), Game.EntityType.GS);
+			}
+			else if(hologram.name == "SM_Placement_ParticleSystem"){
+				hologram.transform.rotation = makeRotation(makeFacing(facing), Game.EntityType.SM);
+			}
+			else{
+				if(Debug.isDebugBuild) Debug.Log("NO CORRECT PARTICLE SYSTEM TYPE");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Faces all holograms to the rotation they began with
+	/// </summary>
+	public void faceAllHolograms(){
+		
+		foreach(GameObject hologram in hologramParticles){
+			if(hologram.name == "GS_Placement_ParticleSystem"){
+				hologram.transform.rotation = makeRotation(makeFacing(Game.Facing.West), Game.EntityType.GS);
+			}
+			else if(hologram.name == "SM_Placement_ParticleSystem"){
+				hologram.transform.rotation = makeRotation(makeFacing(Game.Facing.East), Game.EntityType.SM);
+			}
+			else{
+				if(Debug.isDebugBuild) Debug.Log("NO CORRECT PARTICLE SYSTEM TYPE");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Deactivates the holograms on the map
+	/// </summary>
+	void deactivateHolograms(){
+		if (hologramsActive){
+			//if (Debug.isDebugBuild) Debug.Log ("Deactivatng all holograms");
+			foreach(GameObject ps in activePartSys)															// Deactivate any holograms on the map
+			{
+				ps.particleSystem.enableEmission = false;
+			}
+			hologramsActive = false;
+			activePartSys.Clear();
 		}
 	}
 
