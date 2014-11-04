@@ -26,6 +26,7 @@ public class ActionManager {
 	private List<Action> actions = new List<Action> (); //created by Nick Lee 22-9-14
 	private Action returnAction = new Action (); //created by Nick Lee 23-9-14
 	private bool movementStopped = false; //Created by Nick Lee 7-10-14
+	private Unit involUnit; //Created by Nick Lee 7-10-14
 
 	//modified by Nick Lee 13-10-14
 	private Game.ActionType actionType;
@@ -116,6 +117,8 @@ public class ActionManager {
 				for (int u = 0; u < marines[i].currentLoS.Count; u++) {//and each square in sight
 					if(marines[i].currentLoS[u] == blips[t].position && !blipsRevealed.Contains(blips[t]))
 					{ //and the blip isnt already in the list but is within a marines LoS
+						involUnit = executor;
+						Debug.Log (involUnit.name);
 						blipsRevealed.Add (blips[t]);
 						movementStopped = true;
 						//stops any further movement
@@ -500,8 +503,7 @@ public class ActionManager {
 	private void InvoluntaryReveal (Unit blipRevealed) //created by Nick Lee 15-10-14, modified by 20-10-14
 	{
 		finishLoS ();
-
-		preExecutor = executor;
+		
 		returnAction.actionType = Game.ActionType.InvoluntaryReveal; //involuntary reveal
 		returnAction.executor = blipRevealed; //blip thats being revealed
 		returnAction.target = null; //no target
@@ -522,9 +524,8 @@ public class ActionManager {
 		dieRolled.Clear ();
 		returnAction.diceRoll = dieRolled; //die rolls for reveal, thats stupid
 		actions.Add (returnAction);
-
+		
 		resetVariables ();
-		executor = preExecutor;
 	}
 
 	private void updateLoS () //created by Nick Lee 15-10-14
@@ -549,17 +550,20 @@ public class ActionManager {
 	{
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
-		if (executor.unitType == Game.EntityType.Blip) { //if action is made by a genestealer
-			for (int i = 0; i < marines.Count; i++) { //then for each marine
-				for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
-					if(marines[i].currentLoS[q] == centralGene.position && marines[i].isOnOverwatch && !marinesShot.Contains(marines[i]))
-					{
-						overwatchShot = true; //set overwatch shot to true
-						shot = true; //set shot equal to true
-						shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
-						marinesShot.Add (marines[i]);
-						shot = false;
-						overwatchShot = false; //set overwatch shot to false
+		Debug.Log (involUnit);
+		if(involUnit != null){
+			if (involUnit.unitType == Game.EntityType.Blip) { //if action is made by a genestealer
+				for (int i = 0; i < marines.Count; i++) { //then for each marine
+					for (int q = 0; q < marines[i].currentLoS.Count; q++) { //then for each square
+						if(marines[i].currentLoS[q] == centralGene.position && marines[i].isOnOverwatch && !marinesShot.Contains(marines[i]))
+						{
+							overwatchShot = true; //set overwatch shot to true
+							shot = true; //set shot equal to true
+							shootMethod (marines[i], centralGene); //And run a shoot action against the genestealer
+							marinesShot.Add (marines[i]);
+							shot = false;
+							overwatchShot = false; //set overwatch shot to false
+						}
 					}
 				}
 			}
