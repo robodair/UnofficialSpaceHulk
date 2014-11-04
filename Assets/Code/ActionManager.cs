@@ -206,6 +206,9 @@ public class ActionManager {
 
 	private void attackMethod(Unit attacker, Unit defender)//Created by Nick Lee 18-9-14, modified 25-10-14
 	{ 
+		executor = attacker;
+		executie = defender;
+
 		Game.Facing defFacing; //defenders facing
 		List<int> defDie = new List<int> (); //defenders dice rolls
 		List<int> attDie = new List<int> (); //attackers dice rolls
@@ -321,7 +324,6 @@ public class ActionManager {
 	{
 		executor = shooter;
 		executie = shootie;
-
 
 		List<int> Dice = new List<int> ();
 		for (int n = 0; n < UnitData.getRangedDiceCount(shooter.unitType); n++) {
@@ -462,7 +464,6 @@ public class ActionManager {
 			voidOverwatch(executor);
 		}
 		else if (actionType == Game.ActionType.Attack) {
-			executie = target; //target of the attack
 			voidOverwatch(executor);
 			voidOverwatch(executie);
 			movePosition = executor.position; //no position change
