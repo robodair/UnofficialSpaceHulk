@@ -47,15 +47,15 @@ public class NetMod : MonoBehaviour {
 		}
 		catch (SocketException e)
 		{
-			Console.WriteLine("Unable to connect to the server.");
-			Console.WriteLine(e.ToString());
+			Debug.Log("Unable to connect to the server.");
+			Debug.Log(e.ToString());
 			
 			return;
 		}
 		
 		int recv = server.Receive(data);
 		stringData = Encoding.ASCII.GetString(data, 0, recv);
-		Console.WriteLine(stringData);
+		Debug.Log(stringData);
 		
 		while (true)
 		{
@@ -70,17 +70,17 @@ public class NetMod : MonoBehaviour {
 				recv = server.Receive(data);
 				
 				stringData = Encoding.ASCII.GetString(data, 0, recv);
-				Console.WriteLine(ipep.Address + ": " + stringData);
+				Debug.Log(ipep.Address + ": " + stringData);
 			}
 			catch
 			{
-				Console.WriteLine("Server disconnected.");
+				Debug.Log("Server disconnected.");
 				Console.ReadLine();
 				break;
 			}
 			
 		}
-		Console.WriteLine("Disconnecting from server");
+		Debug.Log("Disconnecting from server");
 		server.Shutdown(SocketShutdown.Both);
 		server.Close();
 
@@ -88,7 +88,7 @@ public class NetMod : MonoBehaviour {
 
 
 
-	static void Server()
+	public static void Server()
 	{
 		
 		//Find own local IP address
@@ -107,16 +107,15 @@ public class NetMod : MonoBehaviour {
 		
 		int listenPort;
 		
-		Console.WriteLine("Local IP is: "+localIP);
-		Console.WriteLine("Please enter the port you wish the server to listen to and press Enter.");
-		string temp = Console.ReadLine();
+		Debug.Log("Local IP is: "+localIP);
+
 		try
 		{
 			listenPort = Convert.ToInt32(temp);
 		}
 		catch
 		{
-			Console.WriteLine("invalid Port, Using port 137 for default");
+			Debug.Log("invalid Port, Using port 137 for default");
 			listenPort = 137;
 		}
 		
@@ -131,7 +130,7 @@ public class NetMod : MonoBehaviour {
 		}
 		catch
 		{
-			Console.WriteLine("An error occured on that port. Using port 137 as default.");
+			Debug.Log("An error occured on that port. Using port 137 as default.");
 			ipep = new IPEndPoint(IPAddress.Any, 137);
 		}
 		
@@ -141,11 +140,11 @@ public class NetMod : MonoBehaviour {
 		
 		newsock.Bind(ipep);
 		newsock.Listen(10);
-		Console.WriteLine("Waiting for client....");
+		Debug.Log("Waiting for client....");
 		Socket client = newsock.Accept();
 		IPEndPoint clientep = (IPEndPoint)client.RemoteEndPoint;
 		
-		Console.WriteLine("Connected with {0} at port {1}", clientep.Address, clientep.Port);
+		Debug.Log("Connected with {0} at port {1}", clientep.Address, clientep.Port);
 		
 		string Welcome = "welcome to my test Server Biatch";
 		data = Encoding.ASCII.GetBytes(Welcome);
@@ -166,7 +165,7 @@ public class NetMod : MonoBehaviour {
 			}
 			
 			
-			Console.WriteLine(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
+			Debug.Log(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
 			Console.Write(localIP + ": ");
 			
 			msg = new byte[1024];
@@ -175,7 +174,7 @@ public class NetMod : MonoBehaviour {
 			client.Send(msg, msg.Length, SocketFlags.None);
 		}
 		
-		Console.WriteLine("Disconnected from client {0}", clientep.Address);
+		Debug.Log("Disconnected from client {0}", clientep.Address);
 		
 		client.Close();
 		newsock.Close();
