@@ -82,7 +82,7 @@ public class ActionManager {
 		//error message and catching
 	}
 
-	private void update(Game.ActionType actionUpdate, Unit exe)//Created by Nick Lee 16-9-14, modified 20-10-14
+	private void update(Game.ActionType actionUpdate, Unit exe)//Created by Nick Lee 16-9-14, modified 4-11-14
 	{
 		updateLoS ();
 		
@@ -554,7 +554,7 @@ public class ActionManager {
 		//resets prevLoS and sets it again
 	}
 
-	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 20-10-14
+	public void postInvolReveal(Unit centralGene) //created by Nick Lee 15-10-14, modified by 5-11-14
 	{
 		marines = game.gameMap.getUnits (Game.EntityType.SM);
 		//makes a list of all marine units
