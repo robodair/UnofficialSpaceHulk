@@ -1,7 +1,7 @@
 /* 
  * The InputOutput class handles graphic representation of the map and input from the GUI and mouse clicks
  * Created by Alisdair Robertson 9/9/2014
- * Version 4-11-14.1
+ * Version 4-11-14.2
  */
 
 using UnityEngine;
@@ -1312,21 +1312,33 @@ public class InputOutput : MonoBehaviour {
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
 		
 		//Assign methods to the buttons
-		Button btnNorth = GameObject.Find ("BtnNorth").GetComponent<Button>();
-		btnNorth.onClick.AddListener(() => {btnFaceNorth();});
-		btnNorth.interactable = north;
-
-		Button btnEast = GameObject.Find ("BtnEast").GetComponent<Button>();
-		btnEast.onClick.AddListener(() => {btnFaceEast();});
-		btnEast.interactable = east;
-
-		Button btnSouth = GameObject.Find ("BtnSouth").GetComponent<Button>();
-		btnSouth.onClick.AddListener(() => {btnFaceSouth();});
-		btnSouth.interactable = south;
-
-		Button btnWest = GameObject.Find ("BtnWest").GetComponent<Button>();
-		btnWest.onClick.AddListener(() => {btnFaceWest();});
-		btnWest.interactable = west;
+		foreach(Transform child in currentFacingSelectionCanvas.transform){
+			switch(child.gameObject.name){
+				case ("BtnNorth"):
+					Button btnNorth = child.gameObject.GetComponent<Button>();
+					btnNorth.onClick.AddListener(() => {btnFaceNorth();});
+					btnNorth.interactable = north;
+					break;
+				case ("BtnEast"):
+					Button btnEast = child.gameObject.GetComponent<Button>();
+					btnEast.onClick.AddListener(() => {btnFaceEast();});
+					btnEast.interactable = east;
+					break;
+				case ("BtnSouth"):
+					Button btnSouth = child.gameObject.GetComponent<Button>();
+					btnSouth.onClick.AddListener(() => {btnFaceSouth();});
+					btnSouth.interactable = south;
+					break;
+				case ("BtnWest"):
+					Button btnWest = child.gameObject.GetComponent<Button>();
+					btnWest.onClick.AddListener(() => {btnFaceWest();});
+					btnWest.interactable = west;
+					break;
+				default:
+					if(Debug.isDebugBuild) Debug.LogError("A facing selection button was not correctly named");
+					break;
+			}
+		}
 
 	}
 
