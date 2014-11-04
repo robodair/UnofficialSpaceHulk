@@ -56,10 +56,10 @@ public class NetMod : MonoBehaviour {
 		int recv = server.Receive(data);
 		stringData = Encoding.ASCII.GetString(data, 0, recv);
 		Debug.Log(stringData);
-		
+		int i = 0;
 		while (true)
 		{ 
-			int i = i + 1;
+			 i = i + 1;
 			Debug.Log(localIP+": ");
 			input = "Client Side: " + i;
 			server.Send(Encoding.ASCII.GetBytes(input));
@@ -140,9 +140,9 @@ public class NetMod : MonoBehaviour {
 		string Welcome = "welcome to my test Server Biatch";
 		data = Encoding.ASCII.GetBytes(Welcome);
 		client.Send(data, data.Length, SocketFlags.None);
-		
+		int i = 0;
 		while (true)
-		{ int i = i+1;
+		{ i = i+1;
 			data = new byte[1024];
 			try
 			{
