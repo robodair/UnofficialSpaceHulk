@@ -58,11 +58,10 @@ public class NetMod : MonoBehaviour {
 		Debug.Log(stringData);
 		
 		while (true)
-		{
-			Console.Write(localIP+": ");
-			input = Console.ReadLine();
-			if (input == "\\exit")
-				break;
+		{ 
+			int i = i + 1;
+			Debug.Log(localIP+": ");
+			input = "Client Side: " + i;
 			server.Send(Encoding.ASCII.GetBytes(input));
 			data = new byte[1024];
 			try
@@ -75,7 +74,6 @@ public class NetMod : MonoBehaviour {
 			catch
 			{
 				Debug.Log("Server disconnected.");
-				Console.ReadLine();
 				break;
 			}
 			
@@ -144,7 +142,7 @@ public class NetMod : MonoBehaviour {
 		client.Send(data, data.Length, SocketFlags.None);
 		
 		while (true)
-		{
+		{ int i = i+1;
 			data = new byte[1024];
 			try
 			{
@@ -159,10 +157,10 @@ public class NetMod : MonoBehaviour {
 			
 			
 			Debug.Log(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
-			Console.Write(localIP + ": ");
+			Debug.Log(localIP + ": ");
 			
 			msg = new byte[1024];
-			stMsg = Console.ReadLine();
+			stMsg = "Server Side: " + i;
 			msg = Encoding.ASCII.GetBytes(stMsg);
 			client.Send(msg, msg.Length, SocketFlags.None);
 		}
