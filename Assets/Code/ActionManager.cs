@@ -129,6 +129,7 @@ public class ActionManager {
 		foreach (Unit blip in blipsRevealed) {
 			InvoluntaryReveal (blip); //runs the involuntary reveal for every blip revealed
 		}
+		blipsRevealed.Clear ();
 		
 		makePrevLoS (); //makes the previous line of sight
 	}
