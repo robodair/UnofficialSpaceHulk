@@ -18,7 +18,7 @@ public class NetMod : MonoBehaviour {
 	}
 
 
-	public static void Connect(string servIP,int servPort)
+	public static void Connect()
 	{
 
 		//Find own local IP address
@@ -35,7 +35,7 @@ public class NetMod : MonoBehaviour {
 		}
 		byte[] data = new byte[1024];
 		string input, stringData;
-		IPEndPoint ipep = new IPEndPoint(IPAddress.Parse(servIP), servPort);
+		IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 137);
 		
 		Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 		
@@ -130,6 +130,7 @@ public class NetMod : MonoBehaviour {
 		newsock.Bind(ipep);
 		newsock.Listen(10);
 		Debug.Log("Waiting for client....");
+
 		Socket client = newsock.Accept();
 		IPEndPoint clientep = (IPEndPoint)client.RemoteEndPoint;
 		

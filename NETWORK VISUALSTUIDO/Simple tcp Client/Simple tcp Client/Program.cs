@@ -29,7 +29,7 @@ namespace Simple_tcp_Client
             }
             byte[] data = new byte[1024];
             string input, stringData;
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("172.26.186.29"), 137);
+            IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("172.26.185.172"), 137);
 
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
