@@ -706,10 +706,15 @@ public class InputOutput : MonoBehaviour {
 				}
 				
 				if (alphaLevel <= 0.5f) { 																			// If the gameobject is now fully transparent, remove it.
+					if(action.target.unitType == Game.EntityType.GS){
+						Instantiate(gS_Blood_Particles, action.target.gameObject.transform.position, action.target.gameObject.transform.rotation);
+					}
+
 					if(action.executor.sustainedFireTargetSprite != null){
+						susFireSprites.Remove(action.executor.sustainedFireTargetSprite);
 						Destroy (action.executor.sustainedFireTargetSprite);
 					}		
-					Instantiate(gS_Blood_Particles, action.target.gameObject.transform.position, action.target.gameObject.transform.rotation);
+
 					Destroy (action.target.gameObject);
 					shootPhaseList.RemoveAt(0); 																	// Move to the next phase
 				}
