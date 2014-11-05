@@ -832,7 +832,8 @@ public class InputOutput : MonoBehaviour {
 		// Create the Menu Canvas
 		menuCanvas = (GameObject) Instantiate (inGameMenuUI); // instantiate the menu
 		GameObject.Find ("QuitGameButton").GetComponent<Button>().onClick.AddListener(() => {btnExitClicked();});		// Assign the exit button
-		GameObject.Find ("ResumeGameButton").GetComponent<Button>().onClick.AddListener(() => {closeMenu();});		// Assign the resume button
+		GameObject.Find ("ResumeGameButton").GetComponent<Button>().onClick.AddListener(() => {closeMenu();});			// Assign the resume button
+		GameObject.Find ("TestNetworkButton").GetComponent<Button>().onClick.AddListener(() => {testNetwork();});		// Assign the network button to call the test network method
 		Toggle susFireToggle = GameObject.Find ("SusFireDisplayToggle").GetComponent<Toggle>();
 		susFireToggle.onValueChanged.AddListener( delegate{susFireOnlyOnSelectedUnit(susFireToggle.isOn);});		// Assign the toggle
 		menuCanvas.SetActive(false);							// Hide the menu canvas
@@ -854,6 +855,10 @@ public class InputOutput : MonoBehaviour {
 		//if(Debug.isDebugBuild) Debug.Log("Closing Menu");
 		uiCanvas.SetActive(true);
 		menuCanvas.SetActive(false);
+	}
+
+	public void testNetwork(){
+		if(Debug.isDebugBuild) Debug.Log("TESTING NETWORK");
 	}
 
 	/// <summary>
