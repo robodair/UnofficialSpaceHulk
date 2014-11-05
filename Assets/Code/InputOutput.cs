@@ -32,6 +32,7 @@ public class InputOutput : MonoBehaviour {
 	escapeParticleSystem,
 		// UI
 	UICanvas,
+	inGameMenuUI,
 	endGameUI,
 		//Facing Selection
 	facingSelectionCanvas,
@@ -128,7 +129,8 @@ public class InputOutput : MonoBehaviour {
 	gSDie2, 
 	gSDie3,
 		// UI
-	uiCanvas;
+	uiCanvas,
+	menuCanvas;
 
 		// BUTTONS //
 	Button 
@@ -166,6 +168,8 @@ public class InputOutput : MonoBehaviour {
 	List<Renderer> renderers = new List<Renderer>();
 		// Holograms
 	List<GameObject> hologramParticles = new List<GameObject>();
+		// Sustained Fire Sprites
+	List<GameObject> susFireSprites = new List<GameObject>();
 
 		// ENUMERATED TYPES //
 		// Phases
@@ -787,11 +791,11 @@ public class InputOutput : MonoBehaviour {
 		btnExit = btnExitGO.GetComponent<Button>();
 		btnExit.onClick.AddListener(() => {btnExitClicked();});
 
-		btnMenuGO = GameObject.Find ("BtnExit");
+		btnMenuGO = GameObject.Find ("BtnMenu");
 		btnMenu = btnMenuGO.GetComponent<Button>();
-		btnMenu.onClick.AddListener(() => {btnMenuClicked();});
+		btnMenu.onClick.AddListener(() => {openMenu();});
 
-		btnInfoGO = GameObject.Find ("BtnExit");
+		btnInfoGO = GameObject.Find ("BtnShowInfo");
 		btnInfo = btnInfoGO.GetComponent<Button>();
 		btnInfo.onClick.AddListener(() => {btnInfoClicked();});
 
@@ -799,6 +803,7 @@ public class InputOutput : MonoBehaviour {
 		unitAPText = GameObject.Find("APText");
 		playerCPText = GameObject.Find ("CPText");
 		currentAP = 0;
+		if(selectedUnit != null) currentAP = selectedUnit.AP;
 		currentCP = gameClass.remainingCP;//Changed to reference game class Alisdair 11-10-14
 		//if (Debug.isDebugBuild) Debug.Log("UpdateCPAP InstantiateUI with AP: " + 0);
 		updateCPAP(0);
@@ -817,6 +822,33 @@ public class InputOutput : MonoBehaviour {
 		btnEndTurnGO = GameObject.Find ("BtnTurn");
 		btnEndTurn = btnEndTurnGO.GetComponent<Button>();
 		btnEndTurn.onClick.AddListener(() => {btnEndTurnClicked();});
+
+
+		// Create the Menu Canvas
+		menuCanvas = (GameObject) Instantiate (inGameMenuUI); // instantiate the menu
+		GameObject.Find ("QuitGameButton").GetComponent<Button>().onClick.AddListener(() => {btnExitClicked();});		// Assign the exit button
+		GameObject.Find ("ResumeGameButton").GetComponent<Button>().onClick.AddListener(() => {closeMenu();});		// Assign the resume button
+		Toggle susFireToggle = GameObject.Find ("SusFireDisplayToggle").GetComponent<Toggle>();
+		susFireToggle.onValueChanged.AddListener( delegate{susFireOnlyOnSelectedUnit(susFireToggle.isOn);});		// Assign the toggle
+		menuCanvas.SetActive(false);							// Hide the menu canvas
+	}
+
+	/// <summary>
+	/// Opens the menu.
+	/// </summary>
+	public void openMenu(){
+		//if(Debug.isDebugBuild) Debug.Log("Opening Menu");
+		menuCanvas.SetActive(true);
+		uiCanvas.SetActive(false);
+	}
+
+	/// <summary>
+	/// Closes the menu.
+	/// </summary>
+	public void closeMenu(){
+		//if(Debug.isDebugBuild) Debug.Log("Closing Menu");
+		uiCanvas.SetActive(true);
+		menuCanvas.SetActive(false);
 	}
 
 	/// <summary>
@@ -1580,9 +1612,12 @@ public class InputOutput : MonoBehaviour {
 	void removeSusFire(List <Unit> units){
 		//if (Debug.isDebugBuild) Debug.LogWarning ("There are: " + units.Count + " units in the list of units losing sustained fire");
 		foreach (Unit unit in units){
-			if (unit.sustainedFireSprite != null)
+			if (unit.sustainedFireSprite != null){
+				susFireSprites.Remove(unit.sustainedFireSprite);
+				susFireSprites.Remove(unit.sustainedFireTargetSprite);
 				Destroy(unit.sustainedFireSprite);
 				Destroy (unit.sustainedFireTargetSprite);
+			}
 		}
 	}
 
@@ -1912,6 +1947,7 @@ public class InputOutput : MonoBehaviour {
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
 				entry.Key.sustainedFireSprite.transform.parent = entry.Key.gameObject.transform;			// Asign the transform of the spaceMarine as the parent so the sprite moves with it (This should actually never happen, but it would look weird if the sm moved away from it's sprite)
+				susFireSprites.Add(entry.Key.sustainedFireSprite);
 				if(susFireOnlyOnSelection){
 					entry.Key.sustainedFireSprite.SetActive(false);
 				}
@@ -1923,6 +1959,7 @@ public class InputOutput : MonoBehaviour {
 				spritePosition.y += 2f;
 				entry.Key.sustainedFireTargetSprite = (GameObject) Instantiate(sustainedFireSprite, spritePosition, Quaternion.identity);
 				entry.Key.sustainedFireTargetSprite.transform.parent = entry.Value.gameObject.transform;	// Asign the transform of the genestealer as the parent so the sprite moves with it
+				susFireSprites.Add(entry.Key.sustainedFireTargetSprite);
 				if(susFireOnlyOnSelection){
 					entry.Key.sustainedFireTargetSprite.SetActive(false);
 				}
@@ -2057,9 +2094,10 @@ public class InputOutput : MonoBehaviour {
 	/// </summary>
 	/// <param name="active">If set to <c>true</c> then sustained fire sprites are only shown on selection</param>
 	public void susFireOnlyOnSelectedUnit(bool active){
+		//if(Debug.isDebugBuild) Debug.Log("Changing Sus Fire On selection to " + active);
 		susFireOnlyOnSelection = active;
-		foreach(GameObject obj in GameObject.FindGameObjectsWithTag("susFireSprite")){			// deactivate all sustained fire gameobjects
-			obj.SetActive(false);
+		foreach(GameObject obj in susFireSprites){			// change the state of all sustained fire gameobjects
+			obj.SetActive(!susFireOnlyOnSelection);
 		}
 		if (gameClass.selectedUnit != null){																// reselect the currently selected unit if there is one
 			gameClass.selectUnit(gameClass.selectedUnit.gameObject);
@@ -2226,7 +2264,8 @@ public class InputOutput : MonoBehaviour {
 	/// Opens the menu overlay
 	/// </summary>
 	void btnMenuClicked(){
-		
+		//if(Debug.isDebugBuild) Debug.Log("MenuButton Clicked");
+		openMenu();
 	}
 
 	/// <summary>
