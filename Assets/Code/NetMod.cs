@@ -70,6 +70,14 @@ public class NetMod : MonoBehaviour {
 				
 				stringData = Encoding.ASCII.GetString(data, 0, recv);
 				Debug.Log(ipep.Address + ": " + stringData);
+				if (i == 5)
+				{
+					
+					string msg = "Closing connection";
+					server.Send(Encoding.ASCII.GetBytes(msg));
+					break;
+				}
+
 			}
 			catch
 			{
@@ -164,7 +172,7 @@ public class NetMod : MonoBehaviour {
 			msg = new byte[1024];
 			stMsg = "Server Side: " + i;
 			msg = Encoding.ASCII.GetBytes(stMsg);
-			if (i == 20)
+			if (i == 5)
 			{
 
 				msg.Equals( "Closing connection.");
