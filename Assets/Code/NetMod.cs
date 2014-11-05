@@ -88,7 +88,6 @@ public class NetMod : MonoBehaviour {
 
 	public static void Server()
 	{
-		
 		//Find own local IP address
 		IPHostEntry host;
 		string localIP = "";
@@ -104,8 +103,7 @@ public class NetMod : MonoBehaviour {
 		
 		
 		int listenPort;
-		
-		Debug.Log("Local IP is: "+localIP);
+
 
 
 			listenPort = 137;
@@ -137,8 +135,11 @@ public class NetMod : MonoBehaviour {
 		
 		Debug.Log("Connected with  at port "+ clientep.Address+ clientep.Port);
 		
-		string Welcome = "welcome to my test Server Biatch";
+		string Welcome = "YOU ARE CONNECTED";
+		string info = "Connected with  at port "+ clientep.Address+ clientep.Port;
 		data = Encoding.ASCII.GetBytes(Welcome);
+		client.Send(data, data.Length, SocketFlags.None);
+		data = Encoding.ASCII.GetBytes (info);
 		client.Send(data, data.Length, SocketFlags.None);
 		int i = 0;
 		while (true)
@@ -162,14 +163,24 @@ public class NetMod : MonoBehaviour {
 			msg = new byte[1024];
 			stMsg = "Server Side: " + i;
 			msg = Encoding.ASCII.GetBytes(stMsg);
+			if (i == 20)
+			{
+
+				msg.Equals( "Closing connection.");
 			client.Send(msg, msg.Length, SocketFlags.None);
+				break;
+			}
+			else
+			{
+
+				client.Send(msg, msg.Length, SocketFlags.None);
+			}
 		}
 		
 		Debug.Log("Disconnected from client " + clientep.Address);
 		
 		client.Close();
 		newsock.Close();
-		Console.ReadLine();
 		
 	}
 
