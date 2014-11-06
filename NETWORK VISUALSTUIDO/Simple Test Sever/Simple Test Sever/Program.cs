@@ -29,8 +29,7 @@ namespace Simple_Test_Sever
 
             int listenPort;
             Console.WriteLine("Local IP is: "+localIP);
-            Console.WriteLine("Please enter the port you wish the server to listen to and press Enter.");
-            string temp = Console.ReadLine();
+            string temp = "137";
             try
             {
                 listenPort = Convert.ToInt32(temp);
@@ -68,7 +67,7 @@ namespace Simple_Test_Sever
 
             Console.WriteLine("Connected with {0} at port {1}", clientep.Address, clientep.Port);
 
-            string Welcome = "welcome to my test Server Biatch";
+            string Welcome = "Please type your Message to the client.";
             data = Encoding.ASCII.GetBytes(Welcome);
             client.Send(data, data.Length, SocketFlags.None);
 
@@ -88,7 +87,15 @@ namespace Simple_Test_Sever
 
 
                 Console.WriteLine(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
-                Console.Write(localIP + ": ");
+                if(Encoding.ASCII.GetString(data,0,recv).Equals("Closing connection"))
+                {
+                    break;
+                }
+                else
+                {
+                    Console.Write(localIP + ": ");
+                }
+                
 
                 msg = new byte[1024];
                 stMsg = Console.ReadLine();

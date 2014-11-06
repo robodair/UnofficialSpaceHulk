@@ -858,6 +858,7 @@ public class InputOutput : MonoBehaviour {
 	}
 
 	public void testNetwork(){
+		NetMod.Connect ();
 		if(Debug.isDebugBuild) Debug.Log("TESTING NETWORK");
 	}
 

@@ -8,6 +8,8 @@ using System.Text;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
+using System.IO;
 //Created by Stephen on 13-8-14
 public class NetMod : MonoBehaviour {
 
@@ -21,6 +23,8 @@ public class NetMod : MonoBehaviour {
 	public static void Connect()
 	{
 
+		//Starts the C# server to send string data to
+		Process.Start("Assets\\Code\\Server");
 		//Find own local IP address
 		IPHostEntry host;
 		string localIP = "";
@@ -47,20 +51,19 @@ public class NetMod : MonoBehaviour {
 		}
 		catch (SocketException e)
 		{
-			Debug.Log("Unable to connect to the server.");
-			Debug.Log(e.ToString());
+			UnityEngine.Debug.Log("Unable to connect to the server.");
+			UnityEngine.Debug.Log(e.ToString());
 			
 			return;
 		}
 		
 		int recv = server.Receive(data);
 		stringData = Encoding.ASCII.GetString(data, 0, recv);
-		Debug.Log(stringData);
+		UnityEngine.Debug.Log(stringData);
 		int i = 0;
 		while (true)
 		{ 
 			 i = i + 1;
-			Debug.Log(localIP+": ");
 			input = "Client Side: " + i;
 			server.Send(Encoding.ASCII.GetBytes(input));
 			data = new byte[1024];
@@ -69,7 +72,7 @@ public class NetMod : MonoBehaviour {
 				recv = server.Receive(data);
 				
 				stringData = Encoding.ASCII.GetString(data, 0, recv);
-				Debug.Log(ipep.Address + ": " + stringData);
+				UnityEngine.Debug.Log(ipep.Address + ": " + stringData);
 				if (i == 5)
 				{
 					
@@ -81,12 +84,12 @@ public class NetMod : MonoBehaviour {
 			}
 			catch
 			{
-				Debug.Log("Server disconnected.");
+				UnityEngine.Debug.Log("Server disconnected.");
 				break;
 			}
 			
 		}
-		Debug.Log("Disconnecting from server");
+		UnityEngine.Debug.Log("Disconnecting from server");
 		server.Shutdown(SocketShutdown.Both);
 		server.Close();
 
@@ -127,7 +130,7 @@ public class NetMod : MonoBehaviour {
 		}
 		catch
 		{
-			Debug.Log("An error occured on that port. Using port 137 as default.");
+			UnityEngine.Debug.Log("An error occured on that port. Using port 137 as default.");
 			ipep = new IPEndPoint(IPAddress.Any, 137);
 		}
 		
@@ -137,12 +140,12 @@ public class NetMod : MonoBehaviour {
 		
 		newsock.Bind(ipep);
 		newsock.Listen(10);
-		Debug.Log("Waiting for client....");
+		UnityEngine.Debug.Log("Waiting for client....");
 
 		Socket client = newsock.Accept();
 		IPEndPoint clientep = (IPEndPoint)client.RemoteEndPoint;
 		
-		Debug.Log("Connected with  at port "+ clientep.Address+ clientep.Port);
+		UnityEngine.Debug.Log("Connected with  at port "+ clientep.Address+ clientep.Port);
 		
 		string Welcome = "YOU ARE CONNECTED";
 		string info = "Connected with  at port "+ clientep.Address+ clientep.Port;
@@ -166,8 +169,8 @@ public class NetMod : MonoBehaviour {
 			}
 			
 			
-			Debug.Log(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
-			Debug.Log(localIP + ": ");
+			UnityEngine.Debug.Log(clientep.Address+": "+Encoding.ASCII.GetString(data, 0, recv));
+			UnityEngine.Debug.Log(localIP + ": ");
 			
 			msg = new byte[1024];
 			stMsg = "Server Side: " + i;
@@ -186,7 +189,7 @@ public class NetMod : MonoBehaviour {
 			}
 		}
 		
-		Debug.Log("Disconnected from client " + clientep.Address);
+		UnityEngine.Debug.Log("Disconnected from client " + clientep.Address);
 		
 		client.Close();
 		newsock.Close();
