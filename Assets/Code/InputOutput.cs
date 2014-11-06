@@ -964,6 +964,7 @@ public class InputOutput : MonoBehaviour {
 		// Stop any audio playing
 		gameClass.audio.Stop();
 		// Play the game start sound
+		gameClass.audio.volume = 0.1f;
 		gameClass.audio.PlayOneShot(game_start);
 
 	}
@@ -1356,6 +1357,8 @@ public class InputOutput : MonoBehaviour {
 	public void instantiateFacingSelection(Vector2 position, bool north, bool east, bool south, bool west){
 		selectFacingCanvasExists = true;
 		//Create the canvas at the position
+		if (currentFacingSelectionCanvas != null)		// Destroy any existing canvas
+						Destroy (currentFacingSelectionCanvas);
 		currentFacingSelectionCanvas = (GameObject) Instantiate (facingSelectionCanvas, makePosition(position, 2), Quaternion.Euler (90, 0, 0));
 		
 		//Assign methods to the buttons
@@ -1924,6 +1927,7 @@ public class InputOutput : MonoBehaviour {
 				Color color = Color.red;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+				gameClass.audio.volume = 0.45f;
 				gameClass.audio.clip = winMusic;
 				gameClass.audio.Play();
 			}
@@ -1932,6 +1936,7 @@ public class InputOutput : MonoBehaviour {
 				Color color = Color.magenta;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+				gameClass.audio.volume = 0.45f;
 				gameClass.audio.clip = lossMusic;
 				gameClass.audio.Play();
 			}
