@@ -34,6 +34,7 @@ public class InputOutput : MonoBehaviour {
 	UICanvas,
 	inGameMenuUI,
 	endGameUI,
+	infoPopupUI,
 		//Facing Selection
 	facingSelectionCanvas,
 	currentFacingSelectionCanvas,
@@ -132,6 +133,7 @@ public class InputOutput : MonoBehaviour {
 	gSDie3,
 		// UI
 	uiCanvas,
+	infoCanvas,
 	menuCanvas;
 
 		// BUTTONS //
@@ -839,6 +841,11 @@ public class InputOutput : MonoBehaviour {
 		Toggle susFireToggle = GameObject.Find ("SusFireDisplayToggle").GetComponent<Toggle>();
 		susFireToggle.onValueChanged.AddListener( delegate{susFireOnlyOnSelectedUnit(susFireToggle.isOn);});		// Assign the toggle
 		menuCanvas.SetActive(false);							// Hide the menu canvas
+
+		// Create the info Canvas
+		infoCanvas = (GameObject) Instantiate (infoPopupUI); // instantiate the info
+		GameObject.Find ("ResumeGameButtonInfo").GetComponent<Button>().onClick.AddListener(() => {closeMenu();});			// Assign the resume button
+		infoCanvas.SetActive(false);							// Hide the info canvas
 	}
 
 	/// <summary>
@@ -857,6 +864,12 @@ public class InputOutput : MonoBehaviour {
 		//if(Debug.isDebugBuild) Debug.Log("Closing Menu");
 		uiCanvas.SetActive(true);
 		menuCanvas.SetActive(false);
+		infoCanvas.SetActive (false);
+	}
+
+	public void openInfo(){
+		infoCanvas.SetActive (true);
+		uiCanvas.SetActive (false);
 	}
 
 	public void testNetwork(){
@@ -2296,7 +2309,7 @@ public class InputOutput : MonoBehaviour {
 	/// Opens the Info Overlay
 	/// </summary>
 	void btnInfoClicked(){
-		
+		openInfo();
 	}
 
 	/// <summary>
