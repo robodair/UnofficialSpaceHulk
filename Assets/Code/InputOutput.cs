@@ -71,7 +71,9 @@ public class InputOutput : MonoBehaviour {
 	gs_Scream,
 	doorClose,
 	doorOpen,
-	sm_Death_2;
+	sm_Death_2,
+	winMusic,
+	lossMusic;
 
 		// LISTS //
 	public List<GameObject> activePartSys = new List<GameObject>();
@@ -959,7 +961,9 @@ public class InputOutput : MonoBehaviour {
 			}
 		}
 
-		//Play the game start sound
+		// Stop any audio playing
+		gameClass.audio.Stop();
+		// Play the game start sound
 		gameClass.audio.PlayOneShot(game_start);
 
 	}
@@ -1920,12 +1924,16 @@ public class InputOutput : MonoBehaviour {
 				Color color = Color.red;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+				gameClass.audio.clip = winMusic;
+				gameClass.audio.Play();
 			}
 			else{
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "GENESTEALERS WIN!";
 				Color color = Color.magenta;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
+				gameClass.audio.clip = lossMusic;
+				gameClass.audio.Play();
 			}
 			btnExitGO = GameObject.Find ("EndExitButton");												// Assign the exit button to work
 			btnExit = btnExitGO.GetComponent<Button>();
