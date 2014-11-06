@@ -24,7 +24,7 @@ public class NetMod : MonoBehaviour {
 	{
 
 		//Starts the C# server to send string data to
-		Process.Start("Assets\\Code\\Server");
+		Process.Start("Server");
 		//Find own local IP address
 		IPHostEntry host;
 		string localIP = "";
@@ -89,9 +89,26 @@ public class NetMod : MonoBehaviour {
 			}
 			
 		}
-		UnityEngine.Debug.Log("Disconnecting from server");
-		server.Shutdown(SocketShutdown.Both);
-		server.Close();
+
+		SocketException ee = new SocketException();
+		try
+		{
+
+
+			server.Shutdown(SocketShutdown.Both);
+			
+			UnityEngine.Debug.Log (ee);
+
+			UnityEngine.Debug.Log ("Server.close() worked??");
+		}
+		catch{
+			UnityEngine.Debug.Log("Disconnecting from server");
+		      }
+		finally{
+			server.Close();
+				}
+
+
 
 		}
 

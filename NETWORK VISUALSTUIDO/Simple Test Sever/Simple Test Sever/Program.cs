@@ -99,7 +99,15 @@ namespace Simple_Test_Sever
 
                 msg = new byte[1024];
                 stMsg = Console.ReadLine();
+                while (String.IsNullOrEmpty(stMsg))
+                {
+                    Console.WriteLine("That message was blank please type a messge");
+                    Console.Write(localIP + ": ");
+                    stMsg = Console.ReadLine();
+
+                }
                 msg = Encoding.ASCII.GetBytes(stMsg);
+
                 client.Send(msg, msg.Length, SocketFlags.None);
             }
 
