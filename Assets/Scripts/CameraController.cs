@@ -33,6 +33,8 @@ public class CameraController : MonoBehaviour {
 	//the camera around the spot it is currently looking at. The mouse also
 	//zooms the camera in and out over the spot it is currently looking at
 
+	public bool canZoom;
+	public bool useInitialSize;
 	public int scrollSpeed;
 	public float zoomSpeed;
 	public float mouseScrollFactor;
@@ -43,6 +45,8 @@ public class CameraController : MonoBehaviour {
 	public float zoomCurvatureFactor;
 	public int mouseMovementPadding;
 	public Vector3 initialLookingPosition;
+	public Map map;
+	public MapBuilder builder;
 	
 	private Vector2 minBounds;
 	private Vector2 maxBounds;
@@ -68,24 +72,24 @@ public class CameraController : MonoBehaviour {
 		rotatingToAngle = gameObject.transform.rotation.eulerAngles.y;
 		depression = gameObject.transform.rotation.eulerAngles.x;
 
-		GameObject gameController = GameObject.FindWithTag("GameController");
-		if (gameController != null)
+		if (useInitialSize)
 		{
-			Map map = gameController.GetComponent<Map>();
 			mapSize = map.size;
+			minBounds = new Vector2 (-boundsBuffer, -boundsBuffer);
+			maxBounds = mapSize + new Vector2 (boundsBuffer, boundsBuffer);
 		}
 		else
 		{
-			Debug.Log("The GameController GameObject couldn't be found");
-			mapSize = new Vector2(100, 100);
+			minBounds = new Vector2 (-boundsBuffer, -boundsBuffer);
+			maxBounds = new Vector2 (boundsBuffer, boundsBuffer);
 		}
 
-		minBounds = new Vector2 (-boundsBuffer, -boundsBuffer);
-		maxBounds = mapSize + new Vector2 (boundsBuffer, boundsBuffer);
-
-		//Calculate zoom factors
-		translation = Mathf.Log (zoomCurvatureFactor * -lateralOffset.x);
-		heightScaleFactor = verticalOffset.y / (translation - Mathf.Log (lateralOffset.magnitude));
+		if (canZoom)
+		{
+			//Calculate zoom factors
+			translation = Mathf.Log (zoomCurvatureFactor * -lateralOffset.x);
+			heightScaleFactor = verticalOffset.y / (translation - Mathf.Log (lateralOffset.magnitude));
+		}
 	}
 
 	void Update()
@@ -178,21 +182,23 @@ public class CameraController : MonoBehaviour {
 
 		lookingPosition += movement;
 
-		//Find the Up/Down movement
-		float zoom = -Input.GetAxis ("Mouse ScrollWheel");
-		float destinationHeight = Mathf.Clamp (gameObject.transform.position.y + zoom * zoomSpeed * Time.deltaTime, maxZoom, minZoom);
-		float zoomChange = destinationHeight - gameObject.transform.position.y;
+		if (canZoom)
+		{
+			//Find the Up/Down movement
+			float zoom = -Input.GetAxis ("Mouse ScrollWheel");
+			float destinationHeight = Mathf.Clamp (gameObject.transform.position.y + zoom * zoomSpeed * Time.deltaTime, maxZoom, minZoom);
+			float zoomChange = destinationHeight - gameObject.transform.position.y;
 
 
-		//Move the camera
-		verticalOffset += new Vector3 (0, zoomChange, 0);
+			//Move the camera
+			verticalOffset += new Vector3 (0, zoomChange, 0);
 
-		lateralOffset = lateralOffset * (Mathf.Exp (translation - (verticalOffset.y)/(heightScaleFactor)) /
-							Mathf.Exp (translation - (verticalOffset.y + zoomChange)/(heightScaleFactor)));
+			lateralOffset = lateralOffset * (Mathf.Exp (translation - (verticalOffset.y)/(heightScaleFactor)) /
+								Mathf.Exp (translation - (verticalOffset.y + zoomChange)/(heightScaleFactor)));
 
 
-		depression = (Mathf.Atan (verticalOffset.magnitude / lateralOffset.magnitude))*Mathf.Rad2Deg;
-
+			depression = (Mathf.Atan (verticalOffset.magnitude / lateralOffset.magnitude))*Mathf.Rad2Deg;
+		}
 
 
 		//Rotate the camera laterally
