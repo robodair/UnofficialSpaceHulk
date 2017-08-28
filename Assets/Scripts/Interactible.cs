@@ -29,9 +29,6 @@ public class Interactible : MonoBehaviour {
 	InputHandler inputHandlerController; //Added 18/9/14
 	InputOutput ioController;
 
-
-	public EventSystem eventSystem; //Added by Alisdair 14/9/14
-
 	void Start()
 	{
 		//Create a reference to the Game
@@ -40,9 +37,6 @@ public class Interactible : MonoBehaviour {
 		//Create a reference to the GameController's InputHandler
 		inputHandlerController = GameObject.FindWithTag ("GameController").GetComponent<InputHandler> ();
 		ioController = GameObject.FindWithTag ("GameController").GetComponent<InputOutput> ();
-
-		//Find the event system Added By Alisdair 14/9/14
-		eventSystem = GameObject.FindWithTag ("EventSystem").GetComponent<EventSystem>();
 	}
 
 	void OnMouseOver(){ //Reworked RB 25.9.14
@@ -186,7 +180,8 @@ public class Interactible : MonoBehaviour {
 	}
 	void OnMouseDown()
 	{
-		if (!eventSystem.IsPointerOverEventSystemObject())
+		EventSystem eventSystem = GameObject.FindObjectOfType<EventSystem>();
+		if (!eventSystem.IsPointerOverGameObject())
         { //if statement Added By Alisdair 14/9/14 Reference: http://forum.unity3d.com/threads/raycast-into-gui.263397/#post-1742031
 			//Debug.Log ("The pointer was clicked on an interactable GameObject"); //Added By Alisdair 14/9/14
 			//th first if statement checks to see if the click is meant for the UI
