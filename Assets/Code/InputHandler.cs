@@ -139,7 +139,7 @@ public class InputHandler : MonoBehaviour {
 			//RB 8.10.14 Changes colour of all squares available to move to
 			foreach (Square square in availableSquares.Keys)
 			{
-				square.model.renderer.material.color = Color.green;
+				square.model.GetComponent<Renderer>().material.color = Color.green;
 
 			}
 			coloursSet = true;
@@ -155,7 +155,7 @@ public class InputHandler : MonoBehaviour {
 		{
 			foreach (Square square in availableSquares.Keys)
 			{
-				square.model.renderer.material.color = Color.white;
+				square.model.GetComponent<Renderer>().material.color = Color.white;
 			}
 			coloursSet = false;
 			keepHologram = true; 																					//Alisdair
@@ -218,7 +218,7 @@ public class InputHandler : MonoBehaviour {
 		}
 		else
 		{
-			gameController.audio.PlayOneShot(ioController.click_error);
+			gameController.GetComponent<AudioSource>().PlayOneShot(ioController.click_error);
 			Debug.LogWarning ("Target not in Line of Sight!");
 		}
 	}
@@ -243,14 +243,14 @@ public class InputHandler : MonoBehaviour {
 		revealPosition = position;
 		selectableRevealPositions = selectableSquares;
 		showSelectableRevealSquares ();
-		mapController.getSquare (revealPosition).model.renderer.material.color = Color.cyan;
+		mapController.getSquare (revealPosition).model.GetComponent<Renderer>().material.color = Color.cyan;
 
 		// === Show Hologram = Alisdair ==
 		ioController.activePartSys.Clear();
 		foreach(Transform ps in mapController.getSquare(revealPosition).model.transform){
 			//Debug.Log("Activating a particle system for reveal");
-			ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate;
-			ps.gameObject.particleSystem.enableEmission = true;
+			ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
+			ps.gameObject.GetComponent<ParticleSystem>().enableEmission = true;
 			ioController.activePartSys.Add (ps.gameObject);
 		}
 		ioController.hologramsActive = true;
@@ -265,14 +265,14 @@ public class InputHandler : MonoBehaviour {
 		// === Remove Hologram = Alisdair ==
 		
 		foreach(Transform ps in mapController.getSquare(revealPosition).model.transform){
-			ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate;
-			ps.gameObject.particleSystem.enableEmission = false;
+			ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
+			ps.gameObject.GetComponent<ParticleSystem>().enableEmission = false;
 		}
 		ioController.activePartSys.Clear();
 		// ===============================
 
 		hideSelectableRevealSquares ();
-		mapController.getSquare (revealPosition).model.renderer.material.color = Color.white;
+		mapController.getSquare (revealPosition).model.GetComponent<Renderer>().material.color = Color.white;
 		revealManager.place (revealPosition, facing);
 		allowRevealSelection = true;
 		if (revealManager.currentlyRevealing)
@@ -283,14 +283,14 @@ public class InputHandler : MonoBehaviour {
 
 	public void continueRevealing()
 	{
-		mapController.getSquare (revealPosition).model.renderer.material.color = Color.cyan;
+		mapController.getSquare (revealPosition).model.GetComponent<Renderer>().material.color = Color.cyan;
 
 		// === Show Hologram = Alisdair ==
 		ioController.activePartSys.Clear();
 		foreach(Transform ps in mapController.getSquare(revealPosition).model.transform){
 			//Debug.Log("Activating a particle system for reveal");
-			ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate;
-			ps.gameObject.particleSystem.enableEmission = true;
+			ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
+			ps.gameObject.GetComponent<ParticleSystem>().enableEmission = true;
 			ioController.activePartSys.Add (ps.gameObject);
 		}
 		ioController.hologramsActive = true;
@@ -305,13 +305,13 @@ public class InputHandler : MonoBehaviour {
 	{
 		foreach (Vector2 position in selectableRevealPositions)
 		{
-	        mapController.getSquare(position).model.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
+	        mapController.getSquare(position).model.GetComponent<Renderer>().material.color = new Color(0.68f, 0.51f, 0.69f);
 
 			// === Show Hologram = Alisdair ==
 
 			foreach(Transform ps in mapController.getSquare(position).model.transform){
-				ps.gameObject.particleSystem.emissionRate = ioController.lowEmissionRate;
-				ps.gameObject.particleSystem.enableEmission = true;
+				ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.lowEmissionRate;
+				ps.gameObject.GetComponent<ParticleSystem>().enableEmission = true;
 			}
 			ioController.hologramsActive = true;
 			// ===============================
@@ -322,14 +322,14 @@ public class InputHandler : MonoBehaviour {
 	{
 		foreach (Vector2 position in selectableRevealPositions)
 		{
-			if(mapController.getSquare (position).model.renderer.material.color != Color.white){
-				mapController.getSquare(position).model.renderer.material.color = Color.white;
+			if(mapController.getSquare (position).model.GetComponent<Renderer>().material.color != Color.white){
+				mapController.getSquare(position).model.GetComponent<Renderer>().material.color = Color.white;
 			}
 			// === Remove Hologram = Alisdair ==
 			
 			foreach(Transform ps in mapController.getSquare(position).model.transform){
-				ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate;
-				ps.gameObject.particleSystem.enableEmission = false;
+				ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
+				ps.gameObject.GetComponent<ParticleSystem>().enableEmission = false;
 			}
 			
 			// ===============================

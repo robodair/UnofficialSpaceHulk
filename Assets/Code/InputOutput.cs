@@ -316,7 +316,7 @@ public class InputOutput : MonoBehaviour {
 		if (isFirstLoopofAction){
 			deactivateHolograms();
 			isFirstLoopofAction = false;
-			action.executor.gameObject.audio.PlayOneShot(piece_Movement);
+			action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(piece_Movement);
 			return;															// Skip The first frame of a move action, ensures smooth movement (no jumps due to processing lag)
 		}
 		//if (Debug.isDebugBuild) Debug.Log("Update entered Move action sector of switch");
@@ -338,7 +338,7 @@ public class InputOutput : MonoBehaviour {
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
 				finishAction(action);
 				if(action.executor.position == gameClass.escapePosition)
-					gameObject.audio.PlayOneShot(sm_Escape);
+					gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Escape);
 			}
 			else{
 				//if (Debug.isDebugBuild) Debug.Log ("Rotation not equal, Rotation aim is: " + aimRot.eulerAngles + "Current Rotation: " + action.executor.gameObject.transform.rotation.eulerAngles);
@@ -425,7 +425,7 @@ public class InputOutput : MonoBehaviour {
 				mapSquareWithDoor.door.gameObject = newDoor;
 			}
 			// Play the correct door opening sound effect
-			playDoorSound(mapSquareWithDoor.door.gameObject.audio, mapClass.isDoorOpen(doorMapPosition));
+			playDoorSound(mapSquareWithDoor.door.gameObject.GetComponent<AudioSource>(), mapClass.isDoorOpen(doorMapPosition));
 
 			//Finish the action and update the AP
 			finishAction(action);
@@ -445,16 +445,16 @@ public class InputOutput : MonoBehaviour {
 				//if (Debug.isDebugBuild) Debug.Log ("There are " + action.destroyedUnits.Count + " units in the list of destroyed units");
 				renderers.AddRange (un.gameObject.GetComponentsInChildren<Renderer> ());							// Get all the renderer gameobject components that need to be faded
 				if (un.jammedUnitSprite != null) {
-					renderers.Add (un.jammedUnitSprite.renderer);													// If there is a jam sprite for the unit, add it to be faded when the unit dies
+					renderers.Add (un.jammedUnitSprite.GetComponent<Renderer>());													// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
 				if (un.overwatchSprite != null) {																	// If there is a jam sprite for the unit, add it to be faded when the unit dies
-					renderers.Add (un.overwatchSprite.renderer);
+					renderers.Add (un.overwatchSprite.GetComponent<Renderer>());
 				}
 				if (un.sustainedFireSprite != null) {
-					renderers.Add (un.sustainedFireSprite.renderer);												// If there is a jam sprite for the unit, add it to be faded when the unit dies
+					renderers.Add (un.sustainedFireSprite.GetComponent<Renderer>());												// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
 				if (un.sustainedFireTargetSprite != null) {
-					renderers.Add (un.sustainedFireTargetSprite.renderer);											// If there is a jam sprite for the unit, add it to be faded when the unit dies
+					renderers.Add (un.sustainedFireTargetSprite.GetComponent<Renderer>());											// If there is a jam sprite for the unit, add it to be faded when the unit dies
 				}
 
 			}
@@ -499,12 +499,12 @@ public class InputOutput : MonoBehaviour {
 		case(AttackPhase.UnitDeath): 
 			if (soundsFirstPass){
 				if(!exeKilled){
-					playSmDeath(action.executor.gameObject.audio);
+					playSmDeath(action.executor.gameObject.GetComponent<AudioSource>());
 				}
 				else if(exeKilled){
-					action.executor.gameObject.audio.PlayOneShot(sm_Fire_2);
+					action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Fire_2);
 					//if(Debug.isDebugBuild) Debug.Log("SHOULD PLAY GS SCREAM");
-					action.target.gameObject.audio.PlayOneShot(gs_Scream);
+					action.target.gameObject.GetComponent<AudioSource>().PlayOneShot(gs_Scream);
 				}
 				soundsFirstPass = false;
 			}
@@ -621,10 +621,10 @@ public class InputOutput : MonoBehaviour {
 			if(action.executor.gameObject.transform.rotation.eulerAngles.y == aimRot.eulerAngles.y){
 				if(!action.unitJams){
 					if(action.target.unitType != Game.EntityType.Door){
-						playSmBattleCry(action.executor.gameObject.audio);
+						playSmBattleCry(action.executor.gameObject.GetComponent<AudioSource>());
 					}
 					else{
-						action.executor.gameObject.audio.PlayOneShot(sm_Fire_1);
+						action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Fire_1);
 					}
 				}
 				shootPhaseList.RemoveAt(0); 															// Move to the next phase
@@ -673,11 +673,11 @@ public class InputOutput : MonoBehaviour {
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.4f);												// Create a bullet
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.6f);												// Create a bullet
 			createBullet(bulStart, bulEnd, attackSuccessful, 0.8f, true);										// Create a bullet, that changes the bullets complete variable when done
-			action.executor.gameObject.audio.PlayOneShot(sm_Gunfire);											// Play the gunshots
+			action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Gunfire);											// Play the gunshots
 
 			if(action.unitJams){																				// If the unit jammed in this action, display the jammed sprite
 				showJam(action.executor);
-				action.executor.gameObject.audio.PlayOneShot(sm_Jam);											// Play jam audio
+				action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Jam);											// Play jam audio
 			}
 			
 			shootPhaseList.RemoveAt(0); 																		// Move to the next phase
@@ -724,7 +724,7 @@ public class InputOutput : MonoBehaviour {
 				}
 			}
 			else {
-				action.executor.gameObject.audio.PlayOneShot(sm_Killed_GS);										// Play the successful kill sound
+				action.executor.gameObject.GetComponent<AudioSource>().PlayOneShot(sm_Killed_GS);										// Play the successful kill sound
 				shootPhaseList.RemoveAt(0); 																	// Move to the next phase
 			}
 			
@@ -975,10 +975,10 @@ public class InputOutput : MonoBehaviour {
 		}
 
 		// Stop any audio playing
-		gameClass.audio.Stop();
+		gameClass.GetComponent<AudioSource>().Stop();
 		// Play the game start sound
-		gameClass.audio.volume = 0.1f;
-		gameClass.audio.PlayOneShot(game_start);
+		gameClass.GetComponent<AudioSource>().volume = 0.1f;
+		gameClass.GetComponent<AudioSource>().PlayOneShot(game_start);
 
 	}
 
@@ -1025,7 +1025,7 @@ public class InputOutput : MonoBehaviour {
 		deselect ();
 		if (unit != null){																										// Check first to see that we have been passed a valid unit
 			selectedUnit = unit;
-			selectedUnit.gameObject.collider.enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
+			selectedUnit.gameObject.GetComponent<Collider>().enabled = false;																	// Disable the collider so that clicking on the square under the unity is easy
 			setDoorCollidersEnabled(false);																						// Disable the door colliders so that move actions are easier
 			// if (Debug.isDebugBuild) Debug.Log("Unit selected");
 			if (selectedUnit.unitType == Game.EntityType.GS){
@@ -1065,7 +1065,7 @@ public class InputOutput : MonoBehaviour {
 				removeSusFire(selectedUnit);
 			}
 
-			selectedUnit.gameObject.collider.enabled = true;																	// Renable the collider so that the unit can be clicked on again 
+			selectedUnit.gameObject.GetComponent<Collider>().enabled = true;																	// Renable the collider so that the unit can be clicked on again 
 
 			if (selectedUnit.unitType == Game.EntityType.GS){
 				particleToggle(selectedUnit.gameObject.GetComponentsInChildren<ParticleSystem>()[0], false);						// Turn the particle emittor off
@@ -1290,7 +1290,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Attack Button is clicked
 	/// </summary>
 	public void btnAttackClicked(){ //Added By Alisdair 14/9/14
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.attack ();
 	}
 
@@ -1298,7 +1298,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Move Button is clicked
 	/// </summary>
 	public void btnMoveClicked(){ //Added By Alisdair 14/9/14
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.keepHologram = false;	// Allow hologram creation
 		//if(Debug.isDebugBuild)Debug.Log ("DISABLED HOLOGRAM KEEPING BECAUSE MOVE CLICKED");
 		inputHandlerController.movement ();//RB 18/9/14
@@ -1308,7 +1308,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the Overwatch Button is clicked
 	/// </summary>
 	public void btnOverwatchClicked(){ //Added By Alisdair 14/9/14
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.overwatchClicked();
 	}
 
@@ -1319,7 +1319,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if (Debug.isDebugBuild) Debug.LogWarning ("Reveal Button Clicked, this method is INCOMPLETE. Refer Alisdair");
 	}
 
@@ -1330,7 +1330,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		setDoorCollidersEnabled(true);											//Set the door collider so that they can be shot at if needed
 		inputHandlerController.shoot ();
 	}
@@ -1342,7 +1342,7 @@ public class InputOutput : MonoBehaviour {
 		/*
 		 * This method needs to pass the button click back to the Game class so that action can be taken
 		 */ 
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		inputHandlerController.toggleDoor ();
 	}
 
@@ -1413,7 +1413,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas north button is pressed
 	/// </summary>
 	public void btnFaceNorth(){
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.North);
@@ -1430,7 +1430,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas east button is pressed
 	/// </summary>
 	public void btnFaceEast(){
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.East);
@@ -1448,7 +1448,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas South button is pressed
 	/// </summary>
 	public void btnFaceSouth(){
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.South);
@@ -1466,7 +1466,7 @@ public class InputOutput : MonoBehaviour {
 	/// Called when the facing selection canvas west button is pressed
 	/// </summary>
 	public void btnFaceWest(){
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		if(gameClass.gameState == Game.GameState.Reveal)
 		{
 			inputHandlerController.revealOrientationClicked(Game.Facing.West);
@@ -1555,7 +1555,7 @@ public class InputOutput : MonoBehaviour {
 	/// (Playerturn protection not needed here, as the button will not be active at all if it is not the client player's turn.
 	/// </summary>
 	void btnEndTurnClicked(){
-		gameClass.audio.PlayOneShot (clickSound); //Sound added 29.10.14 RB
+		gameClass.GetComponent<AudioSource>().PlayOneShot (clickSound); //Sound added 29.10.14 RB
 		switch (gameClass.playerTurn){
 			case (Game.PlayerType.GS):
 				gameClass.setTurn(Game.PlayerType.SM);
@@ -1940,18 +1940,18 @@ public class InputOutput : MonoBehaviour {
 				Color color = Color.red;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
-				gameClass.audio.volume = 0.45f;
-				gameClass.audio.clip = winMusic;
-				gameClass.audio.Play();
+				gameClass.GetComponent<AudioSource>().volume = 0.45f;
+				gameClass.GetComponent<AudioSource>().clip = winMusic;
+				gameClass.GetComponent<AudioSource>().Play();
 			}
 			else{
 				GameObject.Find("EndGameText").GetComponent<Text>().text = "GENESTEALERS WIN!";
 				Color color = Color.magenta;
 				color.a = 0.5f;
 				GameObject.Find("EndGamePanel").GetComponent<Image>().color = color;
-				gameClass.audio.volume = 0.45f;
-				gameClass.audio.clip = lossMusic;
-				gameClass.audio.Play();
+				gameClass.GetComponent<AudioSource>().volume = 0.45f;
+				gameClass.GetComponent<AudioSource>().clip = lossMusic;
+				gameClass.GetComponent<AudioSource>().Play();
 			}
 			btnExitGO = GameObject.Find ("EndExitButton");												// Assign the exit button to work
 			btnExit = btnExitGO.GetComponent<Button>();
@@ -2149,7 +2149,7 @@ public class InputOutput : MonoBehaviour {
 		//if (Debug.isDebugBuild) Debug.Log ("Setting Door Colliders to: " + enabled);
 		foreach (GameObject door in GameObject.FindGameObjectsWithTag("Door")){
 			if (door.activeInHierarchy){
-					door.collider.enabled = enabled;
+					door.GetComponent<Collider>().enabled = enabled;
 			}
 		}
 	}
@@ -2278,7 +2278,7 @@ public class InputOutput : MonoBehaviour {
 			//if (Debug.isDebugBuild) Debug.Log ("Deactivatng all holograms");
 			foreach(GameObject ps in activePartSys)															// Deactivate any holograms on the map
 			{
-				ps.particleSystem.enableEmission = false;
+				ps.GetComponent<ParticleSystem>().enableEmission = false;
 			}
 			hologramsActive = false;
 			activePartSys.Clear();

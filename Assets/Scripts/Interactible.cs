@@ -58,7 +58,7 @@ public class Interactible : MonoBehaviour {
 						{
 							if (inputHandlerController.squareAvailable(new Vector2 (gameObject.transform.position.x, 
 						                                                        	gameObject.transform.position.z))){
-								gameObject.renderer.material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
+								gameObject.GetComponent<Renderer>().material.color = Color.blue;//RB 8.10.14 changed due to highlighting of all available squares
 
 								// ====== Hologram Creation = Alisdair ===
 
@@ -67,28 +67,28 @@ public class Interactible : MonoBehaviour {
 									if(ioController.activePartSys.Count < 2){														// Allow only 2 particle systems to be active
 										//Debug.Log ("Activatingparticles @: " + gameObject.transform.position);
 										foreach (Transform ps in gameObject.transform){
-											ps.gameObject.particleSystem.enableEmission = true; 												// Show the emission effect Alisdair
+											ps.gameObject.GetComponent<ParticleSystem>().enableEmission = true; 												// Show the emission effect Alisdair
 											ioController.activePartSys.Add(ps.gameObject);												// store the active Particle systems
 											//if (Debug.isDebugBuild) Debug.Log(ioController.activePartSys.Count);
 										}
 									}
 									foreach (Transform ps in gameObject.transform){
-										ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate;
+										ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
 									}
 									ioController.hologramsActive = true;
 									// =======================================
 									}
 							}
 							else
-								gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+								gameObject.GetComponent<Renderer>().material.color = new Color(0f, 0.6f, 0.1f);
 						}
 						else
-							gameObject.renderer.material.color = new Color(0f, 0.6f, 0.1f);
+							gameObject.GetComponent<Renderer>().material.color = new Color(0f, 0.6f, 0.1f);
 					}
 				}
 				else{
 					foreach (Transform ps in gameObject.transform){
-						ps.gameObject.particleSystem.emissionRate = ioController.normalEmissionRate; 																	// Show the emission effect Alisdair
+						ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate; 																	// Show the emission effect Alisdair
 					}
 				}
 			}
@@ -97,13 +97,13 @@ public class Interactible : MonoBehaviour {
 		{ 
 			if(attemptedSelection == SelectionType.GS ||
 			   attemptedSelection == SelectionType.ClosedDoor)
-				gameObject.renderer.material.color = Color.red;
+				gameObject.GetComponent<Renderer>().material.color = Color.red;
 		}
 		else if(gameController.thisPlayer == Game.PlayerType.GS)
 		{
 			if(attemptedSelection == SelectionType.SM ||
 			   attemptedSelection == SelectionType.ClosedDoor)
-				gameObject.renderer.material.color = Color.red;
+				gameObject.GetComponent<Renderer>().material.color = Color.red;
 		}
 	}
 	
@@ -111,34 +111,34 @@ public class Interactible : MonoBehaviour {
 		if (gameController.thisPlayer == Game.PlayerType.SM)
 		{
 			if (attemptedSelection == SelectionType.GS)
-				gameObject.renderer.material.color = gsColour.color;
+				gameObject.GetComponent<Renderer>().material.color = gsColour.color;
 		}
 		else
 		{
 			if(attemptedSelection == SelectionType.SM)
-				gameObject.renderer.material.color = smColour.color;
+				gameObject.GetComponent<Renderer>().material.color = smColour.color;
 		}
 
 		if (attemptedSelection == SelectionType.ClosedDoor)
-			gameObject.renderer.material.color = doorColour.color;
+			gameObject.GetComponent<Renderer>().material.color = doorColour.color;
 
 		//RB 8.10.14 Redone to support highlighting of all available squares in movement
 		if (attemptedSelection == SelectionType.Square)
 		{
-			red = gameObject.renderer.material.color.r;
-			green = gameObject.renderer.material.color.g;
-			blue = gameObject.renderer.material.color.b;
+			red = gameObject.GetComponent<Renderer>().material.color.r;
+			green = gameObject.GetComponent<Renderer>().material.color.g;
+			blue = gameObject.GetComponent<Renderer>().material.color.b;
 			if(gameController.gameState != Game.GameState.Reveal)
 			{
-				if(gameObject.renderer.material.color == Color.blue){
-					gameObject.renderer.material.color = Color.green;
+				if(gameObject.GetComponent<Renderer>().material.color == Color.blue){
+					gameObject.GetComponent<Renderer>().material.color = Color.green;
 
 					// ====== Hologram Removal = Alisdair ===
 
 					//if(Debug.isDebugBuild)Debug.Log ("Not Allowed To Remove Hologram?: " + inputHandlerController.keepHologram);
 					if(!inputHandlerController.keepHologram){										// Remove the hologram on exit if allowed to Alisdair
 						foreach (GameObject ps in ioController.activePartSys){
-							ps.particleSystem.enableEmission = false; 								// Stop the particle emission Alisdair
+							ps.GetComponent<ParticleSystem>().enableEmission = false; 								// Stop the particle emission Alisdair
 						}
 						ioController.activePartSys.Clear();											// Reset the active Particle systems
 						//Debug.Log("ACTIVE PART SYS SHOULD HAVE BEEN CLEARED: " + ioController.activePartSys.Count);
@@ -147,16 +147,16 @@ public class Interactible : MonoBehaviour {
 					// =======================================
 				}
 				if (!inputHandlerController.coloursSet)
-					gameObject.renderer.material.color = Color.white;
-				else if (gameObject.renderer.material.color != Color.green)
+					gameObject.GetComponent<Renderer>().material.color = Color.white;
+				else if (gameObject.GetComponent<Renderer>().material.color != Color.green)
 				{
-					gameObject.renderer.material.color = floorColour.color;
+					gameObject.GetComponent<Renderer>().material.color = floorColour.color;
 				}
 			}
 
 			else if(Mathf.Approximately(red, 0.68f) && Mathf.Approximately(green, 0.51f) && Mathf.Approximately(blue, 0.69f))
 	        {
-				gameObject.renderer.material.color = new Color(0.68f, 0.51f, 0.69f);
+				gameObject.GetComponent<Renderer>().material.color = new Color(0.68f, 0.51f, 0.69f);
 			}
 
 			if (gameController.gameState == Game.GameState.Reveal){
@@ -169,7 +169,7 @@ public class Interactible : MonoBehaviour {
 					   new Vector2(gameObject.transform.position.x, gameObject.transform.position.z)){
 						foreach (Transform ps in gameObject.transform){
 
-								ps.gameObject.particleSystem.emissionRate = ioController.lowEmissionRate;
+								ps.gameObject.GetComponent<ParticleSystem>().emissionRate = ioController.lowEmissionRate;
 						}
 					}
 				}
@@ -192,7 +192,7 @@ public class Interactible : MonoBehaviour {
 			//th first if statement checks to see if the click is meant for the UI
 			if (isSelectable ())
 			{
-				gameController.audio.PlayOneShot(ioController.clickSound);
+				gameController.GetComponent<AudioSource>().PlayOneShot(ioController.clickSound);
 				if (gameController.gameState == Game.GameState.AttackSelection)
 	            {
 					//Added RB 25.9.14
@@ -234,7 +234,7 @@ public class Interactible : MonoBehaviour {
             {
 				//Additional checks RB 2.10.14
 				//deselect everything if not clicking on a valid selection
-				gameController.audio.PlayOneShot(ioController.click_error);
+				gameController.GetComponent<AudioSource>().PlayOneShot(ioController.click_error);
 				if (gameController.unitSelected)
 				{
 					if(gameController.gameState == Game.GameState.MoveSelection)
@@ -248,9 +248,9 @@ public class Interactible : MonoBehaviour {
 						if (ioController.selectFacingCanvasExists){																	// Remove the hologram and the canvas from the square that it was on
 							foreach (GameObject ps in ioController.activePartSys){
 								//if(Debug.isDebugBuild)Debug.Log ("FadingParticles");
-								ps.particleSystem.enableEmission = false;
+								ps.GetComponent<ParticleSystem>().enableEmission = false;
 								//if(Debug.isDebugBuild)Debug.Log ("Emission: " + ps.enableEmission);
-								ps.particleSystem.emissionRate = ioController.normalEmissionRate;
+								ps.GetComponent<ParticleSystem>().emissionRate = ioController.normalEmissionRate;
 								//if(Debug.isDebugBuild)Debug.Log ("Emission Rate: " + ps.enableEmission);
 							}
 							Destroy(ioController.currentFacingSelectionCanvas);														// Remove the select Facing Canvas
