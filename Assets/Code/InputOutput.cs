@@ -2159,7 +2159,7 @@ public class InputOutput : MonoBehaviour {
 	/// Functionality Required - IT'S EASTER EGG TIME!
 	/// </summary>
 	void removePeanutButter(){
-			if (Debug.isDebugBuild) Debug.Log("PEANUT BUTTER REMOVED");
+			if (Debug.isDebugBuild) Debug.Log("PEANUT BUTTER REMOVED"); // Closes #63
 	}
 
 	/// <summary>
